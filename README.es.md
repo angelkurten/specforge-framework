@@ -2,6 +2,7 @@
 
 Un framework para escribir especificaciones rigurosas (PRDs y ADRs) con IA como autora principal. Agnóstico al stack, agnóstico al dominio, con humano en el bucle.
 
+**Documentación:** [angelkurten.github.io/specforge-framework](https://angelkurten.github.io/specforge-framework/)
 **Also available in:** [English](README.md)
 
 ## Qué es

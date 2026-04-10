@@ -2,6 +2,7 @@
 
 A framework for writing rigorous specifications (PRDs and ADRs) with AI as the primary author. Stack-agnostic, domain-agnostic, human-in-the-loop.
 
+**Documentation:** [angelkurten.github.io/specforge-framework](https://angelkurten.github.io/specforge-framework/)
 **Also available in:** [Español](README.es.md)
 
 ## What it is
