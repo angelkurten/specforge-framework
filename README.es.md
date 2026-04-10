@@ -104,14 +104,22 @@ El **registry de Sibling projects** en [`SIBLINGS.md`](SIBLINGS.md) es el direct
 ```mermaid
 flowchart TB
     scope[1. Scope the request] --> ground[2. Ground in reality]
-    ground --> plan[3. Plan the document]
+    ground -->|parallel — one per<br/>impacted sibling| siblingsGround[[Sibling Explore:<br/>read its CLAUDE.md,<br/>SYSTEM_ARTIFACT, code]]
+    siblingsGround --> plan[3. Plan the document]
     plan --> draft[4. Draft]
     draft --> review[5. Multi-reviewer critique]
-    review --> fixes[6. Apply fixes]
-    fixes --> rereview[7. Scoped re-review]
-    rereview --> merge[8. Ship as Draft]
-    merge --> impl[9. Implement, then gate to Implemented]
+    review -->|parallel — per sibling<br/>× reviewer role| reviewers[[Backend · Frontend<br/>Security · Quality<br/>reviewers in parallel]]
+    reviewers --> decide{Any 🔴<br/>blockers?}
+    decide -->|yes| fixes[6. Apply fixes]
+    fixes --> rereview[7. Scoped re-review<br/>only blocked domains]
+    rereview --> decide
+    decide -->|no| ship[8. Ship as Draft]
+    ship --> impl[9. Implement, then gate]
+    impl -->|per impacted sibling| siblingsImpl[[Update sibling's<br/>SYSTEM_ARTIFACT.md +<br/>fill gate block entry]]
+    siblingsImpl --> done([Status: Implemented])
 ```
+
+Los pasos 2, 5 y 9 **se bifurcan por cada sibling impactado** — cada sibling recibe su propio agente Explore durante el grounding, su propia instancia de revisor (por rol) durante la crítica, y su propia actualización de `SYSTEM_ARTIFACT.md` durante la implementación. La fase de review (pasos 5 → 6 → 7) es **cíclica**: el re-review scoped loopea por fixes hasta que no queden 🔴 bloqueantes, y recién ahí procede al ship.
 
 > Nota: los labels del diagrama y los nombres de paso se mantienen en inglés a propósito, para que coincidan 1-a-1 con los headers del workflow en `CLAUDE.md`. El idioma del proceso es inglés; la narrativa alrededor puede estar en cualquier idioma.
 

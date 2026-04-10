@@ -104,14 +104,22 @@ The **Sibling projects registry** in [`SIBLINGS.md`](SIBLINGS.md) is the directo
 ```mermaid
 flowchart TB
     scope[1. Scope the request] --> ground[2. Ground in reality]
-    ground --> plan[3. Plan the document]
+    ground -->|parallel — one per<br/>impacted sibling| siblingsGround[[Sibling Explore:<br/>read its CLAUDE.md,<br/>SYSTEM_ARTIFACT, code]]
+    siblingsGround --> plan[3. Plan the document]
     plan --> draft[4. Draft]
     draft --> review[5. Multi-reviewer critique]
-    review --> fixes[6. Apply fixes]
-    fixes --> rereview[7. Scoped re-review]
-    rereview --> merge[8. Ship as Draft]
-    merge --> impl[9. Implement, then gate to Implemented]
+    review -->|parallel — per sibling<br/>× reviewer role| reviewers[[Backend · Frontend<br/>Security · Quality<br/>reviewers in parallel]]
+    reviewers --> decide{Any 🔴<br/>blockers?}
+    decide -->|yes| fixes[6. Apply fixes]
+    fixes --> rereview[7. Scoped re-review<br/>only blocked domains]
+    rereview --> decide
+    decide -->|no| ship[8. Ship as Draft]
+    ship --> impl[9. Implement, then gate]
+    impl -->|per impacted sibling| siblingsImpl[[Update sibling's<br/>SYSTEM_ARTIFACT.md +<br/>fill gate block entry]]
+    siblingsImpl --> done([Status: Implemented])
 ```
+
+Steps 2, 5 and 9 **fan out across the impacted siblings** — each sibling gets its own Explore agent during grounding, its own reviewer instance (per role) during critique, and its own `SYSTEM_ARTIFACT.md` update during implementation. The review phase (steps 5 → 6 → 7) is **cyclic**: scoped re-review loops back through fixes until no 🔴 blockers remain, then proceeds to ship.
 
 Full nine-step workflow with rules for each step: `CLAUDE.md`.
 
