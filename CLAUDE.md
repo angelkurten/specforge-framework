@@ -18,9 +18,19 @@ specforge distinguishes three kinds of documents. Do not confuse them.
 |---|---|---|
 | **PRD** | A long ADR with implementation detail. Specifies *what* to build and *how* for one feature or change. | Historical snapshot. Frozen at `Implemented`. |
 | **ADR** | A focused architectural decision with alternatives and trade-offs. | Historical snapshot. Frozen at `Accepted`. |
-| **SYSTEM_ARTIFACT.md** | Current state of the system, organized by domain (auth, billing, ingest…). The one place to learn "what exists today". | Living document. Updated whenever a PRD ships. |
+| **SYSTEM_ARTIFACT.md** | Current state of one sibling project, organized by domain (auth, billing, ingest…). One file per project that needs it; lives inside that sibling, not in specforge. The one place to learn "what exists today" for that project. | Living document. Updated whenever a PRD that impacts the project ships. |
 
-**Critical: PRDs are not living docs.** A PRD marked `Implemented` means "this is the design we shipped at commit X on date Y". It does *not* track subsequent changes. If you want to know what the system does *now*, read `SYSTEM_ARTIFACT.md` or the code. If you want to know *why* something was built the way it was, read the PRD that introduced it.
+**Critical: PRDs are not living docs.** A PRD marked `Implemented` means "this is the design we shipped at commit X on date Y". It does *not* track subsequent changes. If you want to know what the system does *now*, read the relevant sibling project's `SYSTEM_ARTIFACT.md` (see § Sibling projects below) or the code. If you want to know *why* something was built the way it was, read the PRD that introduced it.
+
+## Sibling projects
+
+**specforge is a sibling directory to the code repositories it describes, not a subdirectory of them.** This directory and the PRDs around it contain no code — every reference to code points at a neighbouring project at a known relative path.
+
+Team-specific project data lives in a dedicated registry file: **[`SIBLINGS.md`](SIBLINGS.md)** at the root of this directory. It is the single source of truth for which projects exist, where they live, what stacks they use, and which are active vs retired. Framework files (this `CLAUDE.md`, `CONVENTIONS.md`, templates, examples, agents) ship with specforge and are updated by pulling a new version; `SIBLINGS.md` is team data that never conflicts with framework upgrades.
+
+**On day 1 of adoption, fill in `SIBLINGS.md` before writing any PRD.** See § Bootstrapping below.
+
+Every PRD's `Impacted Projects` table references projects by name alone — those names must match active rows in `SIBLINGS.md` (see hard rule 11). Step 2 of the workflow (Ground in reality) launches parallel Explore agents against the paths declared in the registry and halts if any path does not resolve on the current machine.
 
 ## Workflow
 
@@ -32,13 +42,16 @@ If the request is vague ("let me rethink auth"), ask clarifying questions in pro
 
 ### 2. Ground in reality
 
-Launch parallel `Explore` agents (or equivalent) to read, in this order:
+**Precondition:** before launching grounding agents, verify every registry path (column `Path` in `SIBLINGS.md`) resolves on the current machine for the siblings this change will impact. If any path does not resolve, **halt and ask the user** — never proceed with partial grounding. Silent degradation produces PRDs that cite code that does not exist.
 
-1. `SYSTEM_ARTIFACT.md` for the impacted domain(s).
-2. Related existing PRDs and ADRs (search by keyword, read `Depends on` chains).
-3. The actual code for every component the change touches.
+Once paths are verified, launch parallel `Explore` agents (or equivalent) — **one agent per impacted sibling** (as listed in `SIBLINGS.md`). Each agent reads, in this order:
 
-Do not proceed to drafting until each reviewer can point to concrete files, functions, tables, or endpoints that already exist. **Never invent** an endpoint, table, model, or function name. If something is new, mark it explicitly as new.
+1. That sibling's `CLAUDE.md` (project-specific rules on top of specforge's).
+2. That sibling's `SYSTEM_ARTIFACT.md`, if the registry declares one.
+3. Related existing PRDs and ADRs in specforge (search by keyword, read `Depends on` chains).
+4. The actual code inside that sibling for every component the change touches.
+
+Do not proceed to drafting until the findings from every sibling agent point to concrete files, functions, tables, or endpoints that already exist in that sibling. **Never invent** an endpoint, table, model, or function name. If something is new, mark it explicitly as new.
 
 ### 3. Plan the document
 
@@ -104,9 +117,10 @@ These are not preferences. Violating them fails review.
 5. **One question at a time** in `AskUserQuestion`. Never batch questions inside a single tool call.
 6. **`Implemented` requires the three-field gate.** Draft PRDs never carry `commit_hash`, `tests`, or `system_artifact_diff` fields populated.
 7. **PRDs are frozen snapshots.** Do not edit a PRD marked `Implemented` except to correct factual errors or mark it `Superseded by PRD-N`. Design evolution happens in a new PRD.
-8. **`SYSTEM_ARTIFACT.md` is updated on every ship.** It is the only living document.
+8. **Each impacted sibling's `SYSTEM_ARTIFACT.md` is updated on every ship that touches that sibling.** `SYSTEM_ARTIFACT.md` files (one per sibling that maintains one) are the only living documents in this framework — PRDs and ADRs are frozen snapshots. The `system_artifact_diff` gate field is what enforces this: you cannot promote a PRD without updating the living state of every sibling it impacts.
 9. **No marketing language.** Forbidden: "blazingly fast", "enterprise-grade", "best-in-class", "robust", "seamless". Use concrete, measurable claims.
 10. **Required in every PRD**: the `Impacted Projects` table in the header, plus these numbered sections — Problem Statement, Goals, Non-Goals, User Flows *(if user-visible)*, API, Data Model, Architecture, Security, Test Plan, Migration Plan, Open Questions. See `CONVENTIONS.md` § 6.
+11. **Sibling registry discipline.** Every row in a PRD's `Impacted Projects` table must match, by name, a row in `SIBLINGS.md`. `Draft` PRDs may only cite rows with `Status: active`; historical PRDs (`Implemented`, `Superseded`) may cite retired rows too (the registry is append-only — see `SIBLINGS.md` § Rules). Adding, renaming, or retiring a sibling in the registry happens in the same commit as the PRD that triggers it, never afterwards.
 
 ## PRD vs ADR vs SYSTEM_ARTIFACT update
 
@@ -122,26 +136,61 @@ Use this table to decide which document to write.
 | A correction of a factual error in an existing PRD (typo, wrong path). | **Edit in place**, note the correction at the top. Do not bump status. |
 | A discovery that a shipped PRD was never fully implemented. | **Move it back to `Draft`**, strip the gate fields, explain why at the top. |
 
-## Bootstrapping a new project
+## Bootstrapping a new specforge directory
 
-First-time adopters start with no `SYSTEM_ARTIFACT.md`. Bootstrap it in a single pass:
+On day 1, a team adopting specforge has three setup tasks. Do them in order, before writing any PRD.
 
-1. Run parallel `Explore` agents over the existing codebase, one per domain the team already recognises (auth, billing, ingest, reporting…).
-2. For each domain, record: what exists, where it lives (file paths), what external dependencies it has, and any known invariants.
-3. Commit `SYSTEM_ARTIFACT.md` as the first checkpoint. From that point on, every PRD that ships updates it.
+### 0. Decide where specforge lives in your repo topology
 
-Do not try to retrofit PRDs for already-shipped features. Historical PRDs are not a goal of this framework — `SYSTEM_ARTIFACT.md` covers the "what exists now" question.
+specforge expects to live as a sibling directory to the code repos it describes (see § Layout below). Pick one layout:
+
+- **Monorepo**: add `specforge/` as a top-level directory alongside your existing code directories. `../api-service/` resolves within the monorepo.
+- **Independent sibling repos**: clone specforge as its own repository under the same parent as your code repos (e.g. `~/work/specforge/`, `~/work/api-service/`). `../api-service/` resolves across repos.
+
+If your team cannot guarantee the sibling layout on every machine that runs specforge tooling (dev laptops, CI runners, staging boxes), use absolute paths in `SIBLINGS.md` instead of relative ones, and document the convention in your team's onboarding.
+
+### 1. Fill in `SIBLINGS.md`
+
+Edit `SIBLINGS.md` at the root of this directory with every code repository your team maintains that PRDs will reference. For each row, set: `Project` name, `Path`, `Read first`, `Stack`, and `Status: active`. Delete the placeholder rows. Commit this as your first specforge commit — the registry is a prerequisite for step 2 of the workflow.
+
+### 2. Bootstrap each service-heavy sibling's `SYSTEM_ARTIFACT.md` (incremental is fine)
+
+For each sibling project with substantive domain logic (typically backend services), run a one-off Explore pass over its code:
+
+1. Inside that sibling project, create `docs/SYSTEM_ARTIFACT.md` (or whatever path you declared in `SIBLINGS.md`) by copying `specforge/templates/system-artifact.md`.
+2. Launch parallel Explore agents, one per domain the team already recognises in that project (auth, billing, ingest, reporting…), to fill in the sections.
+3. For each domain, record: what exists, where it lives (file paths), external dependencies, and any known invariants.
+4. Commit the file inside that sibling project. From that point on, every PRD that impacts the project must update it (enforced by the `system_artifact_diff` gate field).
+
+**Incremental adoption is supported and expected.** A team with ten services does not have to bootstrap ten `SYSTEM_ARTIFACT.md` files on day 1 — that is not realistic. Start with the sibling your first PRD touches. Add a sibling to `SIBLINGS.md` with `Read first: CLAUDE.md` (no SYSTEM_ARTIFACT) and the first PRD that impacts that sibling may bootstrap its `SYSTEM_ARTIFACT.md` as part of the same change. The gate block's `system_artifact_diff:` list entry then points at the newly created file, and the registry row is updated in the same commit to declare its location.
+
+UI-only or thin siblings may skip SYSTEM_ARTIFACT creation permanently — their PRDs will be grounded directly against their code during step 2 of the workflow.
+
+**Do not retrofit PRDs for already-shipped features.** Historical PRDs are not a goal of this framework — the per-sibling `SYSTEM_ARTIFACT.md` files cover the "what exists now" question.
 
 ## Layout
 
+specforge expects to live as a sibling directory to the code repositories it describes. A typical team layout looks like this:
+
 ```
-specforge/
-├── CLAUDE.md            # This file. Loaded by AI tools automatically.
-├── CONVENTIONS.md       # Detailed reference: naming, headers, sections, diagrams.
-├── README.md            # Human-facing intro and adoption guide.
-├── templates/           # PRD template, ADR template, SYSTEM_ARTIFACT template.
-├── examples/            # Worked examples of each document type.
-└── agents/              # Reviewer briefings (backend, frontend, security, quality).
+<your-org>/                         # repo root (monorepo, or parent of sibling repos)
+├── specforge/                      # this framework
+│   ├── CLAUDE.md                   # this file. Framework rules. Loaded by AI tools automatically.
+│   ├── CONVENTIONS.md              # detailed reference: naming, headers, sections, diagrams.
+│   ├── SIBLINGS.md                 # team-mutable registry of sibling projects. Fill in on day 1.
+│   ├── README.md                   # human-facing intro and adoption guide.
+│   ├── templates/                  # PRD, ADR, SYSTEM_ARTIFACT templates.
+│   ├── examples/                   # worked examples of each document type.
+│   ├── agents/                     # reviewer briefings (backend, frontend, security, quality).
+│   ├── NNN-your-prd.md             # your PRDs live at the specforge root.
+│   └── ADR-NNN-your-adr.md         # your ADRs too.
+├── api-service/                    # sibling project (example — a backend service)
+│   ├── CLAUDE.md                   # project-specific rules (stack, lint, test conventions)
+│   └── docs/
+│       └── SYSTEM_ARTIFACT.md      # living state for api-service, referenced by the gate
+└── web-client/                     # sibling project (example — a frontend)
+    ├── CLAUDE.md                   # project-specific rules
+    └── (no SYSTEM_ARTIFACT — UI-only, grounded from code directly)
 ```
 
-When in doubt about format, consult `CONVENTIONS.md`. When in doubt about how a reviewer should behave, consult `agents/`. When in doubt about what a good PRD looks like, consult `examples/`.
+When in doubt about format, consult `CONVENTIONS.md`. When in doubt about how a reviewer should behave, consult `agents/`. When in doubt about what a good PRD looks like, consult `examples/`. When in doubt about which sibling a PRD impacts, consult `SIBLINGS.md`.

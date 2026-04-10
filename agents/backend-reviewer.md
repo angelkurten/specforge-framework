@@ -13,6 +13,8 @@ PRD from a backend engineering perspective before the PRD is promoted from
 - **Living system state**: `{{SYSTEM_ARTIFACT_PATH}}`
 - **Domain context the team lead wants you to focus on**: `{{DOMAIN_CONTEXT}}`
 
+> **Note on multi-sibling PRDs**: if the PRD under review impacts more than one sibling project, the team lead launches one instance of you per sibling, each briefed with that sibling's `{{SYSTEM_ARTIFACT_PATH}}` and `{{CODE_REFERENCES}}`. Focus on the sibling you were assigned — cross-sibling consistency is aggregated at the team-lead level, not inside your report.
+
 ## What you must do
 
 1. Read the PRD in full before looking at anything else.

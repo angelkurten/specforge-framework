@@ -1,17 +1,27 @@
 # SYSTEM_ARTIFACT
 
+**Project**: <!-- the sibling project this file describes, e.g. api-service -->
 **Last updated**: YYYY-MM-DD
 **Version**: 0.1.0
 **Maintainers**: <!-- roles or teams, not names -->
 
 <!--
-  SYSTEM_ARTIFACT.md is the single source of truth for the current state of
-  the system. PRDs are historical snapshots ("this is what we decided to
-  build, frozen at commit X"); this document is a living reference ("this is
-  what exists today"). If the two disagree, this document wins.
+  THIS FILE LIVES INSIDE A SIBLING PROJECT, NOT IN THE specforge DIRECTORY.
+  Typical location: `<sibling-project>/docs/SYSTEM_ARTIFACT.md`.
+  specforge's CLAUDE.md § Sibling projects declares where each sibling keeps
+  this file — update the registry if you change the location.
 
-  See [CONVENTIONS.md](../CONVENTIONS.md) for the full rules around
-  historical snapshots vs living state.
+  SYSTEM_ARTIFACT.md is the single source of truth for the current state of
+  one sibling project. PRDs (in the specforge directory) are historical
+  snapshots ("this is what we decided to build, frozen at commit X"); this
+  document is a living reference ("this is what exists today" for this
+  project). If the two disagree, this document wins.
+
+  Teams with multiple sibling projects keep one SYSTEM_ARTIFACT.md per
+  project — do not merge them into a single file.
+
+  See [specforge CONVENTIONS.md](../../specforge/CONVENTIONS.md) for the
+  full rules around historical snapshots vs living state.
 -->
 
 ---

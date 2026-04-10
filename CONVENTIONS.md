@@ -77,11 +77,13 @@ Every PRD begins with an H1 title followed by a metadata block. Draft PRDs and I
 
 ## Impacted Projects
 
-| Project | Repo / Path | Impact |
-|---|---|---|
-| **primary-service** | `org/primary-service` | New endpoints under `/v1/auth/*`, new table `oauth_sessions`, new worker `refresh_loop`. |
-| web-app | `org/web-app` | New login callback route, updated auth context. |
+| Project | Impact |
+|---|---|
+| **api-service** | New endpoints under `/v1/auth/*`, new table `oauth_sessions`, new worker `refresh_loop`. |
+| web-client | New login callback route, updated auth context. |
 ```
+
+The `Project` column contains the name of a sibling — no path, no repo slug. Every name here must match an active row in [`SIBLINGS.md`](SIBLINGS.md). Everything else about the project (where it lives, what stack it runs) lives in the registry, not duplicated in every PRD.
 
 ### Implemented PRD header
 
@@ -106,24 +108,28 @@ Every PRD — `Draft` or `Implemented` — carries a gate block at the very bott
 ```yaml
 commit_hash: a1b2c3d4
 tests:
-  - tests/auth/oauth_flow_test       # any language — .py, .ts, .go, _test.go, etc.
-  - tests/auth/refresh_test
-system_artifact_diff: SYSTEM_ARTIFACT.md#auth-oauth (commit a1b2c3d4)
+  - ../api-service/tests/auth/oauth_flow_test   # relative to the specforge dir; any language
+  - ../api-service/tests/auth/refresh_test
+system_artifact_diff:
+  - ../api-service/docs/SYSTEM_ARTIFACT.md#auth-oauth (commit a1b2c3d4)
 ```
 
 Rules:
 
 - In a `Draft` PRD, the block is present but every field is `[TBD]` or an empty YAML list. Never omit the block.
 - A PRD cannot carry `Status: Implemented` unless all three fields are present and non-empty. If any is `[TBD]`, empty, or missing, the PRD stays `Draft`. No exceptions.
-- `tests` is always a YAML list, even when there is only one test file.
-- `commit_hash` is the commit (or merge commit) where the feature landed on the main branch.
-- `system_artifact_diff` is a link to the `SYSTEM_ARTIFACT.md` section (with anchor) and the commit that updated it.
-- The gate block is the **only** location for these fields. Do not duplicate them in the header or anywhere else — tooling and grep rely on a single canonical location.
+- **Both `tests` and `system_artifact_diff` are always YAML lists**, even when the list has only one entry. Never a bare scalar. This rule is absolute — single-shape fields are what lets tooling and grep treat the gate block as machine-readable.
+- `tests` paths are **relative to the specforge directory** and typically point into one of the sibling projects declared in [`SIBLINGS.md`](SIBLINGS.md). Any language: `.py`, `.ts`, `.go`, `_test.go`, Rust modules — whatever the sibling uses.
+- `commit_hash` is the commit (or merge commit) where the feature landed on the main branch of the impacted sibling project. If a single PRD ships across multiple siblings in separate commits, use the last merge commit that completes the feature.
+- Each entry in `system_artifact_diff` is a relative path into one sibling's `SYSTEM_ARTIFACT.md` (with a section anchor) plus the commit that updated it. **The list length equals the number of impacted siblings that maintain a `SYSTEM_ARTIFACT.md`** — siblings without one (e.g. UI-only) contribute zero entries. A PRD that impacts two siblings where only one has a `SYSTEM_ARTIFACT.md` has a 1-element list, not a 2-element list with a blank.
+- The gate block is the **only** location for these fields. Do not duplicate them in the header or anywhere else.
 
 ### Impacted Projects table
 
-Mandatory in every PRD, even when only one project is affected. Rules:
+Mandatory in every PRD, even when only one project is affected. Two columns only: `Project` and `Impact`. No path, no repo slug, no stack column — all of that lives in [`SIBLINGS.md`](SIBLINGS.md). Rules:
 
+- **The `Project` cell must match, character-for-character, a row's `Project` name in `SIBLINGS.md`** (bold marker on the primary project is fine; the match is against the name inside the bold). Draft PRDs may only cite active rows; historical PRDs may cite retired rows.
+- If a PRD needs to touch a project not yet in the registry, add the registry row in the same commit as the PRD — never after the fact (see `CLAUDE.md` hard rule 11).
 - The primary project is listed first and bolded.
 - The `Impact` column must be concrete: name the new endpoints, tables, modules, env vars. No vague phrases like "minor changes".
 - If a project is touched for tests only, say so explicitly.

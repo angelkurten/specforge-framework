@@ -11,16 +11,22 @@
 > filled-in PRD looks like. It is not a real product requirement. Specific
 > values below (hashing parameters, token TTLs, rate limits, retention
 > windows) are illustrative choices made by a fictional team, not
-> requirements of specforge. See [../templates/prd.md](../templates/prd.md)
-> for the blank template and [../CONVENTIONS.md](../CONVENTIONS.md) for the
-> authoring rules.
+> requirements of specforge. The two `system-artifact-example.md` links
+> below stay inside `examples/` because both files ship together as
+> documentation; in a real PRD the equivalent links would point into the
+> impacted sibling's `docs/SYSTEM_ARTIFACT.md` — see
+> [`../SIBLINGS.md`](../SIBLINGS.md). See
+> [../templates/prd.md](../templates/prd.md) for the blank template and
+> [../CONVENTIONS.md](../CONVENTIONS.md) for the authoring rules.
 
 ## Impacted Projects
 
-| Project | Repo | Impact |
-|---------|------|--------|
-| **api-service** | `example-org/api-service` | New `users` table, new `POST /auth/login` and `POST /auth/refresh` endpoints, new `AuthService`, new password hasher adapter, new rate-limit middleware on `/auth/*` |
-| web-client | `example-org/web-client` | New `/login` page, new `useSession` hook, new auth interceptor that attaches the access token to outgoing requests |
+| Project | Impact |
+|---------|--------|
+| **api-service** | New `users` table, new `POST /auth/login` and `POST /auth/refresh` endpoints, new `AuthService`, new password hasher adapter, new rate-limit middleware on `/auth/*` |
+| web-client | New `/login` page, new `useSession` hook, new auth interceptor that attaches the access token to outgoing requests |
+
+*(Both `api-service` and `web-client` are declared as active rows in [`../SIBLINGS.md`](../SIBLINGS.md). The `Project` column carries names only — path, stack, and read-first metadata live in the registry.)*
 
 ---
 
@@ -435,11 +441,15 @@ This is a greenfield change — no existing auth to migrate from.
 ## Gate: Promotion to `Implemented`
 
 ```yaml
-commit_hash:          [TBD]   # filled when this PRD ships
-tests:                         # filled when this PRD ships
+commit_hash: [TBD]                       # filled when this PRD ships
+tests:                                   # YAML list, relative to the specforge dir
+  - [TBD]                                #   e.g. ../api-service/tests/auth/login_test
   - [TBD]
-  - [TBD]
-system_artifact_diff: [TBD]   # filled when this PRD ships
+system_artifact_diff:                    # YAML list — one entry per impacted sibling
+  - [TBD]                                #   that maintains a SYSTEM_ARTIFACT.md.
+                                         #   web-client has no SYSTEM_ARTIFACT (UI-only),
+                                         #   so this list has exactly one entry pointing
+                                         #   at ../api-service/docs/SYSTEM_ARTIFACT.md#auth
 ```
 
 Once all three fields are filled and the linked tests pass on

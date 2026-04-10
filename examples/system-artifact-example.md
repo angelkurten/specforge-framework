@@ -1,12 +1,17 @@
 # SYSTEM_ARTIFACT
 
+**Project**: api-service
 **Last updated**: 2026-04-09
 **Version**: 0.3.0
 **Maintainers**: Platform team
 
 > **Note**: This is an **example SYSTEM_ARTIFACT** shipped with specforge
-> to show what the living state document looks like after a PRD has been
-> promoted to `Implemented`. It is not a real system. See
+> to show what the living state document looks like for **one sibling
+> project** after a PRD has been promoted to `Implemented`. It is not a
+> real system, and a team with multiple sibling projects keeps one such
+> file per project (never merged). In a real layout this file would live
+> at `../api-service/docs/SYSTEM_ARTIFACT.md` (relative to the specforge
+> directory), not inside specforge itself. See
 > [../templates/system-artifact.md](../templates/system-artifact.md) for
 > the blank template and
 > [prd-001-login-example.md](prd-001-login-example.md) for the PRD whose

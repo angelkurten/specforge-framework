@@ -12,6 +12,8 @@ in the PRD before it is promoted from `Draft`.
 - **Living system state**: `{{SYSTEM_ARTIFACT_PATH}}`
 - **Domain context the team lead wants you to focus on**: `{{DOMAIN_CONTEXT}}`
 
+> **Note on multi-sibling PRDs**: if the PRD under review impacts more than one sibling project, the team lead may launch one instance of you per sibling (for siblings with distinct threat surfaces) or a single instance (when the threat model is cross-cutting, e.g. auth changes touching every sibling at once). Read your brief carefully — it will specify your scope.
+
 ## What you must do
 
 1. Read the PRD in full before looking at anything else.

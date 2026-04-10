@@ -48,31 +48,50 @@ specforge trades speed for coherence. If you do not need coherence, the ceremony
 
 ## File layout
 
+specforge is designed to live **as a sibling directory to the code repositories it describes**, not as a subdirectory of any one of them. A typical team layout:
+
 ```
-specforge/
-├── README.md            ← you are here (English)
-├── README.es.md         ← Spanish version of this README
-├── CLAUDE.md            ← rules loaded automatically by AI tools (Claude Code and similar)
-├── CONVENTIONS.md       ← detailed reference: naming, headers, sections, diagrams, cross-refs
-├── templates/
-│   ├── prd.md                      ← blank PRD template
-│   ├── adr.md                      ← blank ADR template
-│   └── system-artifact.md          ← blank SYSTEM_ARTIFACT template (by-domain skeleton)
-├── examples/
-│   ├── prd-001-login-example.md    ← fully-filled PRD, all sections, login with email/password
-│   └── system-artifact-example.md  ← fully-filled SYSTEM_ARTIFACT showing the domain layout
-└── agents/
-    ├── backend-reviewer.md         ← briefing template for the backend reviewer agent
-    ├── frontend-reviewer.md        ← briefing template for the frontend reviewer agent
-    ├── security-reviewer.md        ← briefing template for the security reviewer agent
-    └── quality-reviewer.md         ← briefing template for the quality reviewer agent
+<your-org>/                         ← repo root (monorepo or parent of sibling repos)
+├── specforge/                      ← this framework
+│   ├── README.md                   ← you are here (English)
+│   ├── README.es.md                ← Spanish version of this README
+│   ├── CLAUDE.md                   ← framework rules loaded automatically by AI tools
+│   ├── CONVENTIONS.md              ← detailed reference: naming, headers, sections, diagrams
+│   ├── SIBLINGS.md                 ← team-mutable registry of sibling projects (fill in on day 1)
+│   ├── LICENSE                     ← MIT
+│   ├── templates/
+│   │   ├── prd.md
+│   │   ├── adr.md
+│   │   └── system-artifact.md      ← blank template; goes inside a sibling, not here
+│   ├── examples/
+│   │   ├── prd-001-login-example.md
+│   │   └── system-artifact-example.md   ← example SYSTEM_ARTIFACT for one sibling
+│   ├── agents/                     ← briefing templates for the four parallel reviewers
+│   │   ├── backend-reviewer.md
+│   │   ├── frontend-reviewer.md
+│   │   ├── security-reviewer.md
+│   │   └── quality-reviewer.md
+│   ├── NNN-your-prd.md             ← your PRDs live at the specforge root
+│   └── ADR-NNN-your-adr.md         ← your ADRs too
+├── api-service/                    ← sibling project (example — a backend)
+│   ├── CLAUDE.md                   ← project-specific rules (stack, lint, test conventions)
+│   └── docs/
+│       └── SYSTEM_ARTIFACT.md      ← living state for api-service; referenced by PRD gate blocks
+└── web-client/                     ← sibling project (example — a frontend)
+    ├── CLAUDE.md                   ← project-specific rules
+    └── (no SYSTEM_ARTIFACT — UI-only, grounded from code directly)
 ```
+
+The **Sibling projects registry** in [`SIBLINGS.md`](SIBLINGS.md) is the directory of everything specforge knows about — each PRD's `Impacted Projects` table must reference only projects listed there, by name. `SIBLINGS.md` is team data; the rest of the files are framework data that can be upgraded by pulling a new version of specforge without touching your registry.
 
 ## Quickstart
 
 1. **Copy specforge into your repo**, or keep it as a sibling directory that your AI tools can read. The only file consumed automatically by Claude Code (and similar) is `CLAUDE.md` — everything else is referenced from it.
 
-2. **Bootstrap `SYSTEM_ARTIFACT.md`.** On day 1 you will not have one. Create it from `templates/system-artifact.md` and run a single grounding pass: for each domain your team already recognises (auth, billing, reporting, whatever), launch an `Explore` agent to read your current code and fill in the section. Commit the result as your baseline. Do not try to retrofit PRDs for already-shipped features — `SYSTEM_ARTIFACT.md` alone covers the "what exists now" question.
+2. **Bootstrap on day 1 — in this order, before your first PRD:**
+   - **Decide where specforge lives** in your repo topology — as a top-level directory in a monorepo, or as its own repo cloned under the same parent as your code repos. Either works; both satisfy the `../api-service/` relative-path convention.
+   - **Fill in [`SIBLINGS.md`](SIBLINGS.md).** List every code repository your team maintains that PRDs will reference: project name, relative path, where its `CLAUDE.md` and `SYSTEM_ARTIFACT.md` live, stack summary, and `Status: active`. This is a prerequisite for the grounding step of the workflow.
+   - **Bootstrap each service-heavy sibling's `SYSTEM_ARTIFACT.md` inside that sibling** (typically at `<sibling>/docs/SYSTEM_ARTIFACT.md`). Copy `templates/system-artifact.md` into the sibling and run a one-off Explore pass — one agent per domain. **Incremental adoption is supported**: a team with 10 services does not bootstrap 10 SYSTEM_ARTIFACT files on day 1. Add the sibling to `SIBLINGS.md` with `Read first: CLAUDE.md` only, and the first PRD that impacts it can bootstrap its SYSTEM_ARTIFACT in the same change. UI-only siblings can skip this permanently — they ground from code directly. Do not retrofit PRDs for already-shipped features.
 
 3. **Write your first PRD.** Copy `templates/prd.md`, follow the workflow in `CLAUDE.md`, and use `examples/prd-001-login-example.md` as a reference for the level of detail expected.
 

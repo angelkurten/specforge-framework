@@ -21,15 +21,16 @@
 
 <!--
   Always include this table, even if only one project is impacted.
-  The primary project is bolded. "Impact" is a concrete technical summary,
-  not a sentence of prose — list the endpoints, tables, services, screens
-  or migrations that will change.
+  Two columns: Project (must match a row in SIBLINGS.md by name) and
+  Impact (concrete technical summary — endpoints, tables, services,
+  screens, migrations).
+  The primary project is bolded.
 -->
 
-| Project | Repo | Impact |
-|---------|------|--------|
-| **<project-name>** | `<org/repo>` | <!-- new endpoints, tables, services --> |
-| <project-name> | `<org/repo>` | <!-- screens, components, state changes --> |
+| Project | Impact |
+|---------|--------|
+| **<project-name-from-SIBLINGS.md>** | <!-- new endpoints, tables, services --> |
+| <project-name-from-SIBLINGS.md> | <!-- screens, components, state changes --> |
 
 ---
 
@@ -210,13 +211,21 @@ flowchart LR
 
 ```yaml
 commit_hash:          # e.g. 3f8a91c — the commit that shipped this PRD
-tests:                # list of test file paths that cover this PRD
-  - path/to/test_file_1
-  - path/to/test_file_2
-system_artifact_diff: # link to the SYSTEM_ARTIFACT.md diff for this change
+tests:                # YAML list of test paths, relative to the specforge dir,
+  - ../<sibling>/path/to/test_file_1     # typically into an impacted sibling project
+  - ../<sibling>/path/to/test_file_2
+system_artifact_diff: # YAML list — one entry per impacted sibling that maintains
+  - ../<sibling>/docs/SYSTEM_ARTIFACT.md#<section> (commit <hash>)   # a SYSTEM_ARTIFACT.md
 ```
+
+Both `tests` and `system_artifact_diff` are **always YAML lists**, even if the
+list has only one entry. Never a bare scalar. Siblings without a
+`SYSTEM_ARTIFACT.md` (e.g. UI-only) do not contribute an entry to
+`system_artifact_diff` — the list length equals the number of impacted siblings
+that maintain one.
 
 Once all three fields are filled and the linked tests pass on `commit_hash`,
 update `Status` to `Implemented` and freeze this document. Future changes go
-in a new PRD, not here. Current system state lives in
-[SYSTEM_ARTIFACT.md](../SYSTEM_ARTIFACT.md), not in this snapshot.
+in a new PRD, not here. Current system state lives in the relevant sibling
+project's `SYSTEM_ARTIFACT.md` (see [`SIBLINGS.md`](../SIBLINGS.md)), not in
+this snapshot.
