@@ -22,7 +22,7 @@ This file is **team data**, not framework data — upgrading specforge (pulling 
 
 PRDs reference projects by the name in the first column and nothing else. No path, no repo slug, no stack fragment — just the name. The registry is the single place where everything else about a project lives. If a reader needs to know where `api-service` is or what stack it runs, they look here, not at the PRD.
 
-This makes `CLAUDE.md` rule 11 mechanically verifiable: every row in a PRD's `Impacted Projects` table must match, character-for-character, a `Project` name in this file.
+This makes [`.claude/rules/hard-rules.md`](.claude/rules/hard-rules.md) rule 11 mechanically verifiable: every row in a PRD's `Impacted Projects` table must match, character-for-character, a `Project` name in this file.
 
 ### Draft PRDs reference active rows only
 
@@ -64,7 +64,7 @@ Paths in the `Path` column are relative to the specforge directory. They assume 
 - **Monorepo**: specforge is a top-level directory, siblings are other top-level directories, and `../api-service/` resolves within the monorepo.
 - **Independent sibling repos**: specforge is cloned under the same parent as the code repos (e.g. `~/work/specforge`, `~/work/api-service`), and `../api-service/` resolves across repos.
 
-Absolute paths are allowed but less portable — a laptop and a CI runner will disagree on them. Use relative paths if your team can guarantee the layout, absolute paths otherwise. The workflow's grounding step (`CLAUDE.md` § Workflow step 2) halts with an error if any registry path does not resolve on the machine running the tooling — silent degradation is never acceptable.
+Absolute paths are allowed but less portable — a laptop and a CI runner will disagree on them. Use relative paths if your team can guarantee the layout, absolute paths otherwise. The workflow's grounding step ([`.claude/rules/workflow.md`](.claude/rules/workflow.md) step 2, "Ground in reality") halts with an error if any registry path does not resolve on the machine running the tooling — silent degradation is never acceptable.
 
 ### `Read first` is relative to the sibling root
 

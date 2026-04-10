@@ -9,22 +9,24 @@ from `Draft`.
 ## Inputs
 
 - **PRD under review**: `{{PRD_PATH}}`
+- **Sibling's `CLAUDE.md`** (frontend stack conventions — framework, state library, component patterns, lint, test runner): `{{SIBLING_CLAUDE_MD_PATH}}`
 - **Frontend code to verify against**: `{{CODE_REFERENCES}}`
-- **Living system state**: `{{SYSTEM_ARTIFACT_PATH}}`
+- **Living system state** (the sibling's `SYSTEM_ARTIFACT.md`, if maintained): `{{SYSTEM_ARTIFACT_PATH}}`
 - **Domain context the team lead wants you to focus on**: `{{DOMAIN_CONTEXT}}`
 
-> **Note on multi-sibling PRDs**: if the PRD under review impacts more than one sibling project, the team lead launches one instance of you per sibling, each briefed with that sibling's `{{SYSTEM_ARTIFACT_PATH}}` and `{{CODE_REFERENCES}}`. Focus on the sibling you were assigned.
+> **Note on multi-sibling PRDs**: if the PRD under review impacts more than one sibling project, the team lead launches one instance of you per sibling, each briefed with that sibling's `{{SIBLING_CLAUDE_MD_PATH}}`, `{{SYSTEM_ARTIFACT_PATH}}`, and `{{CODE_REFERENCES}}`. Focus on the sibling you were assigned.
 
 ## What you must do
 
-1. Read the PRD in full before looking at anything else.
-2. Read the referenced frontend code paths and the relevant sections of
+1. **Read `{{SIBLING_CLAUDE_MD_PATH}}` first.** You are running in the specforge session's cwd, not in the sibling's cwd — Claude Code does **not** auto-load the sibling's `CLAUDE.md`. You must Read it explicitly to understand the sibling's frontend conventions (framework, state library, component patterns, routing, lint rules, test runner). Skipping this step means you will review against specforge's generic rules and miss the sibling's frontend idioms.
+2. Read the PRD in full.
+3. Read the referenced frontend code paths and the relevant sections of
    `SYSTEM_ARTIFACT.md`. Verify the PRD's claims against the code — do
    not take them on faith.
-3. Where the PRD describes new components, pages, or state, pattern-match
+4. Where the PRD describes new components, pages, or state, pattern-match
    against the existing frontend conventions in the repo. Cite existing
    files when you reference a convention.
-4. Report findings back to the team lead in the format below.
+5. Report findings back to the team lead in the format below.
 
 ## What you are looking for
 

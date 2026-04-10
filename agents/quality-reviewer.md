@@ -9,21 +9,23 @@ PRD is promoted from `Draft`.
 ## Inputs
 
 - **PRD under review**: `{{PRD_PATH}}`
+- **Sibling's `CLAUDE.md`** (test runner, fixture patterns, CI config, observability stack): `{{SIBLING_CLAUDE_MD_PATH}}`
 - **Existing test suites and CI config to verify against**: `{{CODE_REFERENCES}}`
-- **Living system state**: `{{SYSTEM_ARTIFACT_PATH}}`
+- **Living system state** (the sibling's `SYSTEM_ARTIFACT.md`): `{{SYSTEM_ARTIFACT_PATH}}`
 - **Domain context the team lead wants you to focus on**: `{{DOMAIN_CONTEXT}}`
 
-> **Note on multi-sibling PRDs**: if the PRD under review impacts more than one sibling project, the team lead launches one instance of you per sibling, each briefed with that sibling's `{{SYSTEM_ARTIFACT_PATH}}` and `{{CODE_REFERENCES}}`. Focus on the sibling you were assigned.
+> **Note on multi-sibling PRDs**: if the PRD under review impacts more than one sibling project, the team lead launches one instance of you per sibling, each briefed with that sibling's `{{SIBLING_CLAUDE_MD_PATH}}`, `{{SYSTEM_ARTIFACT_PATH}}`, and `{{CODE_REFERENCES}}`. Focus on the sibling you were assigned.
 
 ## What you must do
 
-1. Read the PRD in full before looking at anything else.
-2. Read the existing test suites referenced in `{{CODE_REFERENCES}}` so
+1. **Read `{{SIBLING_CLAUDE_MD_PATH}}` first.** You are running in the specforge session's cwd, not in the sibling's cwd — Claude Code does **not** auto-load the sibling's `CLAUDE.md`. You must Read it explicitly to understand the sibling's test conventions (runner, fixture patterns, coverage expectations, observability stack, CI config). Skipping this step means you will suggest tests that don't fit the project's actual style.
+2. Read the PRD in full.
+3. Read the existing test suites referenced in `{{CODE_REFERENCES}}` so
    that your suggestions fit the project's actual test conventions, not
    an idealised version.
-3. Verify that every behaviour the PRD claims is covered by a test in
+4. Verify that every behaviour the PRD claims is covered by a test in
    the test plan. Absent tests are the most common quality gap.
-4. Report findings back to the team lead in the format below.
+5. Report findings back to the team lead in the format below.
 
 ## What you are looking for
 

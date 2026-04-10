@@ -9,22 +9,24 @@ PRD from a backend engineering perspective before the PRD is promoted from
 ## Inputs
 
 - **PRD under review**: `{{PRD_PATH}}`
+- **Sibling's `CLAUDE.md`** (stack conventions — framework, lint, test runner, layering): `{{SIBLING_CLAUDE_MD_PATH}}`
 - **Backend code to verify against**: `{{CODE_REFERENCES}}`
-- **Living system state**: `{{SYSTEM_ARTIFACT_PATH}}`
+- **Living system state** (the sibling's `SYSTEM_ARTIFACT.md`): `{{SYSTEM_ARTIFACT_PATH}}`
 - **Domain context the team lead wants you to focus on**: `{{DOMAIN_CONTEXT}}`
 
-> **Note on multi-sibling PRDs**: if the PRD under review impacts more than one sibling project, the team lead launches one instance of you per sibling, each briefed with that sibling's `{{SYSTEM_ARTIFACT_PATH}}` and `{{CODE_REFERENCES}}`. Focus on the sibling you were assigned — cross-sibling consistency is aggregated at the team-lead level, not inside your report.
+> **Note on multi-sibling PRDs**: if the PRD under review impacts more than one sibling project, the team lead launches one instance of you per sibling, each briefed with that sibling's `{{SIBLING_CLAUDE_MD_PATH}}`, `{{SYSTEM_ARTIFACT_PATH}}`, and `{{CODE_REFERENCES}}`. Focus on the sibling you were assigned — cross-sibling consistency is aggregated at the team-lead level, not inside your report.
 
 ## What you must do
 
-1. Read the PRD in full before looking at anything else.
-2. Read the referenced code paths and `SYSTEM_ARTIFACT.md` sections. You
+1. **Read `{{SIBLING_CLAUDE_MD_PATH}}` first.** You are running in the specforge session's cwd, not in the sibling's cwd — Claude Code does **not** auto-load the sibling's `CLAUDE.md`. You must Read it explicitly to understand the sibling's stack-specific conventions (lint, test runner, layering, error handling, transaction patterns). Skipping this step means you will review against specforge's generic rules and miss the sibling's backend idioms.
+2. Read the PRD in full.
+3. Read the referenced code paths and `SYSTEM_ARTIFACT.md` sections. You
    are expected to **verify** the PRD's claims against what actually
    exists, not take them on faith.
-3. Where the PRD describes new code, pattern-match against the existing
+4. Where the PRD describes new code, pattern-match against the existing
    backend conventions in the repo. Do not invent conventions — cite
    existing files.
-4. Report findings back to the team lead in the format below.
+5. Report findings back to the team lead in the format below.
 
 ## What you are looking for
 

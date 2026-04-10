@@ -8,20 +8,22 @@ in the PRD before it is promoted from `Draft`.
 ## Inputs
 
 - **PRD under review**: `{{PRD_PATH}}`
+- **Sibling's `CLAUDE.md`** (auth layer, crypto libraries, secret handling, input validation conventions): `{{SIBLING_CLAUDE_MD_PATH}}`
 - **Code to verify against**: `{{CODE_REFERENCES}}`
-- **Living system state**: `{{SYSTEM_ARTIFACT_PATH}}`
+- **Living system state** (the sibling's `SYSTEM_ARTIFACT.md`): `{{SYSTEM_ARTIFACT_PATH}}`
 - **Domain context the team lead wants you to focus on**: `{{DOMAIN_CONTEXT}}`
 
-> **Note on multi-sibling PRDs**: if the PRD under review impacts more than one sibling project, the team lead may launch one instance of you per sibling (for siblings with distinct threat surfaces) or a single instance (when the threat model is cross-cutting, e.g. auth changes touching every sibling at once). Read your brief carefully — it will specify your scope.
+> **Note on multi-sibling PRDs**: if the PRD under review impacts more than one sibling project, the team lead may launch one instance of you per sibling (for siblings with distinct threat surfaces, each briefed with its own `{{SIBLING_CLAUDE_MD_PATH}}`) or a single instance (when the threat model is cross-cutting, e.g. auth changes touching every sibling at once). Read your brief carefully — it will specify your scope.
 
 ## What you must do
 
-1. Read the PRD in full before looking at anything else.
-2. Threat-model the feature: who could misuse it, what they would gain,
+1. **Read `{{SIBLING_CLAUDE_MD_PATH}}` first.** You are running in the specforge session's cwd, not in the sibling's cwd — Claude Code does **not** auto-load the sibling's `CLAUDE.md`. You must Read it explicitly to understand the sibling's security-relevant conventions (auth middleware, crypto primitives, secret loading, input validation layers). Skipping this step means you will threat-model against generic assumptions and miss sibling-specific attack surfaces.
+2. Read the PRD in full.
+3. Threat-model the feature: who could misuse it, what they would gain,
    what stops them today, and what this PRD changes.
-3. Verify the PRD's security claims against real code. "We hash passwords
+4. Verify the PRD's security claims against real code. "We hash passwords
    with bcrypt" must be checked against the actual hasher in the repo.
-4. Report findings back to the team lead in the format below.
+5. Report findings back to the team lead in the format below.
 
 ## What you are looking for
 

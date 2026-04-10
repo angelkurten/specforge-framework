@@ -103,6 +103,8 @@ When the PRD is promoted to `Implemented`, the header adds one field (`Implement
 
 ### Gate block
 
+> **Behavioral rules** for the gate block (what triggers the `Draft` → `Implemented` promotion, list-shape invariants, `[TBD]` semantics) live in [`.claude/rules/gate-block.md`](.claude/rules/gate-block.md), which loads automatically every session. This section documents the **canonical YAML shape and field meanings** for reference.
+
 Every PRD — `Draft` or `Implemented` — carries a gate block at the very bottom, under a heading `## Gate: Promotion to Implemented`. The block is a YAML fence with exactly three fields:
 
 ```yaml
@@ -129,7 +131,7 @@ Rules:
 Mandatory in every PRD, even when only one project is affected. Two columns only: `Project` and `Impact`. No path, no repo slug, no stack column — all of that lives in [`SIBLINGS.md`](SIBLINGS.md). Rules:
 
 - **The `Project` cell must match, character-for-character, a row's `Project` name in `SIBLINGS.md`** (bold marker on the primary project is fine; the match is against the name inside the bold). Draft PRDs may only cite active rows; historical PRDs may cite retired rows.
-- If a PRD needs to touch a project not yet in the registry, add the registry row in the same commit as the PRD — never after the fact (see `CLAUDE.md` hard rule 11).
+- If a PRD needs to touch a project not yet in the registry, add the registry row in the same commit as the PRD — never after the fact (see [`.claude/rules/hard-rules.md`](.claude/rules/hard-rules.md) rule 11).
 - The primary project is listed first and bolded.
 - The `Impact` column must be concrete: name the new endpoints, tables, modules, env vars. No vague phrases like "minor changes".
 - If a project is touched for tests only, say so explicitly.
@@ -300,7 +302,7 @@ The following will fail review:
 | Editing a PRD marked `Implemented` (except factual corrections). | PRDs are frozen snapshots. Design evolution happens in a new PRD. |
 | Marking a PRD `Implemented` without `commit_hash`, `tests`, and `system_artifact_diff`. | The gate is mandatory. |
 | Non-standard status values (`WIP`, `Partial`, `Complete`, `Done`). | Only the enum values in § 5 are permitted. |
-| Marketing language (`blazingly fast`, `best-in-class`, `enterprise-grade`, `seamless`, `robust`). | Use measurable claims. |
+| Marketing language. | See rule 9 in [`.claude/rules/hard-rules.md`](.claude/rules/hard-rules.md) for the canonical forbidden list and reasoning. Use measurable claims. |
 | Batching multiple questions inside a single `AskUserQuestion` tool call. | One question per call, always. |
 | Images, screenshots, binary attachments. | PRDs are plain text by design. |
 

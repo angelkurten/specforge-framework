@@ -14,13 +14,13 @@ Distingue tres tipos de documentos y se niega a dejar que se confundan:
 |---|---|---|
 | **PRD** | Un ADR largo con detalle de implementación. Qué construir y cómo, para una feature o cambio. | Snapshot histórico. Congelado al llegar a `Implemented`. |
 | **ADR** | Una decisión arquitectónica enfocada con alternativas y trade-offs. | Snapshot histórico. Congelado al llegar a `Accepted`. |
-| **`SYSTEM_ARTIFACT.md`** | Estado actual del sistema, organizado por dominio. | Documento vivo, actualizado en cada ship. |
+| **`SYSTEM_ARTIFACT.md`** | Estado actual de un sibling project, organizado por dominio. Un archivo por proyecto que lo necesite; vive dentro de ese sibling, no en specforge. | Documento vivo, actualizado cuando un PRD que impacta el proyecto shippea. |
 
 La distinción central: **los PRDs no son docs vivas**. Un PRD marcado `Implemented` es un registro congelado de lo que el equipo decidió y shippeó en un commit específico. Para saber qué hace el sistema *hoy*, leer `SYSTEM_ARTIFACT.md` o el código. Para saber *por qué* algo se construyó como se construyó, leer el PRD que lo introdujo.
 
 ## De qué es opinionado specforge
 
-Seis principios, cada uno reforzado por reglas en `CLAUDE.md` y `CONVENTIONS.md`:
+Seis principios, cada uno reforzado por rule files en [`.claude/rules/`](.claude/rules/) y referencia de formato en [`CONVENTIONS.md`](CONVENTIONS.md):
 
 1. **Anclar antes de redactar.** Nunca inventar endpoints, tablas, funciones o config keys. Verificar cada referencia contra código real, o marcarla explícitamente como nueva.
 2. **Los PRDs son snapshots históricos, no docs vivas.** Los PRDs promovidos quedan congelados. La evolución del diseño vive en un nuevo PRD que declara `Supersedes:` contra el anterior.
@@ -86,14 +86,14 @@ El **registry de Sibling projects** en [`SIBLINGS.md`](SIBLINGS.md) es el direct
 
 ## Quickstart
 
-1. **Copiá specforge a tu repo**, o mantenelo como un directorio hermano que tus tools de IA puedan leer. El único archivo consumido automáticamente por Claude Code (y similares) es `CLAUDE.md` — los demás se referencian desde ahí.
+1. **Copiá specforge a tu repo**, o mantenelo como un directorio hermano que tus tools de IA puedan leer. Los archivos consumidos automáticamente por Claude Code son `CLAUDE.md` (entry point del framework — mental model y pointers) más los rule files unscoped bajo [`.claude/rules/`](.claude/rules/) (hard rules, workflow, gate block, PRD authoring). Los demás se referencian desde ahí.
 
 2. **Bootstrap del día 1 — en este orden, antes de tu primer PRD:**
    - **Decidí dónde vive specforge** en la topología de tu repo — como directorio top-level de un monorepo, o como repo propio cloneado bajo el mismo parent que tus code repos. Cualquiera funciona; ambos satisfacen la convención de paths relativos `../api-service/`.
    - **Llená [`SIBLINGS.md`](SIBLINGS.md).** Listá cada repo de código que tu equipo mantiene y que los PRDs van a referenciar: nombre, path relativo, dónde viven `CLAUDE.md` y `SYSTEM_ARTIFACT.md`, resumen del stack, y `Status: active`. Esto es prerequisito del paso de grounding del workflow.
    - **Bootstrapeá el `SYSTEM_ARTIFACT.md` de cada sibling service-heavy, adentro de ese sibling** (típicamente en `<sibling>/docs/SYSTEM_ARTIFACT.md`). Copiá `templates/system-artifact.md` al proyecto hermano y corré un paso único de Explore — un agente por dominio. **La adopción incremental está soportada**: un equipo con 10 servicios no bootstrapea 10 SYSTEM_ARTIFACTs el día 1. Añadí el sibling a `SIBLINGS.md` con `Read first: CLAUDE.md` solamente, y el primer PRD que lo impacte puede bootstrapear su SYSTEM_ARTIFACT en el mismo change. Los siblings UI-only pueden skippear esto permanentemente — se anclan directo contra el código. No intentes retrofittear PRDs para features ya shippeadas.
 
-3. **Escribí tu primer PRD.** Copiá `templates/prd.md`, seguí el workflow de `CLAUDE.md`, y usá `examples/prd-001-login-example.md` como referencia para el nivel de detalle esperado.
+3. **Escribí tu primer PRD.** Copiá `templates/prd.md`, seguí el workflow de 9 pasos en [`.claude/rules/workflow.md`](.claude/rules/workflow.md), y usá `examples/prd-001-login-example.md` como referencia para el nivel de detalle esperado.
 
 4. **Corré el loop de review.** Lanzá cuatro agentes revisores en paralelo, cada uno briefeado con el prompt correspondiente de `agents/`. Consolidá los findings por severidad. Re-revisá *solo* los dominios con 🔴 bloqueantes — nunca corras un review nuevo desde cero después de los fixes.
 
@@ -121,9 +121,9 @@ flowchart TB
 
 Los pasos 2, 5 y 9 **se bifurcan por cada sibling impactado** — cada sibling recibe su propio agente Explore durante el grounding, su propia instancia de revisor (por rol) durante la crítica, y su propia actualización de `SYSTEM_ARTIFACT.md` durante la implementación. La fase de review (pasos 5 → 6 → 7) es **cíclica**: el re-review scoped loopea por fixes hasta que no queden 🔴 bloqueantes, y recién ahí procede al ship.
 
-> Nota: los labels del diagrama y los nombres de paso se mantienen en inglés a propósito, para que coincidan 1-a-1 con los headers del workflow en `CLAUDE.md`. El idioma del proceso es inglés; la narrativa alrededor puede estar en cualquier idioma.
+> Nota: los labels del diagrama y los nombres de paso se mantienen en inglés a propósito, para que coincidan 1-a-1 con los headers del workflow en [`.claude/rules/workflow.md`](.claude/rules/workflow.md). El idioma del proceso es inglés; la narrativa alrededor puede estar en cualquier idioma.
 
-Workflow completo de nueve pasos con las reglas de cada uno: `CLAUDE.md`.
+Workflow completo de nueve pasos con las reglas de cada uno: [`.claude/rules/workflow.md`](.claude/rules/workflow.md). Hard rules, gate-block schema, y PRD authoring specifics están en sibling files bajo [`.claude/rules/`](.claude/rules/).
 
 ## Idioma
 

@@ -8,8 +8,9 @@
 <!--
   THIS FILE LIVES INSIDE A SIBLING PROJECT, NOT IN THE specforge DIRECTORY.
   Typical location: `<sibling-project>/docs/SYSTEM_ARTIFACT.md`.
-  specforge's CLAUDE.md § Sibling projects declares where each sibling keeps
-  this file — update the registry if you change the location.
+  specforge's SIBLINGS.md registry declares where each sibling keeps this
+  file (the "Read first" column). Update that registry row if you change
+  the location.
 
   SYSTEM_ARTIFACT.md is the single source of truth for the current state of
   one sibling project. PRDs (in the specforge directory) are historical

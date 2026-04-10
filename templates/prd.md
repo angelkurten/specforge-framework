@@ -13,8 +13,9 @@
     Implemented   — frozen snapshot tied to a specific commit (see gate below)
     Superseded    — replaced by another PRD; link it and keep history
 
-  See [CONVENTIONS.md](../CONVENTIONS.md) for the full status rules, naming,
-  and review workflow. See [CLAUDE.md](../CLAUDE.md) for agent authoring rules.
+  See [CONVENTIONS.md](../CONVENTIONS.md) for format reference (header shapes,
+  naming, diagrams, cross-references) and [../.claude/rules/](../.claude/rules/)
+  for behavioural rules: workflow, hard rules, gate block, required sections.
 -->
 
 ## Impacted Projects
