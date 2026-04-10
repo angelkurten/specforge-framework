@@ -55,8 +55,16 @@ specforge está diseñado para vivir **como un directorio hermano de los repos d
 ├── specforge/                      ← este framework
 │   ├── README.md                   ← versión en inglés
 │   ├── README.es.md                ← este archivo
-│   ├── CLAUDE.md                   ← reglas del framework cargadas automáticamente por tools de IA
-│   ├── CONVENTIONS.md              ← referencia detallada: naming, headers, secciones, diagramas
+│   ├── CLAUDE.md                   ← pointer file de 45 líneas (mental model + índice), auto-loaded
+│   ├── .claude/
+│   │   └── rules/                  ← reglas behavioural, cargadas junto con CLAUDE.md
+│   │       ├── hard-rules.md       ← las 11 invariantes (unscoped)
+│   │       ├── workflow.md         ← proceso de 9 pasos (unscoped)
+│   │       ├── gate-block.md       ← gate Draft → Implemented (unscoped)
+│   │       ├── prd-authoring.md    ← required sections, naming (unscoped)
+│   │       ├── adr-specific.md     ← carga solo al editar ADR-*.md
+│   │       └── framework-maintenance.md  ← carga solo al editar framework files
+│   ├── CONVENTIONS.md              ← referencia de formato: shapes, naming, diagramas
 │   ├── SIBLINGS.md                 ← registry mutable por el equipo de sibling projects (llenalo el día 1)
 │   ├── LICENSE                     ← MIT
 │   ├── templates/

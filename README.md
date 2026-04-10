@@ -55,8 +55,16 @@ specforge is designed to live **as a sibling directory to the code repositories 
 ├── specforge/                      ← this framework
 │   ├── README.md                   ← you are here (English)
 │   ├── README.es.md                ← Spanish version of this README
-│   ├── CLAUDE.md                   ← framework rules loaded automatically by AI tools
-│   ├── CONVENTIONS.md              ← detailed reference: naming, headers, sections, diagrams
+│   ├── CLAUDE.md                   ← 45-line pointer file (mental model + TOC), auto-loaded
+│   ├── .claude/
+│   │   └── rules/                  ← behavioural rules, loaded alongside CLAUDE.md
+│   │       ├── hard-rules.md       ← the 11 invariants (unscoped)
+│   │       ├── workflow.md         ← 9-step authoring process (unscoped)
+│   │       ├── gate-block.md       ← Draft → Implemented gate (unscoped)
+│   │       ├── prd-authoring.md    ← required sections, naming (unscoped)
+│   │       ├── adr-specific.md     ← loads only on ADR-*.md
+│   │       └── framework-maintenance.md  ← loads only on framework files
+│   ├── CONVENTIONS.md              ← format reference: shapes, naming, diagrams
 │   ├── SIBLINGS.md                 ← team-mutable registry of sibling projects (fill in on day 1)
 │   ├── LICENSE                     ← MIT
 │   ├── templates/
