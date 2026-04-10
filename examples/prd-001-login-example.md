@@ -375,26 +375,26 @@ fragment, for debugging.
 
 ## 9. Test Plan
 
-| # | Test | Type | Description |
-|---|------|------|-------------|
-| 1 | login with valid credentials returns 200 and both tokens | integration | |
-| 2 | login with unknown email returns 401 and generic body | integration | |
-| 3 | login with wrong password returns 401 and generic body | integration | |
-| 4 | login with disabled account returns 401 | integration | |
-| 5 | unknown email and wrong password take within 10% of the same wall-clock time | integration | timing side-channel check |
-| 6 | 11 logins from the same IP in 60s → 11th returns 429 | integration | |
-| 7 | 6 logins for the same email in 60s → 6th returns 429 | integration | |
-| 8 | rate limiter runs before DB lookup (assert no SELECT when rate-limited) | integration | |
-| 9 | refresh with valid refresh token returns new access token | integration | |
-| 10 | refresh with expired refresh token returns 401 `token_expired` | integration | |
-| 11 | refresh with access token (type != refresh) returns 401 | integration | |
-| 12 | refresh with tampered signature returns 401 | integration | |
-| 13 | Argon2id verify rejects a password hashed with a different salt | unit | |
-| 14 | `users_email_lower_key` prevents inserting `ALICE@example.com` when `alice@example.com` exists | integration | |
-| 15 | `auth_events` row is written for every login attempt, success or failure | integration | |
-| 16 | passwords and tokens never appear in application logs during any flow | unit | log scrubber test |
-| 17 | E2E: user logs in via web UI, reloads page, stays logged in | e2e | |
-| 18 | E2E: user's access token expires, interceptor refreshes transparently | e2e | |
+| # | Test | Type | Description | Path |
+|---|------|------|-------------|------|
+| 1 | login with valid credentials returns 200 and both tokens | integration | | `../api-service/tests/auth/login_test.py` |
+| 2 | login with unknown email returns 401 and generic body | integration | | `../api-service/tests/auth/login_test.py` |
+| 3 | login with wrong password returns 401 and generic body | integration | | `../api-service/tests/auth/login_test.py` |
+| 4 | login with disabled account returns 401 | integration | | `../api-service/tests/auth/login_test.py` |
+| 5 | unknown email and wrong password take within 10% of the same wall-clock time | integration | timing side-channel check | `../api-service/tests/auth/timing_test.py` |
+| 6 | 11 logins from the same IP in 60s → 11th returns 429 | integration | | `../api-service/tests/auth/rate_limit_test.py` |
+| 7 | 6 logins for the same email in 60s → 6th returns 429 | integration | | `../api-service/tests/auth/rate_limit_test.py` |
+| 8 | rate limiter runs before DB lookup (assert no SELECT when rate-limited) | integration | | `../api-service/tests/auth/rate_limit_test.py` |
+| 9 | refresh with valid refresh token returns new access token | integration | | `../api-service/tests/auth/refresh_test.py` |
+| 10 | refresh with expired refresh token returns 401 `token_expired` | integration | | `../api-service/tests/auth/refresh_test.py` |
+| 11 | refresh with access token (type != refresh) returns 401 | integration | | `../api-service/tests/auth/refresh_test.py` |
+| 12 | refresh with tampered signature returns 401 | integration | | `../api-service/tests/auth/refresh_test.py` |
+| 13 | Argon2id verify rejects a password hashed with a different salt | unit | | `../api-service/tests/unit/auth/hasher_test.py` |
+| 14 | `users_email_lower_key` prevents inserting `ALICE@example.com` when `alice@example.com` exists | integration | | `../api-service/tests/auth/users_schema_test.py` |
+| 15 | `auth_events` row is written for every login attempt, success or failure | integration | | `../api-service/tests/auth/audit_test.py` |
+| 16 | passwords and tokens never appear in application logs during any flow | unit | log scrubber test | `../api-service/tests/unit/auth/log_scrub_test.py` |
+| 17 | E2E: user logs in via web UI, reloads page, stays logged in | e2e | | `../web-client/tests/e2e/auth/login.spec.ts` |
+| 18 | E2E: user's access token expires, interceptor refreshes transparently | e2e | | `../web-client/tests/e2e/auth/refresh.spec.ts` |
 
 ## 10. Migration Plan
 

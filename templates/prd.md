@@ -174,15 +174,18 @@ flowchart LR
 <!--
   Required section. Enumerate the test cases as a table. Cover happy path,
   edge cases, error responses, and regressions against behaviour documented
-  in SYSTEM_ARTIFACT.md. Test paths will be filled in when the PRD is
-  promoted to `Implemented`.
+  in SYSTEM_ARTIFACT.md. Every row must name a concrete test file `Path`
+  relative to the specforge directory (typically `../<sibling>/...`); the
+  gate block's `tests` YAML list is the deduplicated set of these paths at
+  promotion time. A greenfield test that does not yet exist still names the
+  path it will be created at.
 -->
 
-| #   | Test | Type | Description |
-|-----|------|------|-------------|
-| 1   |      | unit |             |
-| 2   |      | integration |      |
-| 3   |      | e2e  |             |
+| # | Test | Type | Description | Path |
+|---|------|------|-------------|------|
+| 1 |      | unit        |  | `../<sibling>/tests/unit/<file>_test.<ext>` |
+| 2 |      | integration |  | `../<sibling>/tests/integration/<file>_test.<ext>` |
+| 3 |      | e2e         |  | `../<sibling>/tests/e2e/<file>.spec.<ext>` |
 
 ## 10. Migration Plan
 

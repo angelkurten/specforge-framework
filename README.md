@@ -122,12 +122,24 @@ flowchart TB
     fixes --> rereview[7. Scoped re-review<br/>only blocked domains]
     rereview --> decide
     decide -->|no| ship[8. Ship as Draft]
-    ship --> impl[9. Implement, then gate]
-    impl -->|per impacted sibling| siblingsImpl[[Update sibling's<br/>SYSTEM_ARTIFACT.md +<br/>fill gate block entry]]
+    ship --> userGate{User: implement now,<br/>defer, or resume<br/>a different Draft?}
+    userGate -->|defer| pause([Draft waits in queue])
+    userGate -->|now / resume| impl[9. Implement]
+    impl -->|per impacted sibling| implTeam[[Implementation team<br/>spawned with PRD + paths +<br/>sibling CLAUDE.md]]
+    implTeam --> postReview[Re-dispatch step 5 panel<br/>post-impl mode, per-sibling diff]
+    postReview --> postDecide{Any 🔴 or<br/>untracked 🟡?}
+    postDecide -->|yes| roundCheck{Fix-round budget<br/>exhausted?}
+    roundCheck -->|no| implFix[Fix in code,<br/>not in the frozen PRD]
+    implFix --> postReview
+    roundCheck -->|yes| escalate{User escalation:<br/>one more round,<br/>revert to Draft,<br/>or waive?}
+    escalate -->|one more once| implFix
+    escalate -->|revert| thaw[PRD → Draft<br/>escape hatch,<br/>rule 7 intact]
+    escalate -->|waive + comment above gate| siblingsImpl
+    postDecide -->|no| siblingsImpl[[Update sibling's<br/>SYSTEM_ARTIFACT.md +<br/>fill gate block entry]]
     siblingsImpl --> done([Status: Implemented])
 ```
 
-Steps 2, 5 and 9 **fan out across the impacted siblings** — each sibling gets its own Explore agent during grounding, its own reviewer instance (per role) during critique, and its own `SYSTEM_ARTIFACT.md` update during implementation. The review phase (steps 5 → 6 → 7) is **cyclic**: scoped re-review loops back through fixes until no 🔴 blockers remain, then proceeds to ship.
+Steps 2, 5 and 9 **fan out across the impacted siblings** — each sibling gets its own Explore agent during grounding, its own reviewer instance (per role) during critique, and its own `SYSTEM_ARTIFACT.md` update during implementation. The review phase (steps 5 → 6 → 7) is **cyclic**: scoped re-review loops back through fixes until no 🔴 blockers remain, then proceeds to ship. After step 8 the workflow pauses at an explicit user-gate — implement now, defer, or resume a previously-drafted PRD — and step 9 closes with a **second cyclic re-review** that runs the same reviewer panel against the *shipped* code (not the draft) before the gate block can be filled.
 
 Full nine-step workflow with rules for each step: [`.claude/rules/workflow.md`](.claude/rules/workflow.md). Hard rules, gate-block schema, and PRD authoring specifics are in sibling files under [`.claude/rules/`](.claude/rules/).
 

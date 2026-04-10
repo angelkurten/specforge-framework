@@ -122,12 +122,24 @@ flowchart TB
     fixes --> rereview[7. Scoped re-review<br/>only blocked domains]
     rereview --> decide
     decide -->|no| ship[8. Ship as Draft]
-    ship --> impl[9. Implement, then gate]
-    impl -->|per impacted sibling| siblingsImpl[[Update sibling's<br/>SYSTEM_ARTIFACT.md +<br/>fill gate block entry]]
+    ship --> userGate{User: implement now,<br/>defer, or resume<br/>a different Draft?}
+    userGate -->|defer| pause([Draft waits in queue])
+    userGate -->|now / resume| impl[9. Implement]
+    impl -->|per impacted sibling| implTeam[[Implementation team<br/>spawned with PRD + paths +<br/>sibling CLAUDE.md]]
+    implTeam --> postReview[Re-dispatch step 5 panel<br/>post-impl mode, per-sibling diff]
+    postReview --> postDecide{Any 🔴 or<br/>untracked 🟡?}
+    postDecide -->|yes| roundCheck{Fix-round budget<br/>exhausted?}
+    roundCheck -->|no| implFix[Fix in code,<br/>not in the frozen PRD]
+    implFix --> postReview
+    roundCheck -->|yes| escalate{User escalation:<br/>one more round,<br/>revert to Draft,<br/>or waive?}
+    escalate -->|one more once| implFix
+    escalate -->|revert| thaw[PRD → Draft<br/>escape hatch,<br/>rule 7 intact]
+    escalate -->|waive + comment above gate| siblingsImpl
+    postDecide -->|no| siblingsImpl[[Update sibling's<br/>SYSTEM_ARTIFACT.md +<br/>fill gate block entry]]
     siblingsImpl --> done([Status: Implemented])
 ```
 
-Los pasos 2, 5 y 9 **se bifurcan por cada sibling impactado** — cada sibling recibe su propio agente Explore durante el grounding, su propia instancia de revisor (por rol) durante la crítica, y su propia actualización de `SYSTEM_ARTIFACT.md` durante la implementación. La fase de review (pasos 5 → 6 → 7) es **cíclica**: el re-review scoped loopea por fixes hasta que no queden 🔴 bloqueantes, y recién ahí procede al ship.
+Los pasos 2, 5 y 9 **se bifurcan por cada sibling impactado** — cada sibling recibe su propio agente Explore durante el grounding, su propia instancia de revisor (por rol) durante la crítica, y su propia actualización de `SYSTEM_ARTIFACT.md` durante la implementación. La fase de review (pasos 5 → 6 → 7) es **cíclica**: el re-review scoped loopea por fixes hasta que no queden 🔴 bloqueantes, y recién ahí procede al ship. Después del paso 8 el workflow pausa en un user-gate explícito — implementar ahora, diferir, o retomar un PRD previo en Draft — y el paso 9 cierra con un **segundo re-review cíclico** que corre el mismo panel de reviewers contra el código *shippeado* (no el draft) antes de que se pueda llenar el gate block.
 
 > Nota: los labels del diagrama y los nombres de paso se mantienen en inglés a propósito, para que coincidan 1-a-1 con los headers del workflow en [`.claude/rules/workflow.md`](.claude/rules/workflow.md). El idioma del proceso es inglés; la narrativa alrededor puede estar en cualquier idioma.
 

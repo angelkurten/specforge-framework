@@ -20,7 +20,7 @@ Every PRD must contain these, in this order. Omitting any fails review.
 | 6 | **Data Model** | Tables, columns, constraints, indexes, migrations. Mermaid ERD for new or changed entities. |
 | 7 | **Architecture** | How components interact. Mermaid diagram when the flow spans more than two components. For single-component changes, one sentence is enough — do not omit the section. |
 | 8 | **Security** | Threats, mitigations, auth, secrets, PII. **Never skip.** |
-| 9 | **Test Plan** | Table: `#` \| `Test` \| `Type` \| `Description`. Cover happy path, edge cases, error branches, and regressions. **Never skip.** |
+| 9 | **Test Plan** | Table: `#` \| `Test` \| `Type` \| `Description` \| `Path`. The `Path` column names the concrete test file (relative to specforge dir, typically `../<sibling>/...`); it feeds the gate block's `tests` YAML list at promotion time. Cover happy path, edge cases, error branches, and regressions. **Never skip.** |
 | 10 | **Migration Plan** | Rollout order, rollback procedure, data backfill, feature flags, deploy sequence. **Never skip.** |
 | 11 | **Open Questions** | Checkbox list. Must be empty or explicitly deferred before `Implemented`. |
 

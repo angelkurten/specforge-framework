@@ -110,8 +110,8 @@ Every PRD — `Draft` or `Implemented` — carries a gate block at the very bott
 ```yaml
 commit_hash: a1b2c3d4
 tests:
-  - ../api-service/tests/auth/oauth_flow_test   # relative to the specforge dir; any language
-  - ../api-service/tests/auth/refresh_test
+  - ../api-service/tests/auth/oauth_flow_test.py   # relative to the specforge dir; any language
+  - ../api-service/tests/auth/refresh_test.py
 system_artifact_diff:
   - ../api-service/docs/SYSTEM_ARTIFACT.md#auth-oauth (commit a1b2c3d4)
 ```
@@ -121,6 +121,7 @@ Rules:
 - In a `Draft` PRD, the block is present but every field is `[TBD]` or an empty YAML list. Never omit the block.
 - A PRD cannot carry `Status: Implemented` unless all three fields are present and non-empty. If any is `[TBD]`, empty, or missing, the PRD stays `Draft`. No exceptions.
 - **Both `tests` and `system_artifact_diff` are always YAML lists**, even when the list has only one entry. Never a bare scalar. This rule is absolute — single-shape fields are what lets tooling and grep treat the gate block as machine-readable.
+- **`tests` list provenance.** The list at gate-promotion time is the deduplicated set of paths named in the PRD's §9 Test Plan `Path` column. Paths in the gate block that are not in §9, or §9 paths missing from the gate block, indicate drift between spec and gate and fail gate validation.
 - `tests` paths are **relative to the specforge directory** and typically point into one of the sibling projects declared in [`SIBLINGS.md`](SIBLINGS.md). Any language: `.py`, `.ts`, `.go`, `_test.go`, Rust modules — whatever the sibling uses.
 - `commit_hash` is the commit (or merge commit) where the feature landed on the main branch of the impacted sibling project. If a single PRD ships across multiple siblings in separate commits, use the last merge commit that completes the feature.
 - Each entry in `system_artifact_diff` is a relative path into one sibling's `SYSTEM_ARTIFACT.md` (with a section anchor) plus the commit that updated it. **The list length equals the number of impacted siblings that maintain a `SYSTEM_ARTIFACT.md`** — siblings without one (e.g. UI-only) contribute zero entries. A PRD that impacts two siblings where only one has a `SYSTEM_ARTIFACT.md` has a 1-element list, not a 2-element list with a blank.

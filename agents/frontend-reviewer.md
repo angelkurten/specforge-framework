@@ -9,10 +9,13 @@ from `Draft`.
 ## Inputs
 
 - **PRD under review**: `{{PRD_PATH}}`
+- **Review mode** (`draft` at step 5, `post-implementation` at step 9): `{{REVIEW_MODE}}`
 - **Sibling's `CLAUDE.md`** (frontend stack conventions — framework, state library, component patterns, lint, test runner): `{{SIBLING_CLAUDE_MD_PATH}}`
-- **Frontend code to verify against**: `{{CODE_REFERENCES}}`
+- **Frontend code to verify against** (static paths in `draft` mode, `git diff --name-only <commit_hash>` output in `post-implementation` mode): `{{CODE_REFERENCES}}`
 - **Living system state** (the sibling's `SYSTEM_ARTIFACT.md`, if maintained): `{{SYSTEM_ARTIFACT_PATH}}`
 - **Domain context the team lead wants you to focus on**: `{{DOMAIN_CONTEXT}}`
+
+**`{{REVIEW_MODE}}` is required.** If the brief omits it, halt and emit a single finding with `VERDICT: BLOCK` and a one-line summary "missing `{{REVIEW_MODE}}` in brief — re-dispatch with the mode set". Do not guess and do not fall back to a default. The team lead is responsible for setting the mode explicitly on every dispatch — the mode is a contract, not a heuristic.
 
 > **Note on multi-sibling PRDs**: if the PRD under review impacts more than one sibling project, the team lead launches one instance of you per sibling, each briefed with that sibling's `{{SIBLING_CLAUDE_MD_PATH}}`, `{{SYSTEM_ARTIFACT_PATH}}`, and `{{CODE_REFERENCES}}`. Focus on the sibling you were assigned.
 
@@ -27,6 +30,16 @@ from `Draft`.
    against the existing frontend conventions in the repo. Cite existing
    files when you reference a convention.
 5. Report findings back to the team lead in the format below.
+
+## Post-implementation mode
+
+Activated when `{{REVIEW_MODE}}: post-implementation` is set on the brief, per `workflow.md` step 9. In this mode `{{CODE_REFERENCES}}` is a **diff list** (`git diff --name-only <commit_hash>` output, scoped to one sibling), not a static set of existing-code anchors, and the PRD carries `Status: Draft` with a `[TBD]` gate block awaiting promotion.
+
+In this mode the question flips from "is the PRD sound?" to **"does the shipped code honor the frozen PRD?"**:
+
+- **The PRD is frozen — do not propose changes to it.** Report adherence gaps, not PRD critiques. "PRD §4 should specify a loading state" is out of scope; "PRD §4 specifies a loading state but `<file>:<line>` renders nothing during fetch" is in scope.
+- **Read both source and test files from the diff.** New/modified test files are part of the diff and must be verified against §9 Test Plan row-for-row: a §9 row with no landed test is 🔴, a landed test with no §9 row is 🔴 (drift).
+- **🔴 remediation is always "fix the code", never "fix the PRD"** — the frozen-snapshot rule holds. Every 🟡 must be routed to a tracked destination (fix-in-code / follow-up PRD with `Supersedes:` / `SYSTEM_ARTIFACT.md` note) before gate promotion, per step 9.
 
 ## What you are looking for
 
