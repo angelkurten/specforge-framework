@@ -80,6 +80,10 @@ specforge está diseñado para vivir **como un directorio hermano de los repos d
 │   │   ├── frontend-reviewer.md
 │   │   ├── security-reviewer.md
 │   │   └── quality-reviewer.md
+│   ├── scripts/
+│   │   └── upgrade.sh              ← upgrade seguro del framework (pull + protección de data de equipo)
+│   ├── VERSION                     ← versión actual del framework (semver)
+│   ├── CHANGELOG.md                ← historial de releases
 │   ├── NNN-tu-prd.md               ← tus PRDs viven en la raíz de specforge
 │   └── ADR-NNN-tu-adr.md           ← tus ADRs también
 ├── api-service/                    ← proyecto hermano (ejemplo — un backend)
@@ -91,7 +95,7 @@ specforge está diseñado para vivir **como un directorio hermano de los repos d
     └── (sin SYSTEM_ARTIFACT — UI-only, se ancla directo contra el código)
 ```
 
-El **registry de Sibling projects** en [`SIBLINGS.md`](SIBLINGS.md) es el directorio de todo lo que specforge conoce — cada tabla `Impacted Projects` de un PRD sólo puede referenciar proyectos listados ahí, por nombre. `SIBLINGS.md` es data del equipo; el resto son archivos del framework que se pueden actualizar pulleando una nueva versión de specforge sin tocar tu registry.
+El **registry de Sibling projects** en [`SIBLINGS.md`](SIBLINGS.md) es el directorio de todo lo que specforge conoce — cada tabla `Impacted Projects` de un PRD sólo puede referenciar proyectos listados ahí, por nombre. `SIBLINGS.md` es data del equipo; el resto son archivos del framework que se pueden actualizar con `scripts/upgrade.sh` sin tocar tu registry.
 
 ## Quickstart
 
@@ -145,6 +149,20 @@ Los pasos 2, 5 y 9 **se bifurcan por cada sibling impactado** — cada sibling r
 > Nota: los labels del diagrama y los nombres de paso se mantienen en inglés a propósito, para que coincidan 1-a-1 con los headers del workflow en [`.claude/rules/workflow.md`](.claude/rules/workflow.md). El idioma del proceso es inglés; la narrativa alrededor puede estar en cualquier idioma.
 
 Workflow completo de nueve pasos con las reglas de cada uno: [`.claude/rules/workflow.md`](.claude/rules/workflow.md). Hard rules, gate-block schema, y PRD authoring specifics están en sibling files bajo [`.claude/rules/`](.claude/rules/).
+
+## Actualización (upgrade)
+
+specforge usa [versionado semántico](https://semver.org/). La versión actual vive en [`VERSION`](VERSION) y el historial de releases en [`CHANGELOG.md`](CHANGELOG.md).
+
+Para actualizar:
+
+```bash
+scripts/upgrade.sh            # usa origin/main por defecto
+scripts/upgrade.sh miremoto   # remote custom
+scripts/upgrade.sh origin dev # remote y branch custom
+```
+
+El script fetchea la última versión, muestra qué cambió (diff del changelog + lista de archivos), pide confirmación, y mergea. **Los archivos de data de equipo** (`SIBLINGS.md`, tus PRDs, tus ADRs) nunca son modificados por el merge — solo cambian cuando vos los editás. Si surge un conflicto de merge en un archivo de equipo, resolvelo a favor de tu versión local.
 
 ## Idioma
 

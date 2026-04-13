@@ -80,6 +80,10 @@ specforge is designed to live **as a sibling directory to the code repositories 
 │   │   ├── frontend-reviewer.md
 │   │   ├── security-reviewer.md
 │   │   └── quality-reviewer.md
+│   ├── scripts/
+│   │   └── upgrade.sh              ← safe framework upgrade (pulls new version, protects team data)
+│   ├── VERSION                     ← current framework version (semver)
+│   ├── CHANGELOG.md                ← release history
 │   ├── NNN-your-prd.md             ← your PRDs live at the specforge root
 │   └── ADR-NNN-your-adr.md         ← your ADRs too
 ├── api-service/                    ← sibling project (example — a backend)
@@ -91,7 +95,7 @@ specforge is designed to live **as a sibling directory to the code repositories 
     └── (no SYSTEM_ARTIFACT — UI-only, grounded from code directly)
 ```
 
-The **Sibling projects registry** in [`SIBLINGS.md`](SIBLINGS.md) is the directory of everything specforge knows about — each PRD's `Impacted Projects` table must reference only projects listed there, by name. `SIBLINGS.md` is team data; the rest of the files are framework data that can be upgraded by pulling a new version of specforge without touching your registry.
+The **Sibling projects registry** in [`SIBLINGS.md`](SIBLINGS.md) is the directory of everything specforge knows about — each PRD's `Impacted Projects` table must reference only projects listed there, by name. `SIBLINGS.md` is team data; the rest of the files are framework data that can be upgraded with `scripts/upgrade.sh` without touching your registry.
 
 ## Quickstart
 
@@ -143,6 +147,20 @@ flowchart TB
 Steps 2, 5 and 9 **fan out across the impacted siblings** — each sibling gets its own Explore agent during grounding, its own reviewer instance (per role) during critique, and its own `SYSTEM_ARTIFACT.md` update during implementation. The review phase (steps 5 → 6 → 7) is **cyclic**: scoped re-review loops back through fixes until no 🔴 blockers remain, then proceeds to ship. After step 8 the workflow pauses at an explicit user-gate — implement now, defer, or resume a previously-drafted PRD — and step 9 closes with a **second cyclic re-review** that runs the same reviewer panel against the *shipped* code (not the draft) before the gate block can be filled.
 
 Full nine-step workflow with rules for each step: [`.claude/rules/workflow.md`](.claude/rules/workflow.md). Hard rules, gate-block schema, and PRD authoring specifics are in sibling files under [`.claude/rules/`](.claude/rules/).
+
+## Upgrading
+
+specforge uses [semantic versioning](https://semver.org/). The current version lives in [`VERSION`](VERSION) and the release history in [`CHANGELOG.md`](CHANGELOG.md).
+
+To upgrade:
+
+```bash
+scripts/upgrade.sh            # defaults to origin/main
+scripts/upgrade.sh myremote   # custom remote
+scripts/upgrade.sh origin dev # custom remote and branch
+```
+
+The script fetches the latest version, shows what changed (changelog diff + file list), asks for confirmation, and merges. **Team data files** (`SIBLINGS.md`, your PRDs, your ADRs) are never modified by the merge — they only change when you edit them. If a merge conflict arises in a team data file, resolve it in favor of your local version.
 
 ## Language
 
