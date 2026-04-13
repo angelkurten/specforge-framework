@@ -376,18 +376,26 @@ case "${1:-}" in
     ;;
   --local)
     shift
-    if [[ -z "${1:-}" ]]; then
-      red "Error: --local requires a path argument."
-      echo "Usage: $0 --local /path/to/specforge"
+    if [[ -n "${1:-}" ]]; then
+      upgrade_local "$1"
+    elif [[ -f "$PROJECT_DIR/.specforge-source" ]]; then
+      upgrade_local "$(cat "$PROJECT_DIR/.specforge-source" | tr -d '[:space:]')"
+    else
+      red "Error: no path provided and no .specforge-source file found."
+      echo ""
+      echo "Either pass the path:  $0 --local /path/to/specforge"
+      echo "Or create a file:      echo '/path/to/specforge' > .specforge-source"
       exit 1
     fi
-    upgrade_local "$1"
     ;;
   --help|-h)
     echo "Usage:"
-    echo "  $0                           Auto-detect upgrade source"
-    echo "  $0 --git [remote] [branch]   From git remote (fork/clone)"
-    echo "  $0 --local /path/to/specforge From local specforge directory"
+    echo "  $0                            Auto-detect upgrade source"
+    echo "  $0 --git [remote] [branch]    From git remote (fork/clone)"
+    echo "  $0 --local [/path/to/specforge] From local directory (reads .specforge-source if no path)"
+    echo ""
+    echo "For local mode, save the path once:  echo '/path/to/specforge' > .specforge-source"
+    echo "Then just run:  $0 --local"
     exit 0
     ;;
   *)
@@ -398,13 +406,23 @@ case "${1:-}" in
       echo ""
       upgrade_git "${1:-origin}" "${2:-main}"
     else
-      echo "No specforge git remote detected."
-      read -rp "Path to specforge directory: " source_path
-      if [[ -z "$source_path" ]]; then
-        red "No path provided. Aborted."
-        exit 1
+      if [[ -f "$PROJECT_DIR/.specforge-source" ]]; then
+        local saved_path
+        saved_path="$(cat "$PROJECT_DIR/.specforge-source" | tr -d '[:space:]')"
+        bold "Using saved source: $saved_path"
+        echo ""
+        upgrade_local "$saved_path"
+      else
+        echo "No specforge git remote detected and no .specforge-source file."
+        read -rp "Path to specforge directory (saved for next time): " source_path
+        if [[ -z "$source_path" ]]; then
+          red "No path provided. Aborted."
+          exit 1
+        fi
+        echo "$source_path" > "$PROJECT_DIR/.specforge-source"
+        dim "Saved to .specforge-source"
+        upgrade_local "$source_path"
       fi
-      upgrade_local "$source_path"
     fi
     ;;
 esac
