@@ -13,6 +13,7 @@ Three kinds of documents. Do not confuse them:
 | **PRD** | A long ADR with implementation detail. Specifies *what* to build and *how* for one feature or change. | Historical snapshot. Frozen at `Implemented`. |
 | **ADR** | A focused architectural decision with alternatives and trade-offs. | Historical snapshot. Frozen at `Accepted`. |
 | **`SYSTEM_ARTIFACT.md`** | Current state of one sibling project, organised by domain. One file per project that needs it; lives inside that sibling, not in specforge. | Living document. Updated whenever a PRD that impacts the project ships. |
+| **`ROADMAP.md`** | Product-level plan: problems, users, evidence. One global file at specforge root. | Living document. Updated on generative cycles and PRD ships. |
 
 **Load-bearing**: PRDs and ADRs are frozen. To learn what the system does *now*, read the relevant sibling project's `SYSTEM_ARTIFACT.md` or the code. To learn *why* something was built the way it was, read the PRD that introduced it.
 
@@ -26,10 +27,11 @@ Detailed behavioural rules are in `.claude/rules/`. They load automatically — 
 
 **Always-loaded (unscoped):**
 
-- [`hard-rules.md`](.claude/rules/hard-rules.md) — the 11 invariants that govern every PRD and ADR
+- [`hard-rules.md`](.claude/rules/hard-rules.md) — the 12 invariants that govern every PRD and ADR
 - [`workflow.md`](.claude/rules/workflow.md) — the 9-step authoring process
 - [`gate-block.md`](.claude/rules/gate-block.md) — the `Draft` → `Implemented` gate schema
 - [`prd-authoring.md`](.claude/rules/prd-authoring.md) — required sections, naming, document-type decisions
+- [`roadmap.md`](.claude/rules/roadmap.md) — the roadmap cycle, evidence discipline, and fence spec
 
 **Path-scoped:**
 

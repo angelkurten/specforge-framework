@@ -11,6 +11,8 @@ Follow these steps in order. Never skip investigation. Never draft before ground
 
 For bounded decisions (2-4 mutually exclusive options you can confidently enumerate), use `AskUserQuestion` — one question per call. For exploration, clarifications, or unbounded spaces, ask in prose. If the user asks to answer in prose or explain first, comply immediately.
 
+If the request corresponds to an existing `ROADMAP.md` item, capture its `ROADMAP-NNN` and surface it in the PRD's `Roadmap item:` header. If no item exists and the request is non-trivial product work, consider running the generative cycle first (per `.claude/rules/roadmap.md`).
+
 ### 2. Ground in reality
 
 **Precondition**: verify every registry path in `SIBLINGS.md` resolves on the current machine for the siblings this change will impact. If any path does not resolve, halt and ask the user. Never proceed with partial grounding — silent degradation produces PRDs that cite code that does not exist.
@@ -83,3 +85,5 @@ After code lands, **before** filling the gate block, re-dispatch the step 5 revi
 Untracked 🟡s block promotion the same way a 🔴 does. 🟢 is advisory.
 
 Only once the re-review clears (no open 🔴, every 🟡 tracked) do you fill the gate block per `gate-block.md`, update each impacted sibling's `SYSTEM_ARTIFACT.md`, and move `Status` to `Implemented`.
+
+- Execute the auto-update flow (per `.claude/rules/roadmap.md` / PRD-001 §4.2) — flip the linked roadmap item to `Shipped`, or create a retroactive item if the PRD lacks the header — **in the same commit as the gate block**.
