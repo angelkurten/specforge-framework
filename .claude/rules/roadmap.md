@@ -78,6 +78,31 @@ Identical semantics to the PRD reviewer panel:
 
 Resolution is user-owned — **one pass per generative cycle, no scoped re-review at the roadmap layer** (differs from the PRD flow in `workflow.md` step 7).
 
+## Status transitions and schema validation
+
+### Transition operations
+
+- Legal user-promotion transitions at §4.1 step 7: `Candidate → Committed`, `Candidate → Parked`, `Committed → Parked`, `Parked → Candidate`. **`Shipped` is reached only via PRD gate-promotion auto-update (§4.2)**, never by user promotion.
+- **`last_reviewed` is re-stamped to today's UTC date on every edit**, including status transitions. An unchanged `last_reviewed` after an edit is a validator failure.
+- **Unrelated fields are preserved verbatim on a status-only transition**. `Problem / outcome`, `User`, `Siblings likely impacted`, `Evidence`, `Caveats` must not mutate when the user only changes `Status`/`Horizon`/`Theme`. Silent content edits on a transition are a validator failure.
+- **On `→ Parked`, the `PRD:` backlink is not populated**. Parked items have no shipping PRD; a `PRD:` field populated by a parking transition is a validator failure.
+
+### Schema validation (all 🔴, block write)
+
+- Every `theme:` reference on an item must resolve to an existing theme in the same file. Dangling references 🔴.
+- Every `items:` id on a theme must resolve to an existing item. Dangling references 🔴.
+- Horizon conditional (PRD §5.2): `Candidate` or `Committed` without `Horizon:` → 🔴. `Shipped` or `Parked` without `Horizon:` → accepted (the field line is **omitted entirely**, not present-empty).
+- **Rejection messages name the rule or field that failed** (e.g. `§5.2 horizon required for Committed`, `ROADMAP-T-999 does not exist`). Un-sourced rejections are themselves a validator failure.
+
+### Theme-status composition (extension of PRD §5.3)
+
+PRD §5.3 enumerates three cases explicitly. For completeness:
+
+- All items `Shipped` → `Shipped`.
+- All items `Parked` → `Parked`.
+- Any composition including `Candidate` or `Committed` → `In progress`.
+- **Any composition with both `Shipped` and `Parked` (no `Candidate`/`Committed`) → `In progress`.** Fills the §5.3 gap consistent with PRD §9 row #20's fixture (b).
+
 ## Canonical `untrusted-evidence` fence
 
 All 8 briefings (4 generators + 4 critics) wrap every user-supplied field — category-4 quote, category-5 URL, category-6 hypothesis body, `problem` field — in this fence. This rule file is THE canonical source; briefings reference it rather than redefining.

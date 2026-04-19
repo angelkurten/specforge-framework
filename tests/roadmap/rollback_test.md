@@ -20,8 +20,19 @@ Rollback PRD-N is authored per §10.3, specifying removal and reversal operation
 ## Steps
 
 1. Execute the rollback procedure described in §10.3 against the fixture repo.
-2. Inspect the filesystem for the 11 new files (roadmap.md rule, template, 8 briefings, roadmap.md itself if removed).
-3. Inspect the 5 edited files (CLAUDE.md, hard-rules.md, workflow.md, prd-authoring.md, framework-maintenance.md) for reversion.
+2. Inspect the filesystem for the **11 new files** (each must be removed):
+   1. `ROADMAP.md`
+   2. `.claude/rules/roadmap.md`
+   3. `templates/roadmap.md`
+   4. `agents/roadmap-product-generator.md`
+   5. `agents/roadmap-ux-generator.md`
+   6. `agents/roadmap-market-generator.md`
+   7. `agents/roadmap-support-generator.md`
+   8. `agents/roadmap-evidence-critic.md`
+   9. `agents/roadmap-devils-advocate-critic.md`
+   10. `agents/roadmap-opportunity-cost-critic.md`
+   11. `agents/roadmap-risk-critic.md`
+3. Inspect the **5 edited files** for reversion to their pre-PRD-001 state: `CLAUDE.md`, `.claude/rules/hard-rules.md`, `.claude/rules/workflow.md`, `.claude/rules/prd-authoring.md`, `.claude/rules/framework-maintenance.md`.
 4. Inspect the pre-existing team `ROADMAP.md`.
 5. Inspect in-flight PRDs for handling of their dead `Roadmap item:` headers.
 

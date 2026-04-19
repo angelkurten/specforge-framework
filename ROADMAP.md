@@ -16,7 +16,7 @@
 
 ## Items
 
-### ROADMAP-001: Introduce the roadmap planning cycle
+### ROADMAP-001: Introduce the roadmap cycle
 
 **Status**: Shipped
 **Horizon**: —
