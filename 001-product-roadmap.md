@@ -1,7 +1,8 @@
 # PRD-001: Product Roadmap Planning Cycle
 
-**Status**: Draft
+**Status**: Implemented
 **Date**: 2026-04-19
+**Implemented at**: 2026-04-19
 **Author**: AI-assisted
 **Priority**: P1
 **Depends on**: None
@@ -800,37 +801,76 @@ Not applicable.
 
 ## 11. Open Questions
 
-- [ ] Should `last_reviewed` be stamped by tooling (requires a script; adds
-      a dependency) or by convention (the writing agent stamps on edit;
-      enforced by test #21)? Proposed: convention, with a future tooling
-      PRD if drift proves common.
-- [ ] Should the critical panel receive only the consolidated candidates,
-      or also see which agent proposed each candidate? Proposed:
-      consolidated only — critics should judge the item, not the author.
-- [ ] Deferred to a follow-up PRD: per-horizon stale thresholds (Now = 3,
+- [x] `last_reviewed` stamping: by **convention** (the writing agent stamps
+      on edit; enforced by test #21). A future tooling PRD can mechanise
+      if drift proves common.
+- [x] Critical panel input: **consolidated candidates only**, without
+      proposer attribution. Critics judge the item, not the author.
+- [x] Deferred to a follow-up PRD: per-horizon stale thresholds (Now = 3,
       Next = 6, Later = 12). PRD-001 ships a single threshold with header
       override; per-horizon variation adds schema complexity with no
       evidence of need.
-- [ ] Deferred to a follow-up PRD: `Blocked` as a theme-status display
+- [x] Deferred to a follow-up PRD: `Blocked` as a theme-status display
       value for themes whose Committed items are all Parked. PRD-001 uses
       `In progress` for any non-uniform composition; expanded vocabulary
       introduced only if a real case arises.
-- [ ] Deferred to a follow-up PRD: duplicate-evidence detection within
+- [x] Deferred to a follow-up PRD: duplicate-evidence detection within
       the same category (currently noted in §5.5 forbidden-evidence
       semantic list as 🟡, no dedicated test).
-- [ ] Deferred to a follow-up PRD: template vs rule drift on §4 heading
+- [x] Deferred to a follow-up PRD: template vs rule drift on §4 heading
       ("User Flows / Design" in `templates/prd.md` vs "User Flows" in
       `prd-authoring.md` / `CONVENTIONS.md`). PRD-001 uses the rule-file
       wording; the template edit is out of scope.
 
 ---
 
+# post-impl-review: all three reviewers (framework-coherence, quality, security)
+# issued VERDICT: APPROVE in post-implementation mode against commit cf77453.
+# No 🔴, no 🟡 requiring routing. 4 🟢 nits from the quality reviewer are
+# advisory (additive strictness over PRD §9 descriptions) and tracked as nits
+# only — no action per step 9 🟢 handling.
+
 ## Gate: Promotion to `Implemented`
 
 ```yaml
-commit_hash: [TBD]
+commit_hash: cf77453
 tests:
-  - [TBD]
-system_artifact_diff:
-  - [TBD]
+  - tests/roadmap/format_test.md
+  - tests/roadmap/evidence_zero_test.md
+  - tests/roadmap/evidence_happy_test.md
+  - tests/roadmap/evidence_forbidden_semantic_test.md
+  - tests/roadmap/evidence_pii_test.md
+  - tests/roadmap/pii_carveout_test.md
+  - tests/roadmap/category5_url_test.md
+  - tests/roadmap/hypothesis_gate_test.md
+  - tests/roadmap/hypothesis_falsifiable_test.md
+  - tests/roadmap/visibility_test.md
+  - tests/roadmap/prd_link_test.md
+  - tests/roadmap/parked_link_reject_test.md
+  - tests/roadmap/retroactive_test.md
+  - tests/roadmap/cold_start_test.md
+  - tests/roadmap/retroactive_race_test.md
+  - tests/roadmap/status_commit_test.md
+  - tests/roadmap/status_park_test.md
+  - tests/roadmap/horizon_required_test.md
+  - tests/roadmap/xref_test.md
+  - tests/roadmap/theme_status_test.md
+  - tests/roadmap/stale_test.md
+  - tests/roadmap/bootstrap_test.md
+  - tests/roadmap/siblings_self_ref_test.md
+  - tests/roadmap/claude_md_size_test.md
+  - tests/roadmap/hard_rules_12_test.md
+  - tests/roadmap/rollback_test.md
+  - tests/roadmap/walkthrough_generate_happy.md
+  - tests/roadmap/walkthrough_generate_reject.md
+  - tests/roadmap/walkthrough_retroactive.md
+  - tests/roadmap/gate_parity_test.md
+  - tests/roadmap/visibility_bypass_test.md
+  - tests/roadmap/fence_escape_test.md
+system_artifact_diff: []
 ```
+
+`system_artifact_diff: []` per PRD §10.1 step 6: specforge maintains no
+`SYSTEM_ARTIFACT.md` (`SIBLINGS.md` shows `Read first: CLAUDE.md` only for the
+`specforge` row), so the list length equals the number of impacted siblings
+that maintain one — zero.
