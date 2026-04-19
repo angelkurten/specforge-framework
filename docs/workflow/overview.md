@@ -44,6 +44,9 @@ Steps 2, 5, and 9 **fan out across the impacted siblings** — each sibling gets
 
 For bounded decisions (2-4 mutually exclusive options you can confidently enumerate), use `AskUserQuestion` — one question per call. For exploration, clarifications, or unbounded spaces, ask in prose. If the user asks to answer in prose or explain first, comply immediately.
 
+!!! tip "Roadmap integration (v0.4.0+)"
+    If the request corresponds to an existing `ROADMAP.md` item, capture its `ROADMAP-NNN` and surface it in the PRD's `Roadmap item:` header. If no item exists and the request is non-trivial product work, consider running the [generative cycle](../concepts/roadmap.md#generative-flow-on-demand-user-trigger) first. PRDs without a `Roadmap item:` header get a retroactive item created at gate promotion (step 9 auto-update) so the roadmap stays a complete index.
+
 ### 2. Ground in reality
 
 **Precondition**: verify every registry path in `SIBLINGS.md` resolves on the current machine for the siblings this change will impact. If any path does not resolve, halt and ask the user. Never proceed with partial grounding — silent degradation produces PRDs that cite code that does not exist.
@@ -150,8 +153,11 @@ system_artifact_diff:
 
 Update each impacted sibling's `SYSTEM_ARTIFACT.md` in the same commit, and move `Status` to `Implemented`.
 
+**Roadmap auto-update** (v0.4.0+): the gate-filling agent also updates `ROADMAP.md` in the same commit — either flipping the linked `ROADMAP-NNN` to `Shipped` (if the PRD header declared one) or creating a retroactive item with `status: Shipped` and `evidence: [PRD-NNN]` (if the header was absent). See [Roadmap → Auto-update flow](../concepts/roadmap.md#auto-update-flow-codified-in-workflow-step-9).
+
 ## Related
 
 - [Quickstart](../quickstart.md) — the day-by-day first-time bootstrap.
-- [Mental model](../concepts/mental-model.md) — why PRDs get frozen and SYSTEM_ARTIFACT is the only living doc.
+- [Mental model](../concepts/mental-model.md) — why PRDs get frozen and SYSTEM_ARTIFACT is the only per-sibling living doc.
 - [Sibling projects](../concepts/siblings.md) — the dispatch model that makes steps 2, 5, and 9 fan out without blowing up context.
+- [Roadmap](../concepts/roadmap.md) — the product-level cycle that feeds PRDs with evidence-backed problems.

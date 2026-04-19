@@ -1,14 +1,15 @@
 # Mental model
 
-specforge distinguishes three kinds of documents and refuses to let them drift into each other. Understanding the distinction is the single most important thing to internalize before writing your first PRD.
+specforge distinguishes four kinds of documents and refuses to let them drift into each other. Understanding the distinction is the single most important thing to internalize before writing your first PRD.
 
-## The three document types
+## The four document types
 
 | Document | Purpose | Lifecycle |
 |---|---|---|
 | **PRD** | A long ADR with implementation detail. Specifies *what* to build and *how* for one feature or change. | Historical snapshot. Frozen at `Implemented`. |
 | **ADR** | A focused architectural decision with alternatives and trade-offs. | Historical snapshot. Frozen at `Accepted`. |
 | **`SYSTEM_ARTIFACT.md`** | Current state of one sibling project, organized by domain. One file per project that needs it. | Living document. Updated whenever a PRD that impacts the project ships. |
+| **`ROADMAP.md`** | Product-level intent: problems, users, evidence, status, horizon. One global file at the specforge root. No technical detail. | Living document. Mutable across generative cycles and PRD ships. |
 
 ## Load-bearing distinction: PRDs are not living docs
 
@@ -63,7 +64,19 @@ See the decision table in [PRD authoring rules](https://github.com/angelkurten/s
 | A factual correction (typo, wrong path) to an existing PRD. | **Edit in place**, note the correction at the top. Do not bump status. |
 | A discovery that a shipped PRD was never fully implemented. | **Move it back to `Draft`**, strip the gate fields, explain why at the top. |
 
+## Why ROADMAP.md is separate from SYSTEM_ARTIFACT.md
+
+Both are living docs, but they answer different questions at different granularities:
+
+- `SYSTEM_ARTIFACT.md` lives **inside each sibling** and describes **current system state** at HEAD.
+- `ROADMAP.md` lives at the **specforge root**, is **global**, and describes **product-level intent** (what to build and why, for whom, with what evidence) — not what currently runs.
+
+The roadmap is upstream of PRDs: it feeds them with framed problems and evidence. PRDs remain frozen snapshots; `ROADMAP.md` is where direction evolves.
+
+See [Roadmap](roadmap.md) for the full cycle, evidence categories, and PII carve-out.
+
 ## Related
 
 - [Sibling projects](siblings.md) — the multi-project model that makes the SYSTEM_ARTIFACT split make sense.
-- [Workflow](../workflow/overview.md) — how the three document types are produced by the 9-step process.
+- [Roadmap](roadmap.md) — the product-level cycle that feeds PRDs with evidence-backed problem framing.
+- [Workflow](../workflow/overview.md) — how the four document types are produced by the 9-step process.

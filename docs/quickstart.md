@@ -122,4 +122,18 @@ system_artifact_diff:
 
 The PRD is now a frozen historical record of what you decided and shipped. Future changes to the same area go in a **new** PRD that declares `Supersedes: PRD-NNN` in its header. To learn what the system does today, read the impacted siblings' `SYSTEM_ARTIFACT.md`. To learn why, read the PRD that introduced each capability.
 
-From here: [the full 9-step workflow](workflow/overview.md), [the mental model](concepts/mental-model.md), [the sibling-projects model](concepts/siblings.md).
+## Optional — Day 5: your first roadmap cycle
+
+v0.4.0+ introduces a product-level [roadmap cycle](concepts/roadmap.md). If your team wants strategic context upstream of PRDs (evidence-backed problem framing, traceable "why this now vs later"), trigger the generative cycle in a fresh session:
+
+```
+"revisemos el roadmap con foco en <your-area>"
+```
+
+The lead agent dispatches the 4-agent generator panel (product / UX / market / support) + 4-agent critical panel (evidence rigor / devil's advocate / opportunity cost / risk) and you resolve findings before items land in `ROADMAP.md`. Every future PRD can then cite `Roadmap item: ROADMAP-NNN` in its header, linking its shipping trail to strategic intent.
+
+The cycle is **optional** on day 1. PRDs authored without a `Roadmap item:` header get a retroactive item created at gate promotion, so the roadmap stays a complete index even if you never run a generative cycle.
+
+## From here
+
+[The full 9-step workflow](workflow/overview.md), [the mental model](concepts/mental-model.md), [the sibling-projects model](concepts/siblings.md), [the roadmap cycle](concepts/roadmap.md).

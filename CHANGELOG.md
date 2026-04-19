@@ -8,6 +8,33 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.4.0] - 2026-04-19
+
+### Added
+- **Product roadmap planning cycle** (PRD-001). Introduces `ROADMAP.md` as a global living document capturing product-level intent (problem, user, evidence, status, horizon) with no technical detail.
+- `.claude/rules/roadmap.md` — the canonical rule file for the roadmap cycle (unscoped, always loaded).
+- `templates/roadmap.md` — blank starter for adopting teams.
+- Two-panel workflow: 4 generator briefings (`roadmap-{product,ux,market,support}-generator.md`) + 4 critic briefings (`roadmap-{evidence,devils-advocate,opportunity-cost,risk}-critic.md`) in `agents/`.
+- Six evidence categories with syntactic forbidden-patterns (PII detection, competitor-URL credential detection, image/paste blocks).
+- Identity-based PII carve-out: findings from syntactic patterns cannot be `refute`d at any severity; only `reformulate` or `kill` are legal resolutions.
+- Canonical `untrusted-evidence` fence spec with `␛BACKTICK␛` escape to mitigate prompt-injection via user-supplied evidence text.
+- `Visibility: public | private` header field on `ROADMAP.md` to modulate PII severity (strict-by-default).
+- Optional `Roadmap item: ROADMAP-NNN` PRD header field, with retroactive-escape at gate promotion for PRDs that lack it.
+- Hard rule 12 in `hard-rules.md`: evidence discipline and PII carve-out as framework-level invariants.
+- `tests/roadmap/` — 32 conformance walkthroughs matching PRD-001 §9 Test Plan.
+- New docs page: [Concepts → Roadmap](https://angelkurten.github.io/specforge-framework/concepts/roadmap/).
+
+### Changed
+- `CLAUDE.md`: fourth row `ROADMAP.md` in the mental-model table; `roadmap.md` bullet under always-loaded rules; "11 invariants" → "12 invariants" (47 lines total, under the 50-line target).
+- `workflow.md`: step 1 now captures `Roadmap item:` header when applicable; step 9 closes with an auto-update bullet flipping the linked roadmap item to `Shipped` in the same commit as the gate block.
+- `prd-authoring.md`: documents the optional `Roadmap item:` header field and the retroactive-escape semantics.
+- `framework-maintenance.md`: new "Generator/critic briefing variant" subsection documenting the 4-variable generator contract and 5-variable critic contract (distinct from the 5-variable PRD reviewer contract).
+- `scripts/upgrade.sh`: `ROADMAP.md` added to `TEAM_FILES` so adopting teams' roadmap data is never overwritten by upgrades.
+- `SIBLINGS.md`: `specforge` self-reference row added (required by hard-rule 11 for PRD-001).
+
+### Compat
+- Backward-compatible. PRDs authored before PRD-001 are grandfathered — the `Roadmap item:` header is optional and the retroactive-escape flow covers them on their next ship.
+
 ## [0.3.0] - 2026-04-13
 
 ### Added
@@ -35,6 +62,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 ### Added
 - Initial commit: templates, examples, agents, conventions, hard rules, workflow.
 
+[0.4.0]: https://github.com/angelkurten/specforge-framework/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/angelkurten/specforge-framework/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/angelkurten/specforge-framework/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/angelkurten/specforge-framework/releases/tag/v0.1.0

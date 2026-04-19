@@ -35,6 +35,7 @@ FRAMEWORK_DIRS=(
 # --- Team data: never overwritten ---
 TEAM_FILES=(
   "SIBLINGS.md"
+  "ROADMAP.md"
 )
 
 TEAM_PATTERNS=(
