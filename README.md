@@ -9,13 +9,14 @@ A framework for writing rigorous specifications (PRDs and ADRs) with AI as the p
 
 specforge is an opinionated workflow and a set of templates for teams that use AI to draft design documents and want the output to be as careful as if a senior engineer had written it. It treats the AI as a drafting author, not a vibe-coding sidekick, and it pays for that with structure: grounding before writing, multi-reviewer critique anchored to real code, a hard gate between `Draft` and `Implemented`, and a single source of truth for current system state.
 
-It distinguishes three kinds of documents and refuses to let them drift into each other:
+It distinguishes four kinds of documents and refuses to let them drift into each other:
 
 | Document | Purpose | Lifecycle |
 |---|---|---|
 | **PRD** | A long ADR with implementation detail. What to build and how, for one feature or change. | Historical snapshot. Frozen at `Implemented`. |
 | **ADR** | A focused architectural decision with alternatives and trade-offs. | Historical snapshot. Frozen at `Accepted`. |
 | **`SYSTEM_ARTIFACT.md`** | Current state of one sibling project, organised by domain. One file per project that needs it; lives inside that sibling, not in specforge. | Living document, updated when a PRD that impacts the project ships. |
+| **`ROADMAP.md`** | Product-level intent: problems, users, evidence, status, horizon. One global file at the specforge root. No technical detail. | Living document, mutable across generative cycles and PRD ships. |
 
 The load-bearing distinction: **PRDs are not living docs**. A PRD marked `Implemented` is a frozen record of what the team decided and shipped at a specific commit. To learn what the system does *today*, read `SYSTEM_ARTIFACT.md` or the code. To learn *why* something was built the way it was, read the PRD that introduced it.
 
@@ -56,32 +57,45 @@ specforge is designed to live **as a sibling directory to the code repositories 
 ├── specforge/                      ← this framework
 │   ├── README.md                   ← you are here (English)
 │   ├── README.es.md                ← Spanish version of this README
-│   ├── CLAUDE.md                   ← 45-line pointer file (mental model + TOC), auto-loaded
+│   ├── CLAUDE.md                   ← 47-line pointer file (mental model + TOC), auto-loaded
 │   ├── .claude/
 │   │   └── rules/                  ← behavioural rules, loaded alongside CLAUDE.md
-│   │       ├── hard-rules.md       ← the 11 invariants (unscoped)
+│   │       ├── hard-rules.md       ← the 12 invariants (unscoped)
 │   │       ├── workflow.md         ← 9-step authoring process (unscoped)
 │   │       ├── gate-block.md       ← Draft → Implemented gate (unscoped)
 │   │       ├── prd-authoring.md    ← required sections, naming (unscoped)
+│   │       ├── roadmap.md          ← roadmap cycle + evidence + PII carve-out (unscoped)
 │   │       ├── adr-specific.md     ← loads only on ADR-*.md
 │   │       └── framework-maintenance.md  ← loads only on framework files
 │   ├── CONVENTIONS.md              ← format reference: shapes, naming, diagrams
 │   ├── SIBLINGS.md                 ← team-mutable registry of sibling projects (fill in on day 1)
+│   ├── ROADMAP.md                  ← team-mutable product-level intent (one global file, living)
 │   ├── LICENSE                     ← MIT
 │   ├── templates/
 │   │   ├── prd.md
 │   │   ├── adr.md
+│   │   ├── roadmap.md              ← blank starter for ROADMAP.md
 │   │   └── system-artifact.md      ← blank template; goes inside a sibling, not here
 │   ├── examples/
 │   │   ├── prd-001-login-example.md
 │   │   └── system-artifact-example.md   ← example SYSTEM_ARTIFACT for one sibling
-│   ├── agents/                     ← briefing templates for the four parallel reviewers
+│   ├── agents/                     ← briefings for reviewer panel + roadmap panels
 │   │   ├── backend-reviewer.md
 │   │   ├── frontend-reviewer.md
 │   │   ├── security-reviewer.md
-│   │   └── quality-reviewer.md
+│   │   ├── quality-reviewer.md
+│   │   ├── roadmap-product-generator.md     ← generative panel (4 briefings)
+│   │   ├── roadmap-ux-generator.md
+│   │   ├── roadmap-market-generator.md
+│   │   ├── roadmap-support-generator.md
+│   │   ├── roadmap-evidence-critic.md       ← critical panel (4 briefings)
+│   │   ├── roadmap-devils-advocate-critic.md
+│   │   ├── roadmap-opportunity-cost-critic.md
+│   │   └── roadmap-risk-critic.md
 │   ├── scripts/
 │   │   └── upgrade.sh              ← safe framework upgrade (pulls new version, protects team data)
+│   ├── tests/
+│   │   └── roadmap/                ← 32 conformance walkthroughs for the roadmap cycle
 │   ├── VERSION                     ← current framework version (semver)
 │   ├── CHANGELOG.md                ← release history
 │   ├── NNN-your-prd.md             ← your PRDs live at the specforge root

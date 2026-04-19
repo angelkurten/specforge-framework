@@ -90,6 +90,25 @@ specforge is written for Claude Code (the `.claude/rules/` directory is loaded a
 - `.claude/rules/*.md` → Claude Code loads the unscoped files automatically and path-scoped files on match. For other tools, load the unscoped files manually.
 - `agents/*-reviewer.md` briefings → used as sub-agent prompts; the templating variables (`{{PRD_PATH}}`, `{{REVIEW_MODE}}`, etc.) are filled by the team lead before dispatch.
 
+## What is ROADMAP.md and do I need one?
+
+`ROADMAP.md` (v0.4.0+) is a global living document at the specforge root that captures **product-level intent**: problems, users, evidence, status, horizon — with **no technical detail**. It sits upstream of PRDs, feeding them with framed problems and evidence-backed "why this now vs later".
+
+You do **not** need to author one on day 1. PRDs without a `Roadmap item:` header get a retroactive item created at gate promotion (the auto-update flow in step 9), so the roadmap is a complete index of shipped work even if you never run a generative cycle.
+
+Run the generative cycle when a real signal warrants it — a ship revealed something new, support tickets concentrate on a theme, a stakeholder asked "what's next", the backlog feels stale. Do not run it on a calendar cadence; calendar-only triggers produce rote output.
+
+See [Concepts → Roadmap](concepts/roadmap.md) for the full cycle, evidence categories, and PII carve-out.
+
+## What's the difference between ROADMAP.md and SYSTEM_ARTIFACT.md?
+
+Both are living docs, but they answer different questions at different granularities:
+
+- `SYSTEM_ARTIFACT.md` lives **inside each sibling** (one per project that has domain state) and describes **current system state at HEAD**.
+- `ROADMAP.md` lives at the **specforge root**, is **global**, and describes **product-level intent** — what to build and why, for whom, with what evidence. It is not a description of what currently runs.
+
+The roadmap is upstream of PRDs (intent → PRD → ship); each SYSTEM_ARTIFACT is downstream of PRDs (PRD ships → SYSTEM_ARTIFACT update).
+
 ## Where do I find the behavioral rules?
 
 In [`/.claude/rules/`](https://github.com/angelkurten/specforge-framework/tree/main/.claude/rules):
@@ -99,6 +118,7 @@ In [`/.claude/rules/`](https://github.com/angelkurten/specforge-framework/tree/m
 - `gate-block.md` — the Draft → Implemented promotion gate schema
 - `prd-authoring.md` — required sections, naming, decision table
 - `adr-specific.md` — ADR format rules (loads when editing `ADR-*.md`)
+- `roadmap.md` — the roadmap cycle, evidence categories, PII carve-out, fence spec (unscoped)
 - `framework-maintenance.md` — rules for editing specforge itself
 
 ## I found a bug or want to contribute

@@ -50,6 +50,7 @@ nav:
   - Concepts:
       - Mental model: concepts/mental-model.md
       - Sibling projects: concepts/siblings.md
+      - Roadmap: concepts/roadmap.md
   - Workflow: workflow/overview.md
   - FAQ: faq.md
 

@@ -49,3 +49,15 @@ Optional sections (include when relevant): `Design Decisions`, `Performance`, `O
 `NNN` is a 3-digit zero-padded monotonic sequence number. PRDs and ADRs have independent numbering sequences (PRD-001 and ADR-001 coexist).
 
 Before assigning a new number, check the existing files with `ls` to avoid collisions.
+
+## Optional header field: `Roadmap item`
+
+PRDs may carry an optional header field linking back to `ROADMAP.md`:
+
+```markdown
+**Roadmap item**: ROADMAP-NNN
+```
+
+- **When present**, `ROADMAP-NNN` must resolve to an item in `ROADMAP.md` with `status != Parked`. A reference to a `Parked` item fails PRD validation.
+- **When absent**, the gate-promotion auto-update flow (PRD-001 §4.2) creates a retroactive item in `ROADMAP.md` with `status: Shipped` and `evidence: [PRD-NNN]` in the same commit as the gate block.
+- **PRDs authored before PRD-001 is implemented are grandfathered** — the field is optional, not retroactively required. The retroactive escape covers them on their next ship.

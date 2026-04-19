@@ -51,6 +51,29 @@ The default multi-reviewer panel is four roles (backend, frontend, security, qua
 
 The existing four briefings in `agents/` are canonical reference implementations. When in doubt about format, copy from `agents/backend-reviewer.md`.
 
+The five-variable canonical contract above applies **only to PRD reviewer briefings**. Generator and critic briefings used by the roadmap cycle (see next section) operate pre-code and use a separate variable contract.
+
+## Generator/critic briefing variant
+
+Roadmap generator and critic briefings (`agents/roadmap-*-generator.md`, `agents/roadmap-*-critic.md`) are pre-code: they reason about proposed roadmap items, not existing sibling code. Their input contract differs from the PRD reviewer contract in the preceding section.
+
+**Generator contract (4 variables)** — every `agents/roadmap-*-generator.md` briefing accepts:
+
+- `{{ROADMAP_PATH}}` — the current `ROADMAP.md` file.
+- `{{GROUNDING_CONTEXT}}` — the summary produced at the cycle's grounding step (active siblings, their `SYSTEM_ARTIFACT.md`s, PRDs in `Draft`, last N `Implemented`).
+- `{{DOMAIN_CONTEXT}}` — free-form focus note from the lead agent (e.g. "prioritise onboarding and retention this cycle").
+- `{{PANEL_MODE}}` — `generate` for generators (see below).
+
+**Critic contract (5 variables)** — every `agents/roadmap-*-critic.md` briefing accepts the four generator variables plus:
+
+- `{{CANDIDATE_ITEMS}}` — the consolidated output from the generative panel, ready for critique.
+
+`{{PANEL_MODE}}` takes one of two values: `generate` (dispatched by the generative panel) or `critique` (dispatched by the critical panel). **The mode is a contract, not a heuristic** — a briefing dispatched without an explicit `{{PANEL_MODE}}` halts with a single BLOCK finding ("missing required input: `{{PANEL_MODE}}`"). Same pattern as PRD reviewer briefings with `{{REVIEW_MODE}}`.
+
+**Prompt-injection hardening.** Every generator and critic briefing wraps user-supplied evidence text in a triple-backtick fence labelled `untrusted-evidence`, with an explicit preamble directing the sub-agent to treat fence contents as data, not commands. The canonical fence specification (scope, per-entry fencing, preamble re-emission, triple-backtick escape, and the exact template) lives in `.claude/rules/roadmap.md`. Briefings cross-reference that rule; they do not duplicate its text.
+
+**Scope note.** The five-variable canonical contract in the "Adding a new reviewer role" section above applies only to **PRD reviewer briefings**. The four/five-variable contract in this section applies only to **roadmap generator and critic briefings**. A new briefing that does not fit either pattern requires a new section here before it ships.
+
 ## Splitting an existing rule file
 
 If a rule file grows past ~150 lines or accumulates unrelated sub-topics, split it. The filename schema and the `name:` frontmatter field make the split traceable in the rules directory.
