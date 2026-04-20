@@ -8,6 +8,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.5.0] - 2026-04-19
+
+### Added
+- `.claude/rules/model-selection.md` — per-role model assignment for sub-agent dispatch. Prescribes `opus` for adversarial / high-blast-radius roles (`backend-reviewer`, `security-reviewer`, `roadmap-evidence-critic`, `roadmap-risk-critic`), `sonnet` for multi-source synthesis (`frontend-reviewer`, `quality-reviewer`, `roadmap-market-generator`, `roadmap-ux-generator`, `roadmap-devils-advocate-critic`, `roadmap-opportunity-cost-critic`), and `haiku` for mechanical extraction (`roadmap-product-generator`, `roadmap-support-generator`).
+
+### Changed
+- `CLAUDE.md`: `model-selection.md` pointer added under always-loaded rules (48 lines total, under the 50-line target).
+
+### Notes
+- The `effort` frontmatter field was evaluated in this workspace (16 parallel runs across sonnet and opus, `high` vs `low` vs absent). Deltas fell within intra-group variance. The rule file explicitly declines to prescribe `effort` until release notes confirm support.
+
+### Compat
+- Backward-compatible. Teams without explicit model defaults continue to inherit from the parent session.
+
 ## [0.4.0] - 2026-04-19
 
 ### Added
@@ -62,6 +76,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 ### Added
 - Initial commit: templates, examples, agents, conventions, hard rules, workflow.
 
+[0.5.0]: https://github.com/angelkurten/specforge-framework/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/angelkurten/specforge-framework/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/angelkurten/specforge-framework/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/angelkurten/specforge-framework/compare/v0.1.0...v0.2.0

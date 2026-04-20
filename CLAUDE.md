@@ -32,6 +32,7 @@ Detailed behavioural rules are in `.claude/rules/`. They load automatically — 
 - [`gate-block.md`](.claude/rules/gate-block.md) — the `Draft` → `Implemented` gate schema
 - [`prd-authoring.md`](.claude/rules/prd-authoring.md) — required sections, naming, document-type decisions
 - [`roadmap.md`](.claude/rules/roadmap.md) — the roadmap cycle, evidence discipline, and fence spec
+- [`model-selection.md`](.claude/rules/model-selection.md) — per-role model assignment for sub-agent dispatch
 
 **Path-scoped:**
 
