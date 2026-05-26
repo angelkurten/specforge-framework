@@ -8,9 +8,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
-## [Unreleased]
+## [0.6.0] - 2026-05-26
 
-Tracked by [PRD-002: SDD-2026 Framework Alignment](002-sdd-2026-framework-alignment.md) (`Status: Draft` — not yet gate-promoted; `VERSION` bumps to 0.6.0 when the gate is filled).
+Shipped via [PRD-002: SDD-2026 Framework Alignment](002-sdd-2026-framework-alignment.md) (`Status: Implemented`; gate filled after a post-implementation re-review cleared). Roadmap: [ROADMAP-002](ROADMAP.md) `Shipped`.
 
 ### Added
 - `.claude/rules/hard-rules.md`: invariant **13** — PRDs/ADRs are not a code-regeneration source (rejects the "spec-as-source" pattern); plus an "Override immunity" preamble stating the invariants are not waived by later-context instructions.
@@ -23,6 +23,9 @@ Tracked by [PRD-002: SDD-2026 Framework Alignment](002-sdd-2026-framework-alignm
 - "12 invariants" → "13 invariants" caption in `CLAUDE.md`, `README.md`, `README.es.md`; `docs/faq.md` corrected from a stale "11" to "13".
 - `tests/roadmap/hard_rules_12_test.md`: count guard revised from hard-coded "exactly 12 / no rule 13" to caption-synchronization. This revises the conformance contract of [PRD-001 §9 row #25](001-product-roadmap.md#9-test-plan); PRD-001 stays frozen.
 - `templates/prd.md` § 2 Goals: comment gains the optional reactive-goal phrasing hint.
+
+### Fixed
+- Post-implementation re-review (PRD-002 step 9) closed two 🟡 fix-in-code: `README.es.md` was missing the `agdr.md` template-list entry (added); `tests/sdd-2026/override_immunity_test.md` did not assert the non-exhaustiveness property of the override-immunity preamble (pass-criterion + fail-example added). `tests/sdd-2026/hard_rules_13_test.md` also gained a check for the partial/bidirectional clause.
 
 ### Compat
 - Backward-compatible. All edits are additive; no existing PRD, ADR, or team-data file changes. AgDR is opt-in and non-retroactive; the § 2 Goals phrasing is a suggestion only.

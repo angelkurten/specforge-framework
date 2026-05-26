@@ -74,6 +74,7 @@ specforge está diseñado para vivir **como un directorio hermano de los repos d
 │   ├── templates/
 │   │   ├── prd.md
 │   │   ├── adr.md
+│   │   ├── agdr.md                 ← Agent Decision Record opcional (raro)
 │   │   ├── roadmap.md              ← starter en blanco para ROADMAP.md
 │   │   └── system-artifact.md      ← template en blanco; va DENTRO de un sibling, no acá
 │   ├── examples/

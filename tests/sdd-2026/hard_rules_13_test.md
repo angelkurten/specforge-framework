@@ -22,6 +22,7 @@ PRD-002 § 2 / § 5 introduce hard rule 13 forbidding treatment of a frozen PRD/
 - [ ] Regex `^13\. ` matches exactly one line.
 - [ ] The rule 13 block contains the literal substring `not a code-regeneration source`.
 - [ ] The block names the `spec-as-source` pattern and references the frozen-snapshot invariant (rule 7) and the living-document invariant (rule 8).
+- [ ] The block covers more than whole-file regeneration: it names partial/section regeneration **and** automated spec↔code synchronization in either direction (the clause backing the § 3 bidirectional non-goal in PRD-002).
 
 ## Fail examples
 

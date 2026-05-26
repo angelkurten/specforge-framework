@@ -32,3 +32,19 @@
 - [PRD-001] — retroactive meta-reference per `.claude/rules/roadmap.md` § Evidence category 7
 
 **Caveats**: —
+
+### ROADMAP-002: SDD-2026 framework alignment
+
+**Status**: Shipped
+**Last reviewed**: 2026-05-26
+**Theme**: —
+**PRD**: PRD-002
+
+**Problem / outcome**: specforge predated the 2026 consolidation of spec-driven-development practice; five low-risk gaps (no decision-table lower bound, no stated rule precedence, no testable reactive-goal phrasing, no spec-as-source prohibition, no agent-decision traceability) were closed.
+**User**: specforge maintainers and adopting teams
+**Siblings likely impacted**: specforge
+
+**Evidence**:
+- [PRD-002] — retroactive meta-reference per `.claude/rules/roadmap.md` § Evidence category 7
+
+**Caveats**: —

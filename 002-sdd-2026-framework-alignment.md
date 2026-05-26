@@ -1,7 +1,8 @@
 # PRD-002: SDD-2026 Framework Alignment
 
-**Status**: Draft
+**Status**: Implemented
 **Date**: 2026-05-26
+**Implemented at**: 2026-05-26
 **Author**: AI-assisted
 **Priority**: P2
 **Depends on**: PRD-001
@@ -198,14 +199,28 @@ session.
 
 ## Gate: Promotion to `Implemented`
 
+<!-- yellow-tracking: post-implementation re-review (step 9) raised two 🟡, both
+     closed fix-in-code in the commit referenced by commit_hash below:
+       1. README.es.md was missing the agdr.md template-list entry → added.
+       2. override_immunity_test.md did not assert the non-exhaustiveness
+          property → pass-criterion + fail-example added.
+     No 🔴; backend reviewer APPROVE; security/quality 🟡s resolved. -->
+
 ```yaml
-commit_hash: [TBD]
+commit_hash: GATE_COMMIT_PLACEHOLDER
 tests:
-  - [TBD]
-system_artifact_diff: []   # terminal value: the only impacted sibling (specforge)
-                           # maintains no SYSTEM_ARTIFACT.md, so the list is
-                           # empty by the gate-block rule (length = # of impacted
-                           # siblings with a SYSTEM_ARTIFACT.md = 0). Empty list is
-                           # a permitted Draft form per CONVENTIONS.md § 3; matches
-                           # PRD-001's precedent.
+  - tests/sdd-2026/override_immunity_test.md
+  - tests/sdd-2026/hard_rules_13_test.md
+  - tests/sdd-2026/caption_sync_test.md
+  - tests/roadmap/hard_rules_12_test.md
+  - tests/sdd-2026/decision_table_size_floor_test.md
+  - tests/sdd-2026/agdr_contract_test.md
+  - tests/sdd-2026/agdr_template_test.md
+  - tests/sdd-2026/goals_phrasing_note_test.md
+  - tests/sdd-2026/agdr_non_gating_test.md
+  - tests/sdd-2026/claude_md_size_test.md
+  - tests/sdd-2026/frozen_docs_untouched_test.md
+system_artifact_diff: []   # the only impacted sibling (specforge) maintains no
+                           # SYSTEM_ARTIFACT.md, so the list length = 0 per the
+                           # gate-block rule. Matches PRD-001's precedent.
 ```
