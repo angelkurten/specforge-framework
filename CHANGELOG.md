@@ -8,6 +8,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [Unreleased]
+
+Tracked by [PRD-002: SDD-2026 Framework Alignment](002-sdd-2026-framework-alignment.md) (`Status: Draft` — not yet gate-promoted; `VERSION` bumps to 0.6.0 when the gate is filled).
+
+### Added
+- `.claude/rules/hard-rules.md`: invariant **13** — PRDs/ADRs are not a code-regeneration source (rejects the "spec-as-source" pattern); plus an "Override immunity" preamble stating the invariants are not waived by later-context instructions.
+- `.claude/rules/prd-authoring.md`: two decision-table rows (small observable change → `SYSTEM_ARTIFACT.md` note; autonomous high-blast-radius decision → optional AgDR), an optional § 2 Goals event/condition phrasing note, an "Optional artifact: Agent Decision Records" section, and an `AgDR-NNN` naming row.
+- `templates/agdr.md` — Agent Decision Record template (opt-in, rare; does not gate promotion).
+- `CONVENTIONS.md` § 2: AgDR naming subsection.
+- `.claude/rules/workflow.md` step 9: AgDR-emission line in the implementation-team brief.
+
+### Changed
+- "12 invariants" → "13 invariants" caption in `CLAUDE.md`, `README.md`, `README.es.md`; `docs/faq.md` corrected from a stale "11" to "13".
+- `tests/roadmap/hard_rules_12_test.md`: count guard revised from hard-coded "exactly 12 / no rule 13" to caption-synchronization. This revises the conformance contract of [PRD-001 §9 row #25](001-product-roadmap.md#9-test-plan); PRD-001 stays frozen.
+- `templates/prd.md` § 2 Goals: comment gains the optional reactive-goal phrasing hint.
+
+### Compat
+- Backward-compatible. All edits are additive; no existing PRD, ADR, or team-data file changes. AgDR is opt-in and non-retroactive; the § 2 Goals phrasing is a suggestion only.
+
 ## [0.5.0] - 2026-04-19
 
 ### Added

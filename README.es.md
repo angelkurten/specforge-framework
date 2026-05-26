@@ -60,7 +60,7 @@ specforge está diseñado para vivir **como un directorio hermano de los repos d
 │   ├── CLAUDE.md                   ← pointer file de 47 líneas (mental model + índice), auto-loaded
 │   ├── .claude/
 │   │   └── rules/                  ← reglas behavioural, cargadas junto con CLAUDE.md
-│   │       ├── hard-rules.md       ← las 12 invariantes (unscoped)
+│   │       ├── hard-rules.md       ← las 13 invariantes (unscoped)
 │   │       ├── workflow.md         ← proceso de 9 pasos (unscoped)
 │   │       ├── gate-block.md       ← gate Draft → Implemented (unscoped)
 │   │       ├── prd-authoring.md    ← required sections, naming (unscoped)

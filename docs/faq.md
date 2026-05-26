@@ -113,7 +113,7 @@ The roadmap is upstream of PRDs (intent → PRD → ship); each SYSTEM_ARTIFACT 
 
 In [`/.claude/rules/`](https://github.com/angelkurten/specforge-framework/tree/main/.claude/rules):
 
-- `hard-rules.md` — the 11 invariants that govern every PRD and ADR
+- `hard-rules.md` — the 13 invariants that govern every PRD and ADR
 - `workflow.md` — the 9-step authoring process
 - `gate-block.md` — the Draft → Implemented promotion gate schema
 - `prd-authoring.md` — required sections, naming, decision table

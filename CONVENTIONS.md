@@ -57,6 +57,14 @@ ADR-007-event-bus-choice.md
 
 ADRs have their own independent numbering sequence.
 
+### AgDRs
+
+```
+AgDR-NNN-kebab-case-title.md
+```
+
+Optional, rare records of a high-blast-radius decision a sub-agent made autonomously during implementation. Independent numbering sequence. Template: [`templates/agdr.md`](templates/agdr.md). When to use one (and the deliberately high bar) lives in [`.claude/rules/prd-authoring.md`](.claude/rules/prd-authoring.md) § Optional artifact: Agent Decision Records — not duplicated here.
+
 ---
 
 ## 3. PRD header metadata

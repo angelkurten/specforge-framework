@@ -27,7 +27,7 @@ Detailed behavioural rules are in `.claude/rules/`. They load automatically — 
 
 **Always-loaded (unscoped):**
 
-- [`hard-rules.md`](.claude/rules/hard-rules.md) — the 12 invariants that govern every PRD and ADR
+- [`hard-rules.md`](.claude/rules/hard-rules.md) — the 13 invariants that govern every PRD and ADR
 - [`workflow.md`](.claude/rules/workflow.md) — the 9-step authoring process
 - [`gate-block.md`](.claude/rules/gate-block.md) — the `Draft` → `Implemented` gate schema
 - [`prd-authoring.md`](.claude/rules/prd-authoring.md) — required sections, naming, document-type decisions
