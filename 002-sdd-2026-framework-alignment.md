@@ -207,7 +207,7 @@ session.
      No 🔴; backend reviewer APPROVE; security/quality 🟡s resolved. -->
 
 ```yaml
-commit_hash: GATE_COMMIT_PLACEHOLDER
+commit_hash: 4792f8a
 tests:
   - tests/sdd-2026/override_immunity_test.md
   - tests/sdd-2026/hard_rules_13_test.md
