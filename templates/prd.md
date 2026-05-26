@@ -46,7 +46,12 @@
 
 ## 2. Goals
 
-<!-- Imperative bullets: "Enable X", "Provide Y", "Ensure Z". 3-7 items. -->
+<!-- Imperative bullets: "Enable X", "Provide Y", "Ensure Z". 3-7 items.
+     Optional: for a goal describing a system reaction, prefer event/condition-
+     first phrasing — "When <trigger>, the system shall <response>" or
+     "If <condition>, then the system shall <response>" — so it maps directly
+     to a § 9 Test Plan row. Style suggestion only; see prd-authoring.md § 2. -->
+
 
 - <!-- Goal 1 -->
 - <!-- Goal 2 -->
