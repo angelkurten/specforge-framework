@@ -1,0 +1,23 @@
+node_modules/
+dist/
+dist-scripts/
+framework/
+*.tgz
+.vitest/
+coverage/
+
+# Spurious specforge install artifacts (the e2e tests inadvertently ran
+# `specforge init` against this directory; these files belong at the
+# specforge root, not inside the CLI sub-package).
+/CLAUDE.md
+/CONVENTIONS.md
+/LICENSE
+/ROADMAP.md
+/SIBLINGS.md
+/VERSION
+/agents/
+/examples/
+/templates/
+/.claude/
+/.specforge/
+
