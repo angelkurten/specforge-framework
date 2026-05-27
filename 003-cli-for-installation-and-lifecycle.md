@@ -1,6 +1,7 @@
 # PRD-003: CLI for installation and lifecycle management
 
-**Status**: Draft
+**Status**: Implemented
+**Implemented at**: 2026-05-27
 **Date**: 2026-05-26
 **Author**: AI-assisted
 **Priority**: P2
@@ -1143,10 +1144,62 @@ added here or routed to follow-up PRDs per the workflow.
 
 ## Gate: Promotion to `Implemented`
 
+<!--
+  yellow-tracking: post-implementation re-review (step 9) raised 8 🟡
+  across backend, frontend, and quality reviewers. Closure routing:
+
+    Backend 🟡-1 (row #26 wrong path)            → fix-in-code (commit 6fe3d7e)
+    Backend 🟡-2 (merge base degradation)        → follow-up PRD-004 § A
+    Backend 🟡-3 (dead branch in update merge)   → fix-in-code (commit 6fe3d7e)
+    Backend 🟡-4 (migrate JSON dry-run no steps) → fix-in-code (commit 6fe3d7e)
+    Backend 🟡-5 (exit 3 git-unavailable doc gap)→ follow-up PRD-004 § B
+    Frontend 🟡-1 (next-steps msg ignores --quiet)→ fix-in-code (commit 6fe3d7e)
+    Frontend 🟡-2 (doctor redundant guard)        → fix-in-code (commit 6fe3d7e)
+    Quality 🟡-1 (row #18 merge conflict assert)  → follow-up PRD-004 § A
+                                                    (architectural: base bytes
+                                                     not stored per § 6.1; a
+                                                     genuine 3-way conflict is
+                                                     unconstructible without
+                                                     changing the data model)
+
+  No 🔴 open at promotion (Quality's 2 🔴 on rows #31/#47 closed
+  fix-in-code via test-only migration injection — same commit 6fe3d7e).
+  Security PASS (no findings). Backend + quality re-review (round 1):
+  both APPROVE.
+
+  AgDR-001 (vitest as the CLI test runner) was emitted by the
+  implementation lead. It is a record, not a gate precondition.
+-->
+
 ```yaml
-commit_hash: [TBD]
+commit_hash: 6fe3d7e
 tests:
-  - [TBD]
-system_artifact_diff:
-  - [TBD]
+  - tools/cli/tests/unit/partition.test.ts
+  - tools/cli/tests/unit/sha.test.ts
+  - tools/cli/tests/unit/manifest.test.ts
+  - tools/cli/tests/unit/merge.test.ts
+  - tools/cli/tests/unit/cli.test.ts
+  - tools/cli/tests/unit/version.test.ts
+  - tools/cli/tests/unit/validators/prd-numbering.test.ts
+  - tools/cli/tests/unit/validators/siblings-paths.test.ts
+  - tools/cli/tests/unit/validators/gate-block.test.ts
+  - tools/cli/tests/unit/validators/rule-frontmatter.test.ts
+  - tools/cli/tests/unit/validators/prd-required-sections.test.ts
+  - tools/cli/tests/unit/validators/prd-back-refs.test.ts
+  - tools/cli/tests/unit/validators/prd-marketing-language.test.ts
+  - tools/cli/tests/unit/validators/prd-system-artifact-diff.test.ts
+  - tools/cli/tests/unit/validators/roadmap-evidence-categories.test.ts
+  - tools/cli/tests/unit/migrations/0.6.0-to-0.7.0.test.ts
+  - tools/cli/tests/integration/init.test.ts
+  - tools/cli/tests/integration/update.test.ts
+  - tools/cli/tests/integration/doctor.test.ts
+  - tools/cli/tests/integration/migrate.test.ts
+  - tools/cli/tests/integration/security.test.ts
+  - tools/cli/tests/integration/version-guard.test.ts
+  - tools/cli/tests/integration/locking.test.ts
+  - tools/cli/tests/e2e/pack-and-run.test.ts
+  - tools/cli/tests/e2e/provenance-metadata.test.ts
+system_artifact_diff: []   # the only impacted sibling (specforge) maintains no
+                           # SYSTEM_ARTIFACT.md, so the list length = 0 per the
+                           # gate-block rule. Matches PRD-001 / PRD-002 precedent.
 ```

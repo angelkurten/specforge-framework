@@ -8,6 +8,31 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.7.0] - 2026-05-27
+
+Shipped via [PRD-003: CLI for installation and lifecycle management](003-cli-for-installation-and-lifecycle.md) (`Status: Implemented`; gate filled after a post-implementation re-review cleared). Roadmap: [ROADMAP-003](ROADMAP.md) `Shipped`.
+
+### Added
+
+- `@angelkurten/specforge` npm package (TypeScript, Node ≥20) providing the CLI: `init`, `update`, `doctor`, `migrate`, `version`.
+- Monorepo subdirectory `tools/cli/` holding the source, tests (136 passing), and CI workflow (`.github/workflows/cli-release.yml`) for `npm publish --provenance`.
+- 12 doctor validators enforcing hard-rules 4, 8, 9, 10, 11, 12 plus rule-file frontmatter, gate-block YAML shape, PRD numbering monotonicity, PRD required sections, CLAUDE.md size, manifest presence, and framework-file integrity.
+- `.specforge/manifest.json` schema with sha256-at-install per framework file, migration audit trail (direction up/down + script_sha256 + security_sensitive boolean).
+- `.specforge/lock` advisory lockfile (mutating commands acquire; doctor/version do not).
+- Migration framework with `up()` / optional `down()` + `security_sensitive?: boolean`; downgrade requires `--allow-downgrade` and sensitive rollback requires `--acknowledge-security-rollback`.
+- AgDR-001 (vitest as the CLI test runner) — first AgDR emitted under the new framework.
+- PRD-004 stub tracking two architectural 🟡 follow-ups deferred from PRD-003 post-impl re-review (merge base degradation; exit-3 dual-meaning documentation gap).
+
+### Security
+
+- Node version runtime check independent of npm `EBADENGINE` warning.
+- YAML safe-load via `customTags: []` plus warning-promoted-to-fatal (single entry point at `src/yaml.ts`).
+- File-overwrite safety: `--erase` requires double opt-in (`--no-git-safety` AND `SPECFORGE_ALLOW_DESTRUCTIVE=1`); `git status` invoked via `spawn` with `shell: false`, timeout 5s, fail-closed on any error.
+- Path traversal + symlink safety: lexical resolve + realpath check + `O_NOFOLLOW` (`fs.open 'wx'` + `lstat` refuse-on-symlink).
+- `framework-file-integrity` validator compares on-disk sha256 against the npm-attested bundled snapshot (not the user-mutable manifest) when versions match.
+
+---
+
 ## [0.6.0] - 2026-05-26
 
 Shipped via [PRD-002: SDD-2026 Framework Alignment](002-sdd-2026-framework-alignment.md) (`Status: Implemented`; gate filled after a post-implementation re-review cleared). Roadmap: [ROADMAP-002](ROADMAP.md) `Shipped`.

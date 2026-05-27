@@ -48,3 +48,19 @@
 - [PRD-002] — retroactive meta-reference per `.claude/rules/roadmap.md` § Evidence category 7
 
 **Caveats**: —
+
+### ROADMAP-003: CLI for installation and lifecycle management
+
+**Status**: Shipped
+**Last reviewed**: 2026-05-27
+**Theme**: —
+**PRD**: PRD-003
+
+**Problem / outcome**: adopting specforge required `git clone` + manual file copying with no programmatic surface for validation, migration, or lifecycle. The `@angelkurten/specforge` npm CLI now provides `init`/`update`/`doctor`/`migrate`/`version` with manifest-based drift detection, lockfile concurrency safety, 12 hard-rule validators, and path-traversal + symlink guards.
+**User**: specforge maintainers and adopting teams
+**Siblings likely impacted**: specforge
+
+**Evidence**:
+- [PRD-003] — retroactive meta-reference per `.claude/rules/roadmap.md` § Evidence category 7
+
+**Caveats**: Two 🟡 architectural follow-ups tracked in PRD-004 (merge base degradation; exit-3 git-unavailable documentation gap).
