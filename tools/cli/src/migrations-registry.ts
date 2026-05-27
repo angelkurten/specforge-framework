@@ -40,9 +40,39 @@ function toMigration(mod: any, filename: string): Migration {
   };
 }
 
-export const ALL_MIGRATIONS: ReadonlyArray<Migration> = [
+export const BUNDLED_MIGRATIONS: ReadonlyArray<Migration> = [
   toMigration(m_0_6_0_to_0_7_0, "0.6.0-to-0.7.0.ts"),
 ];
+
+/**
+ * Test-only injection point. Production code reads ALL_MIGRATIONS, which is
+ * always the bundled set. Tests pass extra migrations via the `extraMigrations`
+ * option on commands that take it (e.g. `runMigrate`), and those commands
+ * compose them with the bundled list internally. Nothing user-supplied lands
+ * here in production — see PRD-003 § 8.2.
+ */
+export const ALL_MIGRATIONS: ReadonlyArray<Migration> = BUNDLED_MIGRATIONS;
+
+/** Construct a Migration from a bare object, for test fixtures. */
+export function makeTestMigration(spec: {
+  from: string;
+  to: string;
+  description: string;
+  security_sensitive?: boolean;
+  up: (cwd: string) => Promise<MigrationReport>;
+  down?: (cwd: string) => Promise<MigrationReport>;
+  filename?: string;
+}): Migration {
+  return {
+    from: spec.from,
+    to: spec.to,
+    description: spec.description,
+    security_sensitive: spec.security_sensitive === true,
+    up: spec.up,
+    down: spec.down,
+    filename: spec.filename ?? `test-${spec.from}-to-${spec.to}.ts`,
+  };
+}
 
 /**
  * sha256 of a bundled migration script's source file. Used for the
@@ -94,13 +124,14 @@ function cmpSemver(a: string, b: string): number {
 export function planMigrations(
   from: string,
   to: string,
+  migrations: ReadonlyArray<Migration> = ALL_MIGRATIONS,
 ): { direction: "up" | "down"; steps: Migration[] } | null {
   const cmp = cmpSemver(from, to);
   if (cmp === 0) return { direction: "up", steps: [] };
 
   if (cmp < 0) {
     // Upgrade: chain forward.
-    const sorted = [...ALL_MIGRATIONS].sort((a, b) => cmpSemver(a.from, b.from));
+    const sorted = [...migrations].sort((a, b) => cmpSemver(a.from, b.from));
     const steps: Migration[] = [];
     let current = from;
     while (cmpSemver(current, to) < 0) {
@@ -113,7 +144,7 @@ export function planMigrations(
     return { direction: "up", steps };
   } else {
     // Downgrade: chain backward.
-    const sorted = [...ALL_MIGRATIONS].sort((a, b) => cmpSemver(b.to, a.to));
+    const sorted = [...migrations].sort((a, b) => cmpSemver(b.to, a.to));
     const steps: Migration[] = [];
     let current = from;
     while (cmpSemver(current, to) > 0) {

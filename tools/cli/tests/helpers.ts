@@ -65,6 +65,30 @@ export function synthBundleImportMetaUrl(): string {
 }
 
 /**
+ * Build a synthetic framework-bundle directory inside `parent` with a chosen
+ * VERSION. Returns an `importMetaUrl`-shaped string pointing at
+ * `<parent>/fake-pkg/dist/cli.js`. The bundle contains a minimal
+ * framework tree (CLAUDE.md, VERSION) — enough for `bundleVersion()` and the
+ * migrate command's bundle lookup.
+ */
+export async function synthBundleAt(
+  parent: string,
+  version: string,
+): Promise<string> {
+  const pkg = path.join(parent, "fake-pkg");
+  const framework = path.join(pkg, "framework");
+  await fs.mkdir(framework, { recursive: true });
+  await fs.mkdir(path.join(pkg, "dist"), { recursive: true });
+  await fs.writeFile(path.join(framework, "VERSION"), `${version}\n`);
+  await fs.writeFile(
+    path.join(framework, "CLAUDE.md"),
+    "# specforge (synth-bundle fixture for tests)\n",
+  );
+  const fakeCli = path.join(pkg, "dist", "cli.js");
+  return pathToFileURL(fakeCli).href;
+}
+
+/**
  * Write a minimal valid manifest to a tmpdir.
  */
 export async function writeMinimalManifest(

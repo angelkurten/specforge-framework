@@ -66,9 +66,7 @@ export async function runDoctor(opts: DoctorOptions): Promise<number> {
         findings.push(f);
         if (f.severity === "error") failedValidators.add(f.rule);
       }
-      if (!opts.quiet && !opts.json) {
-        info(opts, `check   ${v.id} — ${out.filter((f) => f.severity === "error").length} error(s), ${out.filter((f) => f.severity === "warning").length} warning(s)`);
-      }
+      info(opts, `check   ${v.id} — ${out.filter((f) => f.severity === "error").length} error(s), ${out.filter((f) => f.severity === "warning").length} warning(s)`);
     } catch (e) {
       findings.push({
         rule: v.id,

@@ -222,7 +222,7 @@ export async function runInit(opts: InitOptions): Promise<number> {
     info(opts, `write   .specforge/manifest.json`);
 
     summary(opts, `init complete: framework v${bundleVer} installed (${frameworkEntries.length} framework files)`);
-    summary(opts, "next steps: edit SIBLINGS.md and ROADMAP.md, then `specforge doctor`, `specforge update`, `specforge --help`");
+    info(opts, "next steps: edit SIBLINGS.md and ROADMAP.md, then `specforge doctor`, `specforge update`, `specforge --help`");
     return 0;
   } catch (e) {
     printError({

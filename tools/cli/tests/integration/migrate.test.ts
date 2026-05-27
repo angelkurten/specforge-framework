@@ -2,8 +2,9 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
-import { mkTmpDir, synthBundleImportMetaUrl, writeMinimalManifest } from "../helpers.js";
+import { mkTmpDir, synthBundleAt, synthBundleImportMetaUrl, writeMinimalManifest } from "../helpers.js";
 import { runMigrate } from "../../src/commands/migrate.js";
+import { makeTestMigration } from "../../src/migrations-registry.js";
 
 let tmpDir: string;
 
@@ -131,28 +132,66 @@ describe("migrate: downgrade with flag, all down() present", () => {
 
 describe("migrate: downgrade refuses when any down() missing", () => {
   it("If any migration in the reverse path lacks down(), exit 4 before any file mutation", async () => {
-    // The 0.6.0-to-0.7.0 migration HAS a down(), so we can't directly test this
-    // with the real migration. We verify by testing with a target that has no migration
-    // path at all (which returns exit 2), and document that the bundled migration has down().
-    // To properly test exit 4 we'd need a fixture migration — instead we verify the
-    // planMigrations logic via the migrate command with a version that doesn't have a path.
-    await setupManifest(tmpDir, "0.7.0");
-    const importMetaUrl = synthBundleImportMetaUrl();
+    // Fixture: 0.7.0 → 0.8.0 has no down(); 0.8.0 → 0.9.0 has both. Manifest
+    // starts at 0.9.0. Downgrade to 0.7.0 must refuse with exit 4 because the
+    // reverse path contains 0.7.0 → 0.8.0 lacking down(). Synthesize a bundle
+    // at 0.9.0 so the "installed newer than bundled" guard does not fire.
+    await setupManifest(tmpDir, "0.9.0");
+    const importMetaUrl = await synthBundleAt(tmpDir, "0.9.0");
 
-    // Use a version with no path (99.0.0) to get exit 2 (no path)
-    const exitCode = await runMigrate({
-      cwd: tmpDir,
-      apply: true,
-      to: "0.5.0",
-      allowDowngrade: true,
-      acknowledgeSecurityRollback: false,
-      json: false,
-      dryRun: false,
-      quiet: true,
-      importMetaUrl,
-    });
-    // 0.7.0 -> 0.5.0 has no migration path (we only have 0.6.0<->0.7.0)
-    expect(exitCode).toBe(2);
+    const extraMigrations = [
+      makeTestMigration({
+        from: "0.7.0",
+        to: "0.8.0",
+        description: "fixture: 0.7.0 → 0.8.0 (no down)",
+        up: async () => ({ description: "fixture up", changed_files: [] }),
+        // No `down` — this is the offender.
+      }),
+      makeTestMigration({
+        from: "0.8.0",
+        to: "0.9.0",
+        description: "fixture: 0.8.0 → 0.9.0",
+        up: async () => ({ description: "fixture up", changed_files: [] }),
+        down: async () => ({ description: "fixture down", changed_files: [] }),
+      }),
+    ];
+
+    const errChunks: string[] = [];
+    const origWrite = process.stderr.write.bind(process.stderr);
+    (process.stderr as any).write = (chunk: any) => {
+      errChunks.push(String(chunk));
+      return true;
+    };
+    let exitCode: number;
+    try {
+      exitCode = await runMigrate({
+        cwd: tmpDir,
+        apply: true,
+        to: "0.7.0",
+        allowDowngrade: true,
+        acknowledgeSecurityRollback: false,
+        json: false,
+        dryRun: false,
+        quiet: true,
+        importMetaUrl,
+        extraMigrations,
+      });
+    } finally {
+      (process.stderr as any).write = origWrite;
+    }
+
+    expect(exitCode).toBe(4);
+    // Message must identify the offending migration (0.7.0 → 0.8.0).
+    const combined = errChunks.join("");
+    expect(combined).toContain("0.7.0");
+    expect(combined).toContain("0.8.0");
+
+    // Manifest must be untouched.
+    const manifest = JSON.parse(
+      await fs.readFile(path.join(tmpDir, ".specforge", "manifest.json"), "utf8"),
+    );
+    expect(manifest.framework_version).toBe("0.9.0");
+    expect(manifest.migrations_applied).toEqual([]);
   });
 });
 
@@ -183,34 +222,88 @@ describe("migrate: --to=<X> with no migration path", () => {
 });
 
 describe("migrate: security-sensitive rollback requires acknowledgement", () => {
-  it("migrate with a security-sensitive migration in reverse path exits 4 without --acknowledge-security-rollback; proceeds with the flag; manifest records direction down and security_sensitive true", async () => {
-    // The bundled 0.6.0-to-0.7.0 migration has security_sensitive: false,
-    // so we can't test the 4-exit path with real migrations.
-    // We test the success path (security-insensitive downgrade proceeds without ack flag).
-    await setupManifest(tmpDir, "0.7.0");
-    const importMetaUrl = synthBundleImportMetaUrl();
+  // Fixture: a security-sensitive 0.7.0 → 0.8.0 with both up and down.
+  const SENSITIVE_DESCRIPTION = "fixture: sensitive rollback gate";
+  function sensitiveFixture() {
+    return [
+      makeTestMigration({
+        from: "0.7.0",
+        to: "0.8.0",
+        description: SENSITIVE_DESCRIPTION,
+        security_sensitive: true,
+        up: async () => ({ description: "fixture up", changed_files: [] }),
+        down: async () => ({ description: "fixture down", changed_files: [] }),
+      }),
+    ];
+  }
 
-    // Downgrade without ack flag should succeed since security_sensitive is false
+  it("sub-case A: without --acknowledge-security-rollback exits 4, lists the sensitive migration, leaves manifest unchanged", async () => {
+    await setupManifest(tmpDir, "0.8.0");
+    const importMetaUrl = await synthBundleAt(tmpDir, "0.8.0");
+
+    const errChunks: string[] = [];
+    const origWrite = process.stderr.write.bind(process.stderr);
+    (process.stderr as any).write = (chunk: any) => {
+      errChunks.push(String(chunk));
+      return true;
+    };
+    let exitCode: number;
+    try {
+      exitCode = await runMigrate({
+        cwd: tmpDir,
+        apply: true,
+        to: "0.7.0",
+        allowDowngrade: true,
+        acknowledgeSecurityRollback: false,
+        json: false,
+        dryRun: false,
+        quiet: true,
+        importMetaUrl,
+        extraMigrations: sensitiveFixture(),
+      });
+    } finally {
+      (process.stderr as any).write = origWrite;
+    }
+
+    expect(exitCode).toBe(4);
+    const combined = errChunks.join("");
+    expect(combined).toContain(SENSITIVE_DESCRIPTION);
+
+    const manifest = JSON.parse(
+      await fs.readFile(path.join(tmpDir, ".specforge", "manifest.json"), "utf8"),
+    );
+    expect(manifest.framework_version).toBe("0.8.0");
+    expect(manifest.migrations_applied).toEqual([]);
+  });
+
+  it("sub-case B: with --acknowledge-security-rollback exits 0; manifest records direction=down, security_sensitive=true", async () => {
+    await setupManifest(tmpDir, "0.8.0");
+    const importMetaUrl = await synthBundleAt(tmpDir, "0.8.0");
+
     const exitCode = await runMigrate({
       cwd: tmpDir,
       apply: true,
-      to: "0.6.0",
+      to: "0.7.0",
       allowDowngrade: true,
-      acknowledgeSecurityRollback: false,
+      acknowledgeSecurityRollback: true,
       json: false,
       dryRun: false,
       quiet: true,
       importMetaUrl,
+      extraMigrations: sensitiveFixture(),
     });
     expect(exitCode).toBe(0);
 
     const manifest = JSON.parse(
       await fs.readFile(path.join(tmpDir, ".specforge", "manifest.json"), "utf8"),
     );
-    const downEntry = manifest.migrations_applied.find((e: any) => e.direction === "down");
+    expect(manifest.framework_version).toBe("0.7.0");
+    const downEntry = manifest.migrations_applied.find(
+      (e: any) => e.direction === "down",
+    );
     expect(downEntry).toBeDefined();
     expect(downEntry.direction).toBe("down");
-    expect(downEntry.security_sensitive).toBe(false);
+    expect(downEntry.security_sensitive).toBe(true);
   });
 });
 

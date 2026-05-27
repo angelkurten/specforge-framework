@@ -10,6 +10,7 @@ import {
 } from "../manifest.js";
 import {
   ALL_MIGRATIONS,
+  type Migration,
   migrationScriptSha,
   planMigrations,
 } from "../migrations-registry.js";
@@ -25,6 +26,12 @@ export interface MigrateOptions {
   dryRun: boolean;
   quiet: boolean;
   importMetaUrl: string;
+  /**
+   * Test-only injection: extra migrations appended to the bundled list.
+   * Production callers (CLI dispatch) never set this — defaults to []. The
+   * registry composes bundled + extra inside `runMigrate` only.
+   */
+  extraMigrations?: ReadonlyArray<Migration>;
 }
 
 function compareSemver(a: string, b: string): number {
@@ -75,9 +82,13 @@ export async function runMigrate(opts: MigrateOptions): Promise<number> {
     return 2;
   }
 
-  const plan = planMigrations(manifest.framework_version, target);
+  const allMigrations: ReadonlyArray<Migration> = [
+    ...ALL_MIGRATIONS,
+    ...(opts.extraMigrations ?? []),
+  ];
+  const plan = planMigrations(manifest.framework_version, target, allMigrations);
   if (plan === null) {
-    const available = ALL_MIGRATIONS.map((m) => `${m.from}→${m.to}`).join(", ");
+    const available = allMigrations.map((m) => `${m.from}→${m.to}`).join(", ");
     printError({
       message: `no migration path from ${manifest.framework_version} to ${target}`,
       remediation: `bundled migrations cover: ${available}; pick a target from that set, or upgrade the CLI with \`npx @angelkurten/specforge@latest version\``,
@@ -124,6 +135,14 @@ export async function runMigrate(opts: MigrateOptions): Promise<number> {
           (s) => s.security_sensitive,
         ),
         applied: false,
+        steps: plan.steps.map((s) => ({
+          from: s.from,
+          to: s.to,
+          description: s.description,
+          security_sensitive: s.security_sensitive,
+          applied_at: null,
+          script_sha256: null,
+        })),
       });
     } else {
       if (plan.steps.length === 0) {

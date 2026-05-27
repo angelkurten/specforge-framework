@@ -174,14 +174,14 @@ export async function runUpdate(opts: UpdateOptions): Promise<number> {
       for (const d of drifted) info(opts, `ours    ${d.rel} (preserved)`);
     } else if (opts.strategy === "merge") {
       for (const d of drifted) {
-        const installedSha = d.installedSha;
-        const baseBytes = installedSha
-          ? // Best effort: we don't store the original bytes, only the hash.
-            // Use the bundled file as `base` when we cannot recover the
-            // installed-time bytes — this is a graceful degradation
-            // documented as a future improvement.
-            await fs.readFile(bundleFileAbs(opts.importMetaUrl, d.rel))
-          : await fs.readFile(bundleFileAbs(opts.importMetaUrl, d.rel));
+        // base bytes are not stored (PRD-003 § 6.1 records only
+        // sha256_at_install). Using bundled bytes as base degrades a true
+        // 3-way merge to a 2-way overlay: diff3 sees only ours-vs-base
+        // changes and never produces conflict markers when base == theirs.
+        // Documented as a known limitation; see follow-up PRD (§ A).
+        const baseBytes = await fs.readFile(
+          bundleFileAbs(opts.importMetaUrl, d.rel),
+        );
         const oursBytes = await fs.readFile(path.join(opts.cwd, d.rel));
         const theirsBytes = await fs.readFile(
           bundleFileAbs(opts.importMetaUrl, d.rel),

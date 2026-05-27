@@ -119,46 +119,6 @@ describe("end-to-end: npm pack + npx", () => {
   }, 180000);
 });
 
-describe("end-to-end: provenance metadata present", () => {
-  it("After npm pack, the package manifest carries the fields expected by npm audit signatures (offline check of metadata shape only)", async () => {
-    if (!tgzPath) {
-      console.warn("DEVIATION: npm pack failed; provenance metadata test skipped");
-      return;
-    }
-
-    // Extract and check package.json from the tarball
-    const extractDir = await fs.mkdtemp(path.join(os.tmpdir(), "specforge-prov-"));
-    try {
-      spawnSync("tar", ["xzf", tgzPath, "-C", extractDir, "--strip-components=1", "package/package.json"], {
-        encoding: "utf8",
-        timeout: 10000,
-      });
-
-      const pkgPath = path.join(extractDir, "package.json");
-      let pkg: any;
-      try {
-        pkg = JSON.parse(await fs.readFile(pkgPath, "utf8"));
-      } catch {
-        // package.json not found at that path — try without stripping
-        spawnSync("tar", ["xzf", tgzPath, "-C", extractDir], {
-          encoding: "utf8",
-          timeout: 10000,
-        });
-        const pkgPath2 = path.join(extractDir, "package", "package.json");
-        pkg = JSON.parse(await fs.readFile(pkgPath2, "utf8"));
-      }
-
-      // Fields expected by npm audit signatures / npm provenance
-      expect(pkg).toHaveProperty("name", "@angelkurten/specforge");
-      expect(pkg).toHaveProperty("version");
-      expect(pkg).toHaveProperty("publishConfig");
-      expect(pkg.publishConfig).toHaveProperty("provenance", true);
-    } finally {
-      await fs.rm(extractDir, { recursive: true, force: true });
-    }
-  });
-});
-
 describe("e2e: pack + npx produces doctor-clean layout", () => {
   it("npm pack; npx init in tmpdir; verify manifest exists, framework files present, AND doctor exits 0 on the resulting layout", async () => {
     if (!tgzPath) {

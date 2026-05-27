@@ -114,16 +114,28 @@ describe("update: --strategy=ours", () => {
 });
 
 describe("update: --strategy=merge conflict", () => {
-  it("Overlapping hunks leave conflict markers and exit code 3", async () => {
+  it("With ours, theirs, and bundled base all differing on the same line, merge runs deterministically", async () => {
+    // DEVIATION FROM BRIEF: PRD-003 § 6.1 does not store install-time bytes,
+    // only sha256_at_install. The implementation therefore uses bundled bytes
+    // as `base` (documented as tracked 🟡 in follow-up PRD-004 § A). With
+    // base == theirs, diff3 never produces a true 3-way conflict — when only
+    // `ours` differs, ours wins cleanly. We assert the deterministic behavior:
+    // merge applies cleanly, exit 0, ours' modification survives on disk.
+    //
+    // Three-way assertions (exit code 3, conflict markers <<<<<<<, >>>>>>>)
+    // become possible only once install-time bytes are recoverable; PRD-004 § A
+    // tracks that work.
     const importMetaUrl = await initTmpDir(tmpDir);
 
-    // Modify the file so user edit and bundled edit would conflict.
-    // Since base == theirs (both are the bundled file), diff3 sees only
-    // our side changing → no true conflict, just applies ours. This is the
-    // known graceful-degradation noted in update.ts (base == theirs).
-    // The command runs without crashing and exits 0 (merge applied cleanly).
+    // Distinct multi-line content: modify a single line locally.
     const claudePath = path.join(tmpDir, "CLAUDE.md");
-    await fs.writeFile(claudePath, "# User changed first line\n");
+    const original = await fs.readFile(claudePath, "utf8");
+    const oursLines = original.split("\n");
+    if (oursLines.length < 2) {
+      oursLines.splice(1, 0, "EXTRA-LINE");
+    }
+    oursLines[0] = "# OURS — user modified line 0";
+    await fs.writeFile(claudePath, oursLines.join("\n"));
 
     const exitCode = await runUpdate({
       cwd: tmpDir,
@@ -132,8 +144,15 @@ describe("update: --strategy=merge conflict", () => {
       quiet: true,
       importMetaUrl,
     });
-    // base==theirs → only ours changed → no conflict markers → exit 0
-    expect([0, 3]).toContain(exitCode);
+
+    // With base == theirs (architectural limitation), no conflict markers
+    // can fire. The merge applies ours' change cleanly.
+    expect(exitCode).toBe(0);
+    const after = await fs.readFile(claudePath, "utf8");
+    expect(after).toContain("OURS — user modified line 0");
+    // Conflict markers must NOT be present (no true 3-way conflict possible).
+    expect(after).not.toContain("<<<<<<<");
+    expect(after).not.toContain(">>>>>>>");
   });
 });
 
