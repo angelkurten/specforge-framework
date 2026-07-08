@@ -8,6 +8,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.7.1] - 2026-07-08
+
+Docs-only patch. No rule, template, or CLI behaviour changes; no migration required (`specforge update` refreshes in place).
+
+### Changed
+
+- `README.md` / `README.es.md`: new "Adoption via npx" section documenting `init` / `update` / `doctor` / `migrate` / `version`, the Node ≥20 requirement, and provenance verification via `npm audit signatures` (closes the PRD-003 § 8.1 documentation requirement).
+- `README.md` / `README.es.md` "Upgrading" section now recommends `npx @angelkurten/specforge update`; `scripts/upgrade.sh` documented as deprecated (deprecation window opened by PRD-003).
+
 ## [0.7.0] - 2026-05-27
 
 Shipped via [PRD-003: CLI for installation and lifecycle management](003-cli-for-installation-and-lifecycle.md) (`Status: Implemented`; gate filled after a post-implementation re-review cleared). Roadmap: [ROADMAP-003](ROADMAP.md) `Shipped`.
