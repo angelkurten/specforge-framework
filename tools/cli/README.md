@@ -112,9 +112,31 @@ specforge is designed to live **as a sibling directory to the code repositories 
 
 The **Sibling projects registry** in [`SIBLINGS.md`](SIBLINGS.md) is the directory of everything specforge knows about — each PRD's `Impacted Projects` table must reference only projects listed there, by name. `SIBLINGS.md` is team data; the rest of the files are framework data that can be upgraded with `scripts/upgrade.sh` without touching your registry.
 
+## Adoption via npx
+
+The fastest way to install specforge is the npm CLI — no clone required:
+
+```bash
+mkdir specforge && cd specforge
+npx @angelkurten/specforge init
+```
+
+`init` scaffolds the complete framework layout (rules, templates, agents, examples), writes editable stubs for your team data (`SIBLINGS.md`, `ROADMAP.md`), and records `.specforge/manifest.json` — the installed version plus per-file hashes used for drift detection.
+
+Lifecycle commands, all run from the specforge directory:
+
+```bash
+npx @angelkurten/specforge update    # refresh framework files in place; team data files are never touched
+npx @angelkurten/specforge doctor    # validate the installed layout: hard-rule validators + drift detection
+npx @angelkurten/specforge migrate   # apply versioned, idempotent migrations between framework versions
+npx @angelkurten/specforge version   # report bundled vs installed framework version and drift
+```
+
+Requires Node.js ≥ 20. The package is published exclusively from CI with [npm provenance](https://docs.npmjs.com/generating-provenance-statements); after installing it as a dependency you can verify the attestation with `npm audit signatures`.
+
 ## Quickstart
 
-1. **Copy specforge into your repo**, or keep it as a sibling directory that your AI tools can read. The files consumed automatically by Claude Code are `CLAUDE.md` (framework entry point — mental model and pointers) plus the unscoped rule files under [`.claude/rules/`](.claude/rules/) (hard rules, workflow, gate block, PRD authoring). Everything else is referenced from them.
+1. **Copy specforge into your repo** (or run `npx @angelkurten/specforge init` — see [Adoption via npx](#adoption-via-npx)), or keep it as a sibling directory that your AI tools can read. The files consumed automatically by Claude Code are `CLAUDE.md` (framework entry point — mental model and pointers) plus the unscoped rule files under [`.claude/rules/`](.claude/rules/) (hard rules, workflow, gate block, PRD authoring). Everything else is referenced from them.
 
 2. **Bootstrap on day 1 — in this order, before your first PRD:**
    - **Decide where specforge lives** in your repo topology — as a top-level directory in a monorepo, or as its own repo cloned under the same parent as your code repos. Either works; both satisfy the `../api-service/` relative-path convention.
@@ -167,7 +189,13 @@ Full nine-step workflow with rules for each step: [`.claude/rules/workflow.md`](
 
 specforge uses [semantic versioning](https://semver.org/). The current version lives in [`VERSION`](VERSION) and the release history in [`CHANGELOG.md`](CHANGELOG.md).
 
-To upgrade:
+To upgrade, prefer the CLI (see [Adoption via npx](#adoption-via-npx)):
+
+```bash
+npx @angelkurten/specforge update
+```
+
+The legacy `scripts/upgrade.sh` still works but is in a deprecation window since the CLI shipped (PRD-003):
 
 ```bash
 scripts/upgrade.sh            # defaults to origin/main
