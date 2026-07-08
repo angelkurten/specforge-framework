@@ -12,20 +12,16 @@ import { sha256OfFile } from "./sha.js";
 /**
  * Locate the `framework/` directory shipped alongside the compiled CLI.
  *
- * In a published install, the layout is:
- *   <pkg>/dist/cli.js          (this module)
- *   <pkg>/framework/...        (bundled tree)
- *
- * In a local dev tree it's:
- *   <repo>/tools/cli/dist/cli.js
- *   <repo>/tools/cli/framework/
- *
- * Both resolve to `../framework` relative to `dist/`.
+ * The caller passes `import.meta.url` from `cli.ts`, which lives at
+ * `<pkg>/src/cli.ts` in dev but `<pkg>/dist/src/cli.js` compiled
+ * (tsconfig `rootDir: "./"` nests `src/` under `dist/`). Hop the extra
+ * `dist` level when present so both resolve to `<pkg>/framework`.
  */
 export function bundleRoot(importMetaUrl: string): string {
   const here = path.dirname(fileURLToPath(importMetaUrl));
-  // `here` is `<pkg>/dist`. Bundle is `<pkg>/framework`.
-  return path.resolve(here, "..", "framework");
+  const parent = path.resolve(here, "..");
+  const pkgRoot = path.basename(parent) === "dist" ? path.resolve(parent, "..") : parent;
+  return path.join(pkgRoot, "framework");
 }
 
 /**

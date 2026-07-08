@@ -15,7 +15,10 @@ import { fileURLToPath } from "node:url";
 import { FRAMEWORK_FILES } from "../src/partition.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const cliRoot = path.resolve(here, "..");
+// `here` is <pkg>/scripts when run from source but <pkg>/dist-scripts/scripts
+// when compiled (tsconfig.scripts.json outDir) — hop the extra level.
+const parent = path.resolve(here, "..");
+const cliRoot = path.basename(parent) === "dist-scripts" ? path.resolve(parent, "..") : parent;
 const repoRoot = path.resolve(cliRoot, "..", "..");
 const bundleRoot = path.join(cliRoot, "framework");
 

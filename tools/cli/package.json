@@ -1,11 +1,11 @@
 {
   "name": "@angelkurten/specforge",
-  "version": "0.7.0-rc.1",
+  "version": "0.7.0",
   "description": "CLI for installing, updating, validating, and migrating specforge framework layouts.",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "specforge": "./dist/cli.js"
+    "specforge": "./dist/src/cli.js"
   },
   "files": [
     "dist/",
