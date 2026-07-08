@@ -3,6 +3,11 @@
   "version": "0.7.0",
   "description": "CLI for installing, updating, validating, and migrating specforge framework layouts.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/angelkurten/specforge-framework.git",
+    "directory": "tools/cli"
+  },
   "type": "module",
   "bin": {
     "specforge": "./dist/src/cli.js"
