@@ -12,6 +12,7 @@ import { validator as gateBlockYaml } from "./gate-block-yaml.js";
 import { validator as claudeMdSize } from "./claude-md-size.js";
 import { validator as ruleFrontmatter } from "./rule-frontmatter.js";
 import { validator as roadmapEvidenceCategories } from "./roadmap-evidence-categories.js";
+import { validator as roadmapPii } from "./roadmap-pii.js";
 import type { Validator } from "./types.js";
 
 export const ALL_VALIDATORS: ReadonlyArray<Validator> = [
@@ -27,6 +28,7 @@ export const ALL_VALIDATORS: ReadonlyArray<Validator> = [
   claudeMdSize,
   ruleFrontmatter,
   roadmapEvidenceCategories,
+  roadmapPii,
 ];
 
 export const VALIDATOR_IDS: ReadonlyArray<string> = ALL_VALIDATORS.map(
