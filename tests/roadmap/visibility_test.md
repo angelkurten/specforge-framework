@@ -1,6 +1,8 @@
 # Test #10: Visibility field strictness
 
 **Type**: conformance
+**Execution**: manual — needs an agent in the loop (lead agent, generator, or critic). Not automatable as a unit test; see [`../README.md`](../README.md).
+**Partial automation**: the detection half is covered by the `roadmap-pii` doctor validator (`tools/cli/tests/unit/validators/roadmap-pii.test.ts`). What stays manual here is the agent behaviour around it.
 **PRD reference**: [PRD-001 §9 row #10](../../001-product-roadmap.md#9-test-plan)
 
 ## What this verifies

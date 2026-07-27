@@ -1,6 +1,7 @@
 # Test #27: Walkthrough — generative flow — happy path
 
 **Type**: e2e
+**Execution**: manual — needs an agent in the loop (lead agent, generator, or critic). Not automatable as a unit test; see [`../README.md`](../README.md).
 **PRD reference**: [PRD-001 §9 row #27](../../001-product-roadmap.md#9-test-plan)
 
 ## What this verifies

@@ -1,6 +1,8 @@
 # Test #5: Forbidden evidence — syntactic PII patterns
 
 **Type**: conformance
+**Execution**: manual — needs an agent in the loop (lead agent, generator, or critic). Not automatable as a unit test; see [`../README.md`](../README.md).
+**Partial automation**: the detection half is covered by the `roadmap-pii` doctor validator (`tools/cli/tests/unit/validators/roadmap-pii.test.ts`). What stays manual here is the agent behaviour around it.
 **PRD reference**: [PRD-001 §9 row #5](../../001-product-roadmap.md#9-test-plan)
 
 ## What this verifies
