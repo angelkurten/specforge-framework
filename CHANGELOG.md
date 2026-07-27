@@ -8,7 +8,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
-## [Unreleased]
+## [0.8.0] - 2026-07-27
+
+Three rules specforge documented but never mechanically checked are now enforced, and `doctor` passes against specforge's own repo for the first time. No migration required (`specforge update` refreshes in place).
 
 ### Fixed
 
