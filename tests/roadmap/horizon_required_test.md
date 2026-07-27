@@ -1,6 +1,7 @@
 # Test #18: Horizon conditional requirement
 
 **Type**: conformance
+**Execution**: manual — needs an agent in the loop (lead agent, generator, or critic). Not automatable as a unit test; see [`../README.md`](../README.md).
 **PRD reference**: [PRD-001 §9 row #18](../../001-product-roadmap.md#9-test-plan)
 
 ## What this verifies
