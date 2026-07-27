@@ -8,6 +8,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [Unreleased]
+
+### Fixed
+
+- `gate-block-yaml` and `prd-system-artifact-diff` rejected the yellow-tracking comment that `.claude/rules/gate-block.md` requires above the gate block. Both read the fence through one shared module now, so PRD-002 and PRD-003 stop reporting a missing gate block.
+- `roadmap-evidence-categories` matched only a bare `Evidence:` while `templates/roadmap.md` emits `**Evidence**:`, so every item written from the shipped template reported zero evidence entries. Hard rule 12's mechanical enforcement now works on real template output.
+
+### Added
+
+- `roadmap-pii` doctor validator implementing all eight patterns in `.claude/rules/roadmap.md` § "Forbidden evidence (syntactic)", with the § Visibility severity switch. The rule file declared itself the canonical detection surface; until now nothing implemented it.
+- `.github/workflows/cli-ci.yml` runs the test suite on push and PR. Previously tests ran only on a `v*.*.*` tag.
+
+### Changed
+
+- `.claude/rules/model-selection.md`: `roadmap-product-generator` and `roadmap-support-generator` move from `haiku` to `sonnet` — both briefings read `ROADMAP.md` in full plus grounding context, and Haiku's 200k window is a ceiling that work can exceed. `haiku` and `fable` now carry no default role, each with a stated reason. The `## Scope` section is rewritten: `effort` is a real frontmatter field but is not reachable from the `Agent` tool dispatch path, so briefings inherit the session level.
+
 ## [0.7.1] - 2026-07-08
 
 Docs-only patch. No rule, template, or CLI behaviour changes; no migration required (`specforge update` refreshes in place).
