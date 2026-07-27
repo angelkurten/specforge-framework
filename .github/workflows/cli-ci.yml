@@ -1,0 +1,58 @@
+name: cli-ci
+
+# Runs the CLI test suite on every push and PR.
+#
+# cli-release.yml runs `pnpm test` too, but only on a `v*.*.*` tag — so a
+# validator regression could sit on main undetected until release day. This
+# workflow closes that window.
+#
+# The doctor step runs specforge against its own repo. It exits 0 as of the
+# commit that added it; a PR that breaks a framework invariant fails here.
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/cli
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm run build
+
+      # framework/ is gitignored and generated, so it does not exist on a fresh
+      # checkout. The e2e pack-and-run tests npm-pack the CLI and run `init`
+      # from the tarball, which reads the bundle — without this step they fail
+      # with exit 10. cli-release.yml has the same step for the same reason.
+      - name: Bundle framework tree
+        run: pnpm run prepublish
+
+      - name: Test
+        run: pnpm test
+
+      - name: Doctor (specforge validates its own repo)
+        working-directory: ${{ github.workspace }}
+        run: node tools/cli/dist/src/cli.js doctor

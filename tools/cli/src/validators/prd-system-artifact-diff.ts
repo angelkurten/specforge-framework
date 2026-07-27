@@ -7,13 +7,13 @@ import { promises as fs } from "node:fs";
 import * as path from "node:path";
 
 import { parseYaml } from "../yaml.js";
+import { GATE_FENCE_RE } from "./gate-fence.js";
 import type { Finding, Validator } from "./types.js";
 
 export const id = "prd-system-artifact-diff";
 
 const PRD_FILE_RE = /^(\d{3})-[a-z0-9][a-z0-9-]*\.md$/;
 const STATUS_RE = /^\*\*Status\*\*:\s*(\S+)/m;
-const GATE_FENCE_RE = /^##\s+Gate:[^\n]*\n+```yaml\n([\s\S]*?)\n```/m;
 const IMPACTED_TABLE_RE =
   /##\s+Impacted Projects\s*\n+\|[^\n]*\|[^\n]*\|\s*\n\|[-:\s|]+\|\s*\n((?:\|[^\n]*\|\s*\n?)+)/m;
 
