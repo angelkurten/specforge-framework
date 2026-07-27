@@ -43,6 +43,13 @@ jobs:
       - name: Build
         run: pnpm run build
 
+      # framework/ is gitignored and generated, so it does not exist on a fresh
+      # checkout. The e2e pack-and-run tests npm-pack the CLI and run `init`
+      # from the tarball, which reads the bundle — without this step they fail
+      # with exit 10. cli-release.yml has the same step for the same reason.
+      - name: Bundle framework tree
+        run: pnpm run prepublish
+
       - name: Test
         run: pnpm test
 
