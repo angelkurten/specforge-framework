@@ -6,10 +6,8 @@ name: cli-ci
 # validator regression could sit on main undetected until release day. This
 # workflow closes that window.
 #
-# `specforge doctor` is deliberately NOT run here yet: the repo does not pass
-# its own doctor (example rows in SIBLINGS.md, the self-referential
-# prd-marketing-language hits, missing manifest). Add the step once those are
-# resolved — a check that is red on day one trains people to ignore CI.
+# The doctor step runs specforge against its own repo. It exits 0 as of the
+# commit that added it; a PR that breaks a framework invariant fails here.
 
 on:
   push:
@@ -47,3 +45,7 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+      - name: Doctor (specforge validates its own repo)
+        working-directory: ${{ github.workspace }}
+        run: node tools/cli/dist/src/cli.js doctor

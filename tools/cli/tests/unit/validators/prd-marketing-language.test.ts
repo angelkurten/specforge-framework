@@ -47,6 +47,29 @@ describe("doctor: prd-marketing-language", () => {
     expect(findings.filter((f) => f.severity === "error").length).toBeGreaterThan(0);
   });
 
+  it("a quoted phrase is a mention, not a use, and passes", async () => {
+    // PRD-003 § 7.4 documents this validator and must name all five phrases.
+    await fs.writeFile(
+      path.join(tmpDir, "001-test.md"),
+      `# PRD\n\nForbidden: "blazingly fast", "enterprise-grade", "best-in-class", "robust", "seamless".\n`,
+    );
+    expect(await validator.run(tmpDir)).toHaveLength(0);
+  });
+
+  it("a backticked phrase is a mention and passes", async () => {
+    await fs.writeFile(path.join(tmpDir, "001-test.md"), "# PRD\n\nThe list includes `robust`.\n");
+    expect(await validator.run(tmpDir)).toHaveLength(0);
+  });
+
+  it("a quoted mention does not mask a real use on the same line", async () => {
+    await fs.writeFile(
+      path.join(tmpDir, "001-test.md"),
+      `# PRD\n\nWe ban "robust", yet this design is robust.\n`,
+    );
+    const errors = (await validator.run(tmpDir)).filter((f) => f.severity === "error");
+    expect(errors.some((f) => f.message.includes("robust"))).toBe(true);
+  });
+
   it("An ADR containing forbidden phrase fails", async () => {
     await fs.writeFile(path.join(tmpDir, "ADR-001-decision.md"), "# ADR\n\nSeamless integration.\n");
     const findings = await validator.run(tmpDir);

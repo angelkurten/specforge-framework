@@ -11,9 +11,8 @@ This file is **team data**, not framework data — upgrading specforge (pulling 
 | Project | Path | Read first | Stack | Status |
 |---|---|---|---|---|
 | **specforge** | `.` | `CLAUDE.md` | Markdown documentation framework (no runtime) | active |
-| **api-service** | `../api-service/` | `CLAUDE.md`, `docs/SYSTEM_ARTIFACT.md` | *(fill in: language, framework, datastore)* | active |
-| **web-client** | `../web-client/` | `CLAUDE.md` | *(fill in)* | active |
-| *(add one row per project your team maintains; delete these placeholder rows)* | | | | |
+
+*This is specforge's own registry, and specforge maintains exactly one sibling: itself. Adopters get a placeholder registry written by `specforge init` — see `CONVENTIONS.md` for a worked multi-sibling example of the table shape.*
 
 ---
 

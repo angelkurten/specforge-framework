@@ -18,10 +18,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 ### Added
 
 - `roadmap-pii` doctor validator implementing all eight patterns in `.claude/rules/roadmap.md` § "Forbidden evidence (syntactic)", with the § Visibility severity switch. The rule file declared itself the canonical detection surface; until now nothing implemented it.
-- `.github/workflows/cli-ci.yml` runs the test suite on push and PR. Previously tests ran only on a `v*.*.*` tag.
+- `.github/workflows/cli-ci.yml` runs the test suite and `specforge doctor` on push and PR. Previously tests ran only on a `v*.*.*` tag, and doctor ran nowhere.
+- `prd-marketing-language` now distinguishes use from mention: a forbidden phrase wrapped in quotes or backticks is being named, not used, so a PRD documenting hard rule 9 no longer fails it. An unquoted use on the same line is still reported.
+- `manifest-present` skips the specforge source repo, which is not an installation — there is no installed framework version there, the files are the source.
 
 ### Changed
 
+- `SIBLINGS.md`: dropped the `api-service` / `web-client` placeholder rows. Their paths never resolved, so specforge's own registry failed `siblings-paths-resolve` — and by `workflow.md` step 2's halt-on-unresolved-path precondition, a session authoring a PRD inside specforge had to stop on itself. Adopters are unaffected: `specforge init` writes its own placeholder registry, and `CONVENTIONS.md` keeps the worked multi-sibling example.
 - `.claude/rules/model-selection.md`: `roadmap-product-generator` and `roadmap-support-generator` move from `haiku` to `sonnet` — both briefings read `ROADMAP.md` in full plus grounding context, and Haiku's 200k window is a ceiling that work can exceed. `haiku` and `fable` now carry no default role, each with a stated reason. The `## Scope` section is rewritten: `effort` is a real frontmatter field but is not reachable from the `Agent` tool dispatch path, so briefings inherit the session level.
 
 ## [0.7.1] - 2026-07-08
