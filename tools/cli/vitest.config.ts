@@ -6,6 +6,8 @@ export default defineConfig({
       "tests/unit/**/*.test.ts",
       "tests/integration/**/*.test.ts",
       "tests/e2e/**/*.test.ts",
+      // Assertions ported from the markdown corpus in <repo>/tests/*.
+      "tests/conformance/**/*.test.ts",
     ],
     // Disable concurrent file execution for integration/e2e tests that use
     // shared filesystem resources. Fine for unit tests but safest to keep

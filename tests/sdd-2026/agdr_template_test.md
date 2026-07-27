@@ -9,7 +9,7 @@ PRD-002 § 5 specifies the AgDR template header fields and sections.
 
 ## Fixtures
 
-- `/Users/usuario/specforge/templates/agdr.md`
+- `templates/agdr.md`
 
 ## Steps
 

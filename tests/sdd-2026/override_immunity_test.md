@@ -9,7 +9,7 @@ PRD-002 § 8 requires `hard-rules.md` to state that the invariants are not waive
 
 ## Fixtures
 
-- `/Users/usuario/specforge/.claude/rules/hard-rules.md`
+- `.claude/rules/hard-rules.md`
 
 ## Steps
 

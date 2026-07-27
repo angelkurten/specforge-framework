@@ -9,8 +9,8 @@ PRD-002 must not add rule content to `CLAUDE.md` (per `framework-maintenance.md`
 
 ## Fixtures
 
-- `/Users/usuario/specforge/CLAUDE.md`
-- `/Users/usuario/specforge/.claude/rules/framework-maintenance.md`
+- `CLAUDE.md`
+- `.claude/rules/framework-maintenance.md`
 
 ## Steps
 

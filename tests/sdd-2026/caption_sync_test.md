@@ -9,11 +9,11 @@ PRD-002 § 2 requires the `N invariants` caption to track the enumerated rule co
 
 ## Fixtures
 
-- `/Users/usuario/specforge/.claude/rules/hard-rules.md`
-- `/Users/usuario/specforge/CLAUDE.md`
-- `/Users/usuario/specforge/README.md`
-- `/Users/usuario/specforge/README.es.md`
-- `/Users/usuario/specforge/docs/faq.md`
+- `.claude/rules/hard-rules.md`
+- `CLAUDE.md`
+- `README.md`
+- `README.es.md`
+- `docs/faq.md`
 
 ## Steps
 

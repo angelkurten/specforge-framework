@@ -11,8 +11,8 @@ Hard rule 11 requires every `Impacted Projects` row to match a row name in `SIBL
 
 Post-implementation state of:
 
-- `/Users/usuario/specforge/SIBLINGS.md` (expected to contain a `specforge` row).
-- `/Users/usuario/specforge/001-product-roadmap.md` (header `Impacted Projects` table).
+- `SIBLINGS.md` (expected to contain a `specforge` row).
+- `001-product-roadmap.md` (header `Impacted Projects` table).
 
 ## Steps
 

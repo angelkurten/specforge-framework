@@ -9,8 +9,8 @@ PRD-002 § 5 defines the Agent Decision Record (AgDR) contract across `prd-autho
 
 ## Fixtures
 
-- `/Users/usuario/specforge/.claude/rules/prd-authoring.md`
-- `/Users/usuario/specforge/CONVENTIONS.md`
+- `.claude/rules/prd-authoring.md`
+- `CONVENTIONS.md`
 
 ## Steps
 

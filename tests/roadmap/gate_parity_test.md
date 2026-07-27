@@ -9,7 +9,7 @@
 
 ## Fixtures
 
-Post-implementation state of `/Users/usuario/specforge/001-product-roadmap.md` after PRD-001 promotes to `Implemented`.
+Post-implementation state of `001-product-roadmap.md` after PRD-001 promotes to `Implemented`.
 
 The file contains:
 

@@ -9,8 +9,8 @@ PRD-002 § 2 adds an **optional** event/condition phrasing hint for reactive goa
 
 ## Fixtures
 
-- `/Users/usuario/specforge/.claude/rules/prd-authoring.md`
-- `/Users/usuario/specforge/templates/prd.md`
+- `.claude/rules/prd-authoring.md`
+- `templates/prd.md`
 
 ## Steps
 

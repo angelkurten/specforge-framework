@@ -11,8 +11,8 @@
 
 Post-implementation state of:
 
-- `/Users/usuario/specforge/CLAUDE.md`
-- `/Users/usuario/specforge/.claude/rules/framework-maintenance.md` (source of the line-count target)
+- `CLAUDE.md`
+- `.claude/rules/framework-maintenance.md` (source of the line-count target)
 
 ## Steps
 
