@@ -9,7 +9,7 @@ PRD-002 § 2 adds an explicit lower bound to the PRD-vs-ADR-vs-`SYSTEM_ARTIFACT`
 
 ## Fixtures
 
-- `/Users/usuario/specforge/.claude/rules/prd-authoring.md`
+- `.claude/rules/prd-authoring.md`
 
 ## Steps
 

@@ -9,8 +9,8 @@ PRD-002 § 3 (Non-Goals) and § 5 require that AgDR never becomes a gate precond
 
 ## Fixtures
 
-- `/Users/usuario/specforge/.claude/rules/workflow.md`
-- `/Users/usuario/specforge/.claude/rules/gate-block.md`
+- `.claude/rules/workflow.md`
+- `.claude/rules/gate-block.md`
 
 ## Steps
 

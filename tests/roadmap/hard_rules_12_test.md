@@ -12,7 +12,7 @@
 
 Post-implementation state of:
 
-- `/Users/usuario/specforge/.claude/rules/hard-rules.md`
+- `.claude/rules/hard-rules.md`
 
 ## Steps
 

@@ -9,7 +9,7 @@ PRD-002 § 2 / § 5 introduce hard rule 13 forbidding treatment of a frozen PRD/
 
 ## Fixtures
 
-- `/Users/usuario/specforge/.claude/rules/hard-rules.md`
+- `.claude/rules/hard-rules.md`
 
 ## Steps
 
