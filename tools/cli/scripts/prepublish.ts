@@ -128,9 +128,18 @@ export async function runPrepublish(
   // tools/cli/framework/ and rewrite the real package.json, then report success.
   // So an explicit anything requires explicit roots, and the roots come as a
   // pair — one without the other reads from one tree and writes to another.
-  const explicit = Object.entries(opts)
-    .filter(([, v]) => v !== undefined)
-    .map(([k]) => k);
+  // Object.entries sees own enumerable keys only, while the reads below go
+  // through the prototype chain — so sweep the known keys directly too, or
+  // Object.create({frameworkFiles: []}) walks past the guard into the rm.
+  const known = ["repoRoot", "cliRoot", "frameworkFiles", "bundleOnlyFiles"] as const;
+  const explicit = [
+    ...new Set([
+      ...Object.entries(opts)
+        .filter(([, v]) => v !== undefined)
+        .map(([k]) => k),
+      ...known.filter((k) => opts[k] !== undefined),
+    ]),
+  ];
   if (explicit.length > 0 && (opts.repoRoot === undefined || opts.cliRoot === undefined)) {
     throw new Error(
       `prepublish: ${explicit.join(", ")} supplied without both repoRoot and cliRoot — ` +

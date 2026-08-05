@@ -125,7 +125,7 @@ Comandos de lifecycle, todos corridos desde el directorio specforge:
 npx @angelkurten/specforge update    # refresca los archivos del framework in place; la data de equipo nunca se toca
 npx @angelkurten/specforge doctor    # valida el layout instalado: validadores de hard rules + detección de drift
 npx @angelkurten/specforge migrate   # aplica migraciones versionadas e idempotentes entre versiones del framework
-npx @angelkurten/specforge version   # reporta versión bundleada vs instalada y drift
+npx @angelkurten/specforge version   # reporta versión bundleada vs instalada (--json agrega un booleano drift)
 ```
 
 Requiere Node.js ≥ 20. El paquete se publica exclusivamente desde CI con [npm provenance](https://docs.npmjs.com/generating-provenance-statements); después de instalarlo como dependencia podés verificar la atestación con `npm audit signatures`.

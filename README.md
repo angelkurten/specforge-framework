@@ -125,7 +125,7 @@ Lifecycle commands, all run from the specforge directory:
 npx @angelkurten/specforge update    # refresh framework files in place; team data files are never touched
 npx @angelkurten/specforge doctor    # validate the installed layout: hard-rule validators + drift detection
 npx @angelkurten/specforge migrate   # apply versioned, idempotent migrations between framework versions
-npx @angelkurten/specforge version   # report bundled vs installed framework version and drift
+npx @angelkurten/specforge version   # report bundled vs installed framework version (--json adds a drift boolean)
 ```
 
 Requires Node.js ≥ 20. The package is published exclusively from CI with [npm provenance](https://docs.npmjs.com/generating-provenance-statements); after installing it as a dependency you can verify the attestation with `npm audit signatures`.

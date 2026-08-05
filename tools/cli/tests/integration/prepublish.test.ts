@@ -219,6 +219,10 @@ describe("prepublish: a symlinked invocation is not silently skipped", () => {
   it("runs the real script through a symlink and bundles into its own tree", async () => {
     if (process.platform === "win32") return;
     if (!(await fs.access(path.join(DIST_SCRIPTS, "scripts", "prepublish.js")).then(() => true, () => false))) {
+      // In CI the build always precedes the test run, so an absent dist-scripts/
+      // means the workflow changed — fail rather than let the guard become a
+      // permanent silent no-op.
+      if (process.env.CI) throw new Error("dist-scripts/ not built — run pnpm build before pnpm test");
       console.warn("DEVIATION: dist-scripts/ not built; symlink regression test skipped");
       return;
     }
@@ -248,7 +252,10 @@ describe("prepublish: a symlinked invocation is not silently skipped", () => {
       }
       await fs.writeFile(
         path.join(fakeCliRoot, "package.json"),
-        JSON.stringify({ name: "@angelkurten/specforge", version: "0.0.0" }, null, 2) + "\n",
+        // "type": "module" matters: without it Node emits a
+        // MODULE_TYPELESS_PACKAGE_JSON warning on every run, stderr is never
+        // empty, and the silent-shape assertion below can never fail.
+        JSON.stringify({ name: "@angelkurten/specforge", version: "0.0.0", type: "module" }, null, 2) + "\n",
       );
       // dist-scripts carries both scripts/prepublish.js and src/partition.js,
       // so copying it wholesale keeps the fixture self-contained.
