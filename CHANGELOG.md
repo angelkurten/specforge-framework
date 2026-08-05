@@ -8,6 +8,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.9.0] - 2026-08-05
+
+### Added
+
+- **Hard rule 14 — the step 2, 5 and 9 fan-outs are dispatched, not simulated.** `workflow.md` has always instructed the lead agent to launch parallel Explore agents, a four-reviewer panel, and an implementation team, but no invariant covered the case where the agent declines to delegate and does the work inline instead. Claude Code builds from 2026-07-24 onward ship a default that withholds automatic `Agent` dispatch until the user asks for it, which turns a four-reviewer panel into one context restating itself. Rule 14 is the standing request that satisfies that default, and it inherits the "Override immunity" preamble — no per-session instruction needed. Captions synchronised to "14 invariants" in `CLAUDE.md`, `README.md`, `README.es.md`, `docs/faq.md` and the npm README, per the caption-sync guard in `tests/roadmap/hard_rules_12_test.md`.
+- README section "Reinforcing delegation on Claude Code" (both languages, plus the npm README): the optional `UserPromptSubmit` hook that restates rule 14 on every prompt, for teams that still see the lead agent skip dispatch. Deliberately **not** scaffolded by `init` and never touched by `update` — settings files are team data, not framework data, per the upgrade contract in `framework-maintenance.md`.
+- Conformance coverage for rule 14 in `tools/cli/tests/conformance/framework.test.ts`: the rule appears once, names the `Agent` tool and all three fan-out steps, declares itself a standing request, and requires halting rather than silently substituting inline work.
+
 ## [0.8.0] - 2026-07-27
 
 Three rules specforge documented but never mechanically checked are now enforced, and `doctor` passes against specforge's own repo for the first time. No migration required (`specforge update` refreshes in place).

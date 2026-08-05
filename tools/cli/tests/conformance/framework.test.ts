@@ -109,6 +109,31 @@ describe("tests/sdd-2026/hard_rules_13_test.md", () => {
   });
 });
 
+describe("hard rule 14 — the dispatch invariant", () => {
+  it("rule 14 appears exactly once", () => {
+    expect([...hardRules.matchAll(/^14\. /gm)]).toHaveLength(1);
+  });
+
+  it("names the Agent tool and the three fan-out steps", () => {
+    const block = ruleBlock(hardRules, 14);
+    expect(block).toContain("`Agent` tool");
+    for (const step of ["2", "5", "9"]) {
+      expect(block, `rule 14 must cite step ${step}`).toContain(step);
+    }
+  });
+
+  it("declares itself the standing request that satisfies a withheld-delegation default", () => {
+    const block = ruleBlock(hardRules, 14);
+    expect(/standing request/i.test(block)).toBe(true);
+    expect(/withholds automatic delegation/i.test(block)).toBe(true);
+  });
+
+  it("requires failing loudly rather than substituting inline work", () => {
+    const block = ruleBlock(hardRules, 14);
+    expect(/say so and stop/i.test(block)).toBe(true);
+  });
+});
+
 describe("tests/roadmap/hard_rules_12_test.md", () => {
   it("rule 12 appears exactly once and carries the non-waivable PII clause verbatim", () => {
     expect([...hardRules.matchAll(/^12\. /gm)]).toHaveLength(1);

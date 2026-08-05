@@ -60,7 +60,7 @@ specforge está diseñado para vivir **como un directorio hermano de los repos d
 │   ├── CLAUDE.md                   ← pointer file de 47 líneas (mental model + índice), auto-loaded
 │   ├── .claude/
 │   │   └── rules/                  ← reglas behavioural, cargadas junto con CLAUDE.md
-│   │       ├── hard-rules.md       ← las 13 invariantes (unscoped)
+│   │       ├── hard-rules.md       ← las 14 invariantes (unscoped)
 │   │       ├── workflow.md         ← proceso de 9 pasos (unscoped)
 │   │       ├── gate-block.md       ← gate Draft → Implemented (unscoped)
 │   │       ├── prd-authoring.md    ← required sections, naming (unscoped)
@@ -133,6 +133,24 @@ npx @angelkurten/specforge version   # reporta versión bundleada vs instalada y
 ```
 
 Requiere Node.js ≥ 20. El paquete se publica exclusivamente desde CI con [npm provenance](https://docs.npmjs.com/generating-provenance-statements); después de instalarlo como dependencia podés verificar la atestación con `npm audit signatures`.
+
+## Reforzar la delegación en Claude Code
+
+Los pasos 2, 5 y 9 del workflow abren en paralelo sobre sub-agentes, y la [hard rule 14](.claude/rules/hard-rules.md) convierte eso en un pedido permanente, no en algo que rehacés cada sesión. Algunas builds de Claude Code traen un default que retiene la delegación automática hasta que el usuario la pide, y eso deja que el agente líder corra un "panel" dentro de un solo contexto — cuatro reviewers que son una sola opinión repetida.
+
+Si lo ves, repetí el pedido en cada prompt con un hook `UserPromptSubmit` — en `~/.claude/settings.json` para todos tus proyectos, o en el `.claude/settings.json` del repo specforge para el equipo:
+
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      { "hooks": [{ "type": "command", "command": "printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"specforge hard rule 14: workflow steps 2, 5 and 9 dispatch real sub-agents via the Agent tool. Never run a grounding pass or a reviewer panel inline in the lead context.\"}}'" }] }
+    ]
+  }
+}
+```
+
+`init` no escribe este archivo y `update` nunca lo toca — los settings son data de equipo, no data del framework. Nombrar un briefing explícitamente en el prompt (`@"backend-reviewer (agent)"`) también es determinista, pero cubre solo ese prompt.
 
 ## Quickstart
 

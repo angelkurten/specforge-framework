@@ -60,7 +60,7 @@ specforge is designed to live **as a sibling directory to the code repositories 
 │   ├── CLAUDE.md                   ← 47-line pointer file (mental model + TOC), auto-loaded
 │   ├── .claude/
 │   │   └── rules/                  ← behavioural rules, loaded alongside CLAUDE.md
-│   │       ├── hard-rules.md       ← the 13 invariants (unscoped)
+│   │       ├── hard-rules.md       ← the 14 invariants (unscoped)
 │   │       ├── workflow.md         ← 9-step authoring process (unscoped)
 │   │       ├── gate-block.md       ← Draft → Implemented gate (unscoped)
 │   │       ├── prd-authoring.md    ← required sections, naming (unscoped)
@@ -133,6 +133,24 @@ npx @angelkurten/specforge version   # report bundled vs installed framework ver
 ```
 
 Requires Node.js ≥ 20. The package is published exclusively from CI with [npm provenance](https://docs.npmjs.com/generating-provenance-statements); after installing it as a dependency you can verify the attestation with `npm audit signatures`.
+
+## Reinforcing delegation on Claude Code
+
+Workflow steps 2, 5 and 9 fan out across sub-agents, and [hard rule 14](.claude/rules/hard-rules.md) makes that a standing request rather than something you re-ask for every session. Some Claude Code builds ship a default that withholds automatic delegation until the user asks for it, which lets the lead agent run a "panel" inside a single context — four reviewers that are one opinion restated.
+
+If you see that, repeat the request on every prompt with a `UserPromptSubmit` hook — in `~/.claude/settings.json` for all your projects, or the specforge repo's `.claude/settings.json` for the team:
+
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      { "hooks": [{ "type": "command", "command": "printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"specforge hard rule 14: workflow steps 2, 5 and 9 dispatch real sub-agents via the Agent tool. Never run a grounding pass or a reviewer panel inline in the lead context.\"}}'" }] }
+    ]
+  }
+}
+```
+
+`init` does not write this file and `update` never touches it — settings are team data, not framework data. Naming a briefing explicitly at the prompt (`@"backend-reviewer (agent)"`) is deterministic too, but it only covers that one prompt.
 
 ## Quickstart
 
