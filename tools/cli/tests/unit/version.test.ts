@@ -1,10 +1,15 @@
 // Rows #28 and #39: version command output and malformed manifest exits 10
+// PRD-005 § 9 row 8: bundleVersion() against a bundle built by the real
+// prepublish, and against one with framework/VERSION removed.
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { spawnSync } from "node:child_process";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { mkTmpDir, synthBundleImportMetaUrl, writeMinimalManifest } from "../helpers.js";
 import { runVersion } from "../../src/commands/version.js";
+import { bundleVersion } from "../../src/framework-bundle.js";
+import { runPrepublish } from "../../scripts/prepublish.js";
 
 const CLI_ENTRY = path.resolve(
   path.dirname(new URL(import.meta.url).pathname),
@@ -60,6 +65,42 @@ describe("version command output", () => {
     expect(parsed.bundled).toBe(bundledVersion);
     expect(parsed.installed).toBe(bundledVersion);
     expect(parsed.drift).toBe(false);
+  });
+});
+
+describe("bundleVersion() against a prepublish-built bundle", () => {
+  const REPO_ROOT = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../../../..",
+  );
+
+  let pkgDir: string;
+
+  beforeEach(async () => {
+    pkgDir = await mkTmpDir();
+    await fs.writeFile(
+      path.join(pkgDir, "package.json"),
+      JSON.stringify({ name: "@angelkurten/specforge", version: "0.0.0" }, null, 2) + "\n",
+    );
+    const code = await runPrepublish({ repoRoot: REPO_ROOT, cliRoot: pkgDir });
+    expect(code).toBe(0);
+  });
+
+  afterEach(async () => {
+    await fs.rm(pkgDir, { recursive: true, force: true });
+  });
+
+  /** bundleRoot() resolves `<pkgDir>/dist/cli.js` to `<pkgDir>/framework`. */
+  const importMetaUrl = () => pathToFileURL(path.join(pkgDir, "dist", "cli.js")).href;
+
+  it("returns the repo-root VERSION even though VERSION is no longer a framework file", async () => {
+    const expected = (await fs.readFile(path.join(REPO_ROOT, "VERSION"), "utf8")).trim();
+    await expect(bundleVersion(importMetaUrl())).resolves.toBe(expected);
+  });
+
+  it("throws when the bundle lacks framework/VERSION rather than defaulting", async () => {
+    await fs.rm(path.join(pkgDir, "framework", "VERSION"));
+    await expect(bundleVersion(importMetaUrl())).rejects.toThrow();
   });
 });
 

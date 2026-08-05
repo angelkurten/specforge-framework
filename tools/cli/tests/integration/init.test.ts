@@ -1,11 +1,16 @@
 // Rows #10, #11, #12, #13, #34, #37, #45: init command integration tests
+// PRD-005 § 9 row 9: init / update / migrate all start on the reduced bundle.
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
 import { spawnSync } from "node:child_process";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { mkTmpDir, synthBundleImportMetaUrl } from "../helpers.js";
 import { runInit } from "../../src/commands/init.js";
+import { runUpdate } from "../../src/commands/update.js";
+import { runMigrate } from "../../src/commands/migrate.js";
+import { runPrepublish } from "../../scripts/prepublish.js";
 
 let tmpDir: string;
 
@@ -196,6 +201,91 @@ describe("init: --erase --no-git-safety with env var proceeds", () => {
       importMetaUrl,
     });
     expect(exitCode).toBe(3);
+  });
+});
+
+describe("init / update / migrate on a prepublish-built bundle", () => {
+  const REPO_ROOT = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../../../..",
+  );
+  const VACATED = [
+    "CHANGELOG.md",
+    "VERSION",
+    "docs",
+    "mkdocs.yml",
+    "requirements-docs.txt",
+    "scripts/upgrade.sh",
+    ".github/workflows/cli-release.yml",
+  ];
+
+  let pkgDir: string;
+
+  beforeEach(async () => {
+    pkgDir = await mkTmpDir();
+    await fs.writeFile(
+      path.join(pkgDir, "package.json"),
+      JSON.stringify({ name: "@angelkurten/specforge", version: "0.0.0" }, null, 2) + "\n",
+    );
+    expect(await runPrepublish({ repoRoot: REPO_ROOT, cliRoot: pkgDir })).toBe(0);
+  });
+
+  afterEach(async () => {
+    await fs.rm(pkgDir, { recursive: true, force: true });
+  });
+
+  it("each command resolves its version and completes; no project metadata is installed", async () => {
+    const importMetaUrl = pathToFileURL(path.join(pkgDir, "dist", "cli.js")).href;
+    const bundleVer = (await fs.readFile(path.join(REPO_ROOT, "VERSION"), "utf8")).trim();
+
+    expect(
+      await runInit({
+        cwd: tmpDir,
+        force: false,
+        erase: false,
+        noGitSafety: false,
+        dryRun: false,
+        quiet: true,
+        importMetaUrl,
+      }),
+    ).toBe(0);
+
+    const manifest = JSON.parse(
+      await fs.readFile(path.join(tmpDir, ".specforge", "manifest.json"), "utf8"),
+    );
+    expect(manifest.framework_version).toBe(bundleVer);
+    expect(manifest.framework_files).toHaveLength(32);
+    await expect(fs.access(path.join(tmpDir, "CLAUDE.md"))).resolves.toBeUndefined();
+    for (const p of VACATED) {
+      await expect(
+        fs.access(path.join(tmpDir, p)),
+        `${p} must not be installed`,
+      ).rejects.toThrow();
+    }
+
+    expect(
+      await runUpdate({
+        cwd: tmpDir,
+        strategy: null,
+        dryRun: false,
+        quiet: true,
+        importMetaUrl,
+      }),
+    ).toBe(0);
+
+    expect(
+      await runMigrate({
+        cwd: tmpDir,
+        apply: true,
+        to: null,
+        allowDowngrade: false,
+        acknowledgeSecurityRollback: false,
+        json: false,
+        dryRun: false,
+        quiet: true,
+        importMetaUrl,
+      }),
+    ).toBe(0);
   });
 });
 

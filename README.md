@@ -93,12 +93,8 @@ specforge is designed to live **as a sibling directory to the code repositories 
 │   │   ├── roadmap-devils-advocate-critic.md
 │   │   ├── roadmap-opportunity-cost-critic.md
 │   │   └── roadmap-risk-critic.md
-│   ├── scripts/
-│   │   └── upgrade.sh              ← safe framework upgrade (pulls new version, protects team data)
 │   ├── tests/
 │   │   └── roadmap/                ← 32 conformance walkthroughs for the roadmap cycle
-│   ├── VERSION                     ← current framework version (semver)
-│   ├── CHANGELOG.md                ← release history
 │   ├── NNN-your-prd.md             ← your PRDs live at the specforge root
 │   └── ADR-NNN-your-adr.md         ← your ADRs too
 ├── api-service/                    ← sibling project (example — a backend)
@@ -110,7 +106,7 @@ specforge is designed to live **as a sibling directory to the code repositories 
     └── (no SYSTEM_ARTIFACT — UI-only, grounded from code directly)
 ```
 
-The **Sibling projects registry** in [`SIBLINGS.md`](SIBLINGS.md) is the directory of everything specforge knows about — each PRD's `Impacted Projects` table must reference only projects listed there, by name. `SIBLINGS.md` is team data; the rest of the files are framework data that can be upgraded with `scripts/upgrade.sh` without touching your registry.
+The **Sibling projects registry** in [`SIBLINGS.md`](SIBLINGS.md) is the directory of everything specforge knows about — each PRD's `Impacted Projects` table must reference only projects listed there, by name. `SIBLINGS.md` is team data; the rest of the files are framework data that `npx @angelkurten/specforge update` refreshes in place without touching your registry.
 
 ## Adoption via npx
 
@@ -129,7 +125,7 @@ Lifecycle commands, all run from the specforge directory:
 npx @angelkurten/specforge update    # refresh framework files in place; team data files are never touched
 npx @angelkurten/specforge doctor    # validate the installed layout: hard-rule validators + drift detection
 npx @angelkurten/specforge migrate   # apply versioned, idempotent migrations between framework versions
-npx @angelkurten/specforge version   # report bundled vs installed framework version and drift
+npx @angelkurten/specforge version   # report bundled vs installed framework version (--json adds a drift boolean)
 ```
 
 Requires Node.js ≥ 20. The package is published exclusively from CI with [npm provenance](https://docs.npmjs.com/generating-provenance-statements); after installing it as a dependency you can verify the attestation with `npm audit signatures`.
@@ -205,23 +201,15 @@ Full nine-step workflow with rules for each step: [`.claude/rules/workflow.md`](
 
 ## Upgrading
 
-specforge uses [semantic versioning](https://semver.org/). The current version lives in [`VERSION`](VERSION) and the release history in [`CHANGELOG.md`](CHANGELOG.md).
+specforge uses [semantic versioning](https://semver.org/). Your installed version is recorded in `.specforge/manifest.json`; `npx @angelkurten/specforge version` prints it next to the version the CLI carries. Add `--json` for the same pair plus a `drift` boolean.
 
-To upgrade, prefer the CLI (see [Adoption via npx](#adoption-via-npx)):
+To upgrade, run the CLI from your specforge directory (see [Adoption via npx](#adoption-via-npx)):
 
 ```bash
 npx @angelkurten/specforge update
 ```
 
-The legacy `scripts/upgrade.sh` still works but is in a deprecation window since the CLI shipped (PRD-003):
-
-```bash
-scripts/upgrade.sh            # defaults to origin/main
-scripts/upgrade.sh myremote   # custom remote
-scripts/upgrade.sh origin dev # custom remote and branch
-```
-
-The script fetches the latest version, shows what changed (changelog diff + file list), asks for confirmation, and merges. **Team data files** (`SIBLINGS.md`, your PRDs, your ADRs) are never modified by the merge — they only change when you edit them. If a merge conflict arises in a team data file, resolve it in favor of your local version.
+`update` refreshes framework files in place. **Team data files** (`SIBLINGS.md`, `ROADMAP.md`, your PRDs, your ADRs) are never touched — they only change when you edit them. If you have edited a framework file yourself, `update` halts and reports the drift; pass `--strategy=ours`, `--strategy=theirs`, or `--strategy=merge` to resolve it.
 
 ## Language
 

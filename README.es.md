@@ -93,12 +93,8 @@ specforge está diseñado para vivir **como un directorio hermano de los repos d
 │   │   ├── roadmap-devils-advocate-critic.md
 │   │   ├── roadmap-opportunity-cost-critic.md
 │   │   └── roadmap-risk-critic.md
-│   ├── scripts/
-│   │   └── upgrade.sh              ← upgrade seguro del framework (pull + protección de data de equipo)
 │   ├── tests/
 │   │   └── roadmap/                ← 32 walkthroughs de conformance del ciclo de roadmap
-│   ├── VERSION                     ← versión actual del framework (semver)
-│   ├── CHANGELOG.md                ← historial de releases
 │   ├── NNN-tu-prd.md               ← tus PRDs viven en la raíz de specforge
 │   └── ADR-NNN-tu-adr.md           ← tus ADRs también
 ├── api-service/                    ← proyecto hermano (ejemplo — un backend)
@@ -110,7 +106,7 @@ specforge está diseñado para vivir **como un directorio hermano de los repos d
     └── (sin SYSTEM_ARTIFACT — UI-only, se ancla directo contra el código)
 ```
 
-El **registry de Sibling projects** en [`SIBLINGS.md`](SIBLINGS.md) es el directorio de todo lo que specforge conoce — cada tabla `Impacted Projects` de un PRD sólo puede referenciar proyectos listados ahí, por nombre. `SIBLINGS.md` es data del equipo; el resto son archivos del framework que se pueden actualizar con `scripts/upgrade.sh` sin tocar tu registry.
+El **registry de Sibling projects** en [`SIBLINGS.md`](SIBLINGS.md) es el directorio de todo lo que specforge conoce — cada tabla `Impacted Projects` de un PRD sólo puede referenciar proyectos listados ahí, por nombre. `SIBLINGS.md` es data del equipo; el resto son archivos del framework que `npx @angelkurten/specforge update` refresca en el lugar sin tocar tu registry.
 
 ## Adopción vía npx
 
@@ -129,7 +125,7 @@ Comandos de lifecycle, todos corridos desde el directorio specforge:
 npx @angelkurten/specforge update    # refresca los archivos del framework in place; la data de equipo nunca se toca
 npx @angelkurten/specforge doctor    # valida el layout instalado: validadores de hard rules + detección de drift
 npx @angelkurten/specforge migrate   # aplica migraciones versionadas e idempotentes entre versiones del framework
-npx @angelkurten/specforge version   # reporta versión bundleada vs instalada y drift
+npx @angelkurten/specforge version   # reporta versión bundleada vs instalada (--json agrega un booleano drift)
 ```
 
 Requiere Node.js ≥ 20. El paquete se publica exclusivamente desde CI con [npm provenance](https://docs.npmjs.com/generating-provenance-statements); después de instalarlo como dependencia podés verificar la atestación con `npm audit signatures`.
@@ -207,23 +203,15 @@ Workflow completo de nueve pasos con las reglas de cada uno: [`.claude/rules/wor
 
 ## Actualización (upgrade)
 
-specforge usa [versionado semántico](https://semver.org/). La versión actual vive en [`VERSION`](VERSION) y el historial de releases en [`CHANGELOG.md`](CHANGELOG.md).
+specforge usa [versionado semántico](https://semver.org/). Tu versión instalada queda registrada en `.specforge/manifest.json`; `npx @angelkurten/specforge version` te la imprime al lado de la versión que trae el CLI. Agregale `--json` para obtener ese mismo par más un booleano `drift`.
 
-Para actualizar, preferí el CLI (ver [Adopción vía npx](#adopción-vía-npx)):
+Para actualizar, corré el CLI desde tu directorio specforge (ver [Adopción vía npx](#adopción-vía-npx)):
 
 ```bash
 npx @angelkurten/specforge update
 ```
 
-El `scripts/upgrade.sh` legacy sigue funcionando pero está en ventana de deprecación desde que shippeó el CLI (PRD-003):
-
-```bash
-scripts/upgrade.sh            # usa origin/main por defecto
-scripts/upgrade.sh miremoto   # remote custom
-scripts/upgrade.sh origin dev # remote y branch custom
-```
-
-El script fetchea la última versión, muestra qué cambió (diff del changelog + lista de archivos), pide confirmación, y mergea. **Los archivos de data de equipo** (`SIBLINGS.md`, tus PRDs, tus ADRs) nunca son modificados por el merge — solo cambian cuando vos los editás. Si surge un conflicto de merge en un archivo de equipo, resolvelo a favor de tu versión local.
+`update` refresca los archivos del framework en el lugar. **Los archivos de data de equipo** (`SIBLINGS.md`, `ROADMAP.md`, tus PRDs, tus ADRs) nunca se tocan — solo cambian cuando vos los editás. Si editaste vos mismo un archivo del framework, `update` frena y reporta el drift; pasale `--strategy=ours`, `--strategy=theirs`, o `--strategy=merge` para resolverlo.
 
 ## Idioma
 

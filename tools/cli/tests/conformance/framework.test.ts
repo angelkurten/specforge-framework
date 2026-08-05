@@ -307,6 +307,64 @@ describe("tests/roadmap/siblings_self_ref_test.md", () => {
   });
 });
 
+describe("PRD-005 § 9 row 14 — no shipped framework file cites a vacated path", () => {
+  // Paths that stopped being installed. `docs/` is handled separately: a
+  // *sibling's* `docs/SYSTEM_ARTIFACT.md` is a legitimate reference, only
+  // specforge's own `docs/` tree is gone.
+  const VACATED = [
+    "VERSION",
+    "CHANGELOG.md",
+    "mkdocs.yml",
+    "requirements-docs.txt",
+    "scripts/upgrade.sh",
+  ];
+
+  /** Targets of every `[text](target)` markdown link. */
+  function linkTargets(md: string): string[] {
+    return [...md.matchAll(/\]\(([^)\s]+)/g)].map((m) => m[1]!.replace(/^\.\//, ""));
+  }
+
+  /**
+   * The specforge subtree of the file-layout diagram: from the `specforge/`
+   * line to the first sibling-project line. The rest of the tree describes
+   * sibling repositories, which legitimately carry a `docs/` directory.
+   */
+  function specforgeSubtree(md: string): string {
+    const lines = md.split("\n");
+    const start = lines.findIndex((l) => /^├──\s+specforge\//.test(l));
+    expect(start, "no specforge subtree in the file-layout diagram").toBeGreaterThan(-1);
+    const end = lines.findIndex((l, i) => i > start && /^├──\s+api-service\//.test(l));
+    expect(end, "no api-service entry closing the specforge subtree").toBeGreaterThan(start);
+    return lines.slice(start, end).join("\n");
+  }
+
+  // tools/cli/README.md is the npm package's published README (it is in
+  // package.json's `files` allowlist), so it ships to every adopter through
+  // the npm channel and is covered by goal 5 exactly like the root pair.
+  for (const name of ["README.md", "README.es.md", "tools/cli/README.md"]) {
+    it(`${name} carries no link or instruction pointing at a vacated path`, async () => {
+      const text = await read(name);
+
+      for (const token of VACATED) {
+        expect(text.includes(token), `${name} still mentions ${token}`).toBe(false);
+      }
+
+      for (const target of linkTargets(text)) {
+        expect(
+          target.startsWith("docs/"),
+          `${name} links into specforge's own docs tree: ${target}`,
+        ).toBe(false);
+      }
+
+      const tree = specforgeSubtree(text);
+      expect(/docs\//.test(tree), `${name} still lists docs/ under specforge/`).toBe(false);
+      for (const token of [...VACATED, "scripts/"]) {
+        expect(tree.includes(token), `${name} still lists ${token} under specforge/`).toBe(false);
+      }
+    });
+  }
+});
+
 describe("tests/roadmap/gate_parity_test.md", () => {
   // gate-block.md § "tests list provenance": paths in the gate block that are
   // not in §9, or §9 paths missing from the gate block, are spec/gate drift.
