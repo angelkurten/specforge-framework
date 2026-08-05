@@ -64,3 +64,19 @@
 - [PRD-003] — retroactive meta-reference per `.claude/rules/roadmap.md` § Evidence category 7
 
 **Caveats**: Two 🟡 architectural follow-ups tracked in PRD-004 (merge base degradation; exit-3 git-unavailable documentation gap).
+
+### ROADMAP-004: Stop installing specforge's own project metadata into adopters
+
+**Status**: Shipped
+**Last reviewed**: 2026-08-05
+**Theme**: —
+**PRD**: PRD-005
+
+**Problem / outcome**: `init` and `update` wrote specforge's own project metadata into every adopting team's directory — release history, documentation-site sources, a legacy shell upgrader, and the workflow that publishes specforge to npm. Coding agents working in an adopter's repository read the installed `CHANGELOG.md` as that team's own release history, and a team that installed specforge as its own repository carried a live `id-token: write` publish workflow triggered by their own version tags. The CLI now installs only the nine paths a team consumes; `VERSION` stays in the npm tarball for the CLI's own version resolution but is no longer written to disk. Already-installed copies are left in place and inert, with a cleanup list in the 0.10.0 release notes.
+**User**: adopting teams, and the coding agents working in their repositories
+**Siblings likely impacted**: specforge
+
+**Evidence**:
+- [PRD-005] — retroactive meta-reference per `.claude/rules/roadmap.md` § Evidence category 7
+
+**Caveats**: Existing installs are not cleaned up automatically. Automatic deletion was designed and rejected — see PRD-005 § 3; it required building the CLI's first destructive operation, and the review panel found four ordering and idempotency defects plus six security ones in that design.
