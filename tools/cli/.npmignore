@@ -1,7 +1,13 @@
 src/
 tests/
 scripts/
+# Compiled scripts/, including prepublish.js — it takes a parameterized
+# bundle root and recursively deletes it, so it must never reach an adopter.
+# package.json's `files` allowlist also excludes it; this makes the exclusion
+# that PRD-005 § 8 names as the mechanism actually load-bearing.
+dist-scripts/
 tsconfig.json
+tsconfig.scripts.json
 vitest.config.ts
 .npmignore
 node_modules/

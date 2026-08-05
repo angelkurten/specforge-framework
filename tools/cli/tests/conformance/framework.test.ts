@@ -338,7 +338,10 @@ describe("PRD-005 § 9 row 14 — no shipped framework file cites a vacated path
     return lines.slice(start, end).join("\n");
   }
 
-  for (const name of ["README.md", "README.es.md"]) {
+  // tools/cli/README.md is the npm package's published README (it is in
+  // package.json's `files` allowlist), so it ships to every adopter through
+  // the npm channel and is covered by goal 5 exactly like the root pair.
+  for (const name of ["README.md", "README.es.md", "tools/cli/README.md"]) {
     it(`${name} carries no link or instruction pointing at a vacated path`, async () => {
       const text = await read(name);
 

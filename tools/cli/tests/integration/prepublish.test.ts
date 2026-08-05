@@ -120,6 +120,48 @@ describe("prepublish: OPTIONAL carries no unreachable entries", () => {
   });
 });
 
+describe("prepublish: the roots cannot be split", () => {
+  it("throws when repoRoot is supplied without cliRoot, and vice versa", async () => {
+    // Splitting them would read the framework tree from one directory while
+    // recursively deleting the bundle under — and rewriting the package.json
+    // of — another.
+    await expect(runPrepublish({ repoRoot: REPO_ROOT })).rejects.toThrow(
+      /must be supplied together/,
+    );
+    await expect(runPrepublish({ cliRoot })).rejects.toThrow(/must be supplied together/);
+  });
+});
+
+describe("prepublish: refuses to report success on an empty bundle", () => {
+  it("exits non-zero when the lists resolve to zero files", async () => {
+    const emptyRepo = await mkTmpDir();
+    try {
+      await fs.writeFile(path.join(emptyRepo, "VERSION"), "9.9.9\n");
+      const stderr: string[] = [];
+      const origErr = process.stderr.write.bind(process.stderr);
+      process.stderr.write = (chunk: any) => {
+        stderr.push(String(chunk));
+        return true;
+      };
+      let code: number;
+      try {
+        code = await runPrepublish({
+          repoRoot: emptyRepo,
+          cliRoot,
+          frameworkFiles: [],
+          bundleOnlyFiles: [],
+        });
+      } finally {
+        process.stderr.write = origErr;
+      }
+      expect(code).not.toBe(0);
+      expect(stderr.join("")).toContain("refusing to write an empty bundle");
+    } finally {
+      await fs.rm(emptyRepo, { recursive: true, force: true });
+    }
+  });
+});
+
 describe("prepublish: fails closed on a missing bundle-only file", () => {
   it("exits non-zero and names the entry", async () => {
     // Deliberately not VERSION: a missing repo-root VERSION hard-fails at

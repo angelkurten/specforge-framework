@@ -8,7 +8,7 @@
 //    preserving relative paths. Glob patterns (`**`) are expanded.
 // 5. Exit non-zero if any required file is missing.
 
-import { promises as fs } from "node:fs";
+import { promises as fs, realpathSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -122,6 +122,16 @@ async function copyFile(
 export async function runPrepublish(
   opts: PrepublishOptions = {},
 ): Promise<number> {
+  // `repoRoot` and `cliRoot` are read-from and written-to respectively, so
+  // defaulting them independently would let `{ repoRoot: fixture }` recursively
+  // delete the real tools/cli/framework/ and rewrite the real package.json from
+  // the fixture's VERSION. Either both are supplied or neither is.
+  if ((opts.repoRoot === undefined) !== (opts.cliRoot === undefined)) {
+    throw new Error(
+      "prepublish: repoRoot and cliRoot must be supplied together — " +
+        "one without the other would read from one tree and write to another",
+    );
+  }
   const repoRoot = opts.repoRoot ?? DEFAULT_REPO_ROOT;
   const cliRoot = opts.cliRoot ?? DEFAULT_CLI_ROOT;
   const frameworkFiles = opts.frameworkFiles ?? FRAMEWORK_FILES;
@@ -171,6 +181,17 @@ export async function runPrepublish(
 
   // Step 5: copy.
   const allPaths = [...framework.paths, ...bundleOnly.paths];
+
+  // A run that resolves nothing must not report success: the tarball's
+  // contents are decided here, and an empty bundle ships a CLI that cannot
+  // resolve its own version.
+  if (allPaths.length === 0) {
+    process.stderr.write(
+      `prepublish: resolved 0 files to bundle from ${repoRoot} — refusing to write an empty bundle\n`,
+    );
+    return 1;
+  }
+
   for (const rel of allPaths) {
     await copyFile(repoRoot, bundleRoot, rel);
   }
@@ -179,19 +200,61 @@ export async function runPrepublish(
   return 0;
 }
 
-/**
- * Run only when invoked as a script (`node dist-scripts/scripts/prepublish.js`).
- * Importing the module — which the integration tests do — must not execute it.
- */
-const invokedDirectly =
-  process.argv[1] !== undefined &&
-  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+const SELF_PATH = fileURLToPath(import.meta.url);
 
-if (invokedDirectly) {
+/**
+ * Whether this module is the process entry point.
+ *
+ * Node's ESM loader has already realpath'd `import.meta.url`, so comparing it
+ * against a merely lexically-resolved `process.argv[1]` returns false whenever
+ * the script is reached through a symlinked path — and a false result here is
+ * silent: nothing runs, the process exits 0, and a provenance-attested publish
+ * proceeds on a stale or absent bundle. Realpath both operands so the two
+ * spellings of the same file compare equal.
+ */
+function isProcessEntry(): boolean {
+  const argv1 = process.argv[1];
+  if (argv1 === undefined) return false;
+  try {
+    return realpathSync(path.resolve(argv1)) === realpathSync(SELF_PATH);
+  } catch {
+    // `node -e`, a virtual entry, or a deleted argv[1]: not this script.
+    return false;
+  }
+}
+
+/** Run only when invoked as a script; importing must stay side-effect-free. */
+if (isProcessEntry()) {
   runPrepublish()
+    .then(async (code) => {
+      if (code !== 0) return code;
+      // Belt and braces: a zero exit must mean files actually landed. If the
+      // bundle is empty here, something skipped the copy and the publish must
+      // not proceed quietly.
+      const bundled = await walkDir(path.join(DEFAULT_CLI_ROOT, "framework"), "");
+      if (bundled.length === 0) {
+        process.stderr.write(
+          "prepublish: reported success but the bundle is empty — refusing to exit 0\n",
+        );
+        return 1;
+      }
+      return 0;
+    })
     .then((code) => process.exit(code))
     .catch((err) => {
       process.stderr.write(`prepublish: ${err instanceof Error ? err.stack : String(err)}\n`);
       process.exit(1);
     });
+} else if (
+  process.argv[1] !== undefined &&
+  path.basename(process.argv[1]) === path.basename(SELF_PATH)
+) {
+  // The entry point is named like this script but did not resolve to it. That
+  // is the silent-skip shape; fail loudly instead of exiting 0 having done
+  // nothing.
+  process.stderr.write(
+    `prepublish: refusing to skip silently — process entry ${process.argv[1]} ` +
+      `did not resolve to ${SELF_PATH}\n`,
+  );
+  process.exit(1);
 }
