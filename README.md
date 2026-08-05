@@ -201,7 +201,7 @@ Full nine-step workflow with rules for each step: [`.claude/rules/workflow.md`](
 
 ## Upgrading
 
-specforge uses [semantic versioning](https://semver.org/). Your installed version is recorded in `.specforge/manifest.json`; `npx @angelkurten/specforge version` reports it alongside the version the CLI carries and whether the two have drifted.
+specforge uses [semantic versioning](https://semver.org/). Your installed version is recorded in `.specforge/manifest.json`; `npx @angelkurten/specforge version` prints it next to the version the CLI carries. Add `--json` for the same pair plus a `drift` boolean.
 
 To upgrade, run the CLI from your specforge directory (see [Adoption via npx](#adoption-via-npx)):
 

@@ -203,7 +203,7 @@ Workflow completo de nueve pasos con las reglas de cada uno: [`.claude/rules/wor
 
 ## Actualización (upgrade)
 
-specforge usa [versionado semántico](https://semver.org/). Tu versión instalada queda registrada en `.specforge/manifest.json`; `npx @angelkurten/specforge version` te la reporta junto con la versión que trae el CLI y si las dos driftearon.
+specforge usa [versionado semántico](https://semver.org/). Tu versión instalada queda registrada en `.specforge/manifest.json`; `npx @angelkurten/specforge version` te la imprime al lado de la versión que trae el CLI. Agregale `--json` para obtener ese mismo par más un booleano `drift`.
 
 Para actualizar, corré el CLI desde tu directorio specforge (ver [Adopción vía npx](#adopción-vía-npx)):
 

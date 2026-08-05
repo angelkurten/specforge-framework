@@ -122,14 +122,19 @@ async function copyFile(
 export async function runPrepublish(
   opts: PrepublishOptions = {},
 ): Promise<number> {
-  // `repoRoot` and `cliRoot` are read-from and written-to respectively, so
-  // defaulting them independently would let `{ repoRoot: fixture }` recursively
-  // delete the real tools/cli/framework/ and rewrite the real package.json from
-  // the fixture's VERSION. Either both are supplied or neither is.
-  if ((opts.repoRoot === undefined) !== (opts.cliRoot === undefined)) {
+  // Partial specification is the hazard. Any explicit option means the caller
+  // is not asking for the real publish, but the roots keep defaulting to the
+  // real tree: `{ frameworkFiles: [] }` alone would recursively delete the real
+  // tools/cli/framework/ and rewrite the real package.json, then report success.
+  // So an explicit anything requires explicit roots, and the roots come as a
+  // pair — one without the other reads from one tree and writes to another.
+  const explicit = Object.entries(opts)
+    .filter(([, v]) => v !== undefined)
+    .map(([k]) => k);
+  if (explicit.length > 0 && (opts.repoRoot === undefined || opts.cliRoot === undefined)) {
     throw new Error(
-      "prepublish: repoRoot and cliRoot must be supplied together — " +
-        "one without the other would read from one tree and write to another",
+      `prepublish: ${explicit.join(", ")} supplied without both repoRoot and cliRoot — ` +
+        "an explicit option must name the tree it reads from and the tree it writes to",
     );
   }
   const repoRoot = opts.repoRoot ?? DEFAULT_REPO_ROOT;
@@ -180,23 +185,39 @@ export async function runPrepublish(
   }
 
   // Step 5: copy.
-  const allPaths = [...framework.paths, ...bundleOnly.paths];
+  const expected = [...new Set([...framework.paths, ...bundleOnly.paths])].sort();
 
   // A run that resolves nothing must not report success: the tarball's
   // contents are decided here, and an empty bundle ships a CLI that cannot
   // resolve its own version.
-  if (allPaths.length === 0) {
+  if (expected.length === 0) {
     process.stderr.write(
       `prepublish: resolved 0 files to bundle from ${repoRoot} — refusing to write an empty bundle\n`,
     );
     return 1;
   }
 
-  for (const rel of allPaths) {
+  for (const rel of expected) {
     await copyFile(repoRoot, bundleRoot, rel);
   }
 
-  process.stdout.write(`prepublish: bundled framework v${version} (${allPaths.length} files) into ${path.relative(cliRoot, bundleRoot)}/\n`);
+  // Step 6: the bundle on disk must be exactly what was resolved. Comparing
+  // the set — not merely the count, and not merely non-emptiness — is what
+  // catches a copy that silently did not land or a stale file that survived
+  // step 3, either of which would ship in a provenance-attested tarball.
+  const onDisk = (await walkDir(bundleRoot, "")).sort();
+  if (onDisk.length !== expected.length || onDisk.some((p, i) => p !== expected[i])) {
+    const missing = expected.filter((p) => !onDisk.includes(p));
+    const unexpected = onDisk.filter((p) => !expected.includes(p));
+    process.stderr.write(
+      `prepublish: bundle at ${bundleRoot} does not match the resolved file set\n`,
+    );
+    for (const m of missing) process.stderr.write(`  missing     ${m}\n`);
+    for (const u of unexpected) process.stderr.write(`  unexpected  ${u}\n`);
+    return 1;
+  }
+
+  process.stdout.write(`prepublish: bundled framework v${version} (${expected.length} files) into ${path.relative(cliRoot, bundleRoot)}/\n`);
   return 0;
 }
 
@@ -223,38 +244,21 @@ function isProcessEntry(): boolean {
   }
 }
 
-/** Run only when invoked as a script; importing must stay side-effect-free. */
+/**
+ * Run only when invoked as a script; importing must stay side-effect-free.
+ *
+ * There is deliberately no "looks like it should have run" fallback here: a
+ * heuristic on the entry's name has no reachable true positive once both
+ * operands are realpath'd, and it kills any unrelated file that happens to
+ * share this basename. The "ran but did nothing" shape is covered inside
+ * `runPrepublish` by the empty-set refusal and the bundle-vs-resolved-set
+ * comparison, both of which return non-zero.
+ */
 if (isProcessEntry()) {
   runPrepublish()
-    .then(async (code) => {
-      if (code !== 0) return code;
-      // Belt and braces: a zero exit must mean files actually landed. If the
-      // bundle is empty here, something skipped the copy and the publish must
-      // not proceed quietly.
-      const bundled = await walkDir(path.join(DEFAULT_CLI_ROOT, "framework"), "");
-      if (bundled.length === 0) {
-        process.stderr.write(
-          "prepublish: reported success but the bundle is empty — refusing to exit 0\n",
-        );
-        return 1;
-      }
-      return 0;
-    })
     .then((code) => process.exit(code))
     .catch((err) => {
       process.stderr.write(`prepublish: ${err instanceof Error ? err.stack : String(err)}\n`);
       process.exit(1);
     });
-} else if (
-  process.argv[1] !== undefined &&
-  path.basename(process.argv[1]) === path.basename(SELF_PATH)
-) {
-  // The entry point is named like this script but did not resolve to it. That
-  // is the silent-skip shape; fail loudly instead of exiting 0 having done
-  // nothing.
-  process.stderr.write(
-    `prepublish: refusing to skip silently — process entry ${process.argv[1]} ` +
-      `did not resolve to ${SELF_PATH}\n`,
-  );
-  process.exit(1);
 }
