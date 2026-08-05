@@ -16,19 +16,20 @@ export const FRAMEWORK_FILES: ReadonlyArray<string> = [
   "README.md",
   "README.es.md",
   "LICENSE",
-  "CHANGELOG.md",
-  "VERSION",
   ".claude/rules/**",
   "templates/**",
   "agents/**",
   "examples/**",
-  "scripts/upgrade.sh",
-  "mkdocs.yml",
-  "requirements-docs.txt",
-  "docs/**",
-  ".github/workflows/cli-release.yml",
-  ".github/workflows/specforge-ci.yml",
 ];
+
+/**
+ * Files copied into the npm tarball but never written into an adopter's
+ * directory. `prepublish` resolves these alongside FRAMEWORK_FILES;
+ * `listBundledFrameworkFiles` excludes them because they do not classify
+ * as "framework". Entries must be relative, `..`-free, and must NOT
+ * classify as "framework" — see § 9 row 3.
+ */
+export const BUNDLE_ONLY_FILES: ReadonlyArray<string> = ["VERSION"];
 
 /**
  * Team-data patterns. Never overwritten by `update`. Deleted by
@@ -138,9 +139,10 @@ export function classify(relPath: string): Classification {
   }
   if (matchesAny(relPath, IGNORED_PATTERNS)) return "ignored";
 
-  // Framework takes precedence over team data because the reserved workflow
-  // filenames are listed in FRAMEWORK_FILES but the team-data table includes
-  // a generic `.github/workflows/*` catch-all.
+  // Framework is tested before team data. Since PRD-005 removed the two
+  // reserved workflow names from FRAMEWORK_FILES, no path matches both lists,
+  // so the ordering decides nothing today. It is kept as the deliberate
+  // resolution for any future entry that would double-match.
   if (matchesAny(relPath, FRAMEWORK_FILES)) return "framework";
 
   // For team-data root-only patterns (PRDs/ADRs/AgDRs), reject nested paths.

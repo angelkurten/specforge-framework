@@ -1,4 +1,6 @@
 // Rows #25 and #57: end-to-end npm pack + npx tests
+// PRD-005 § 9 rows 10, 11, 12: a fresh install carries no specforge project
+// metadata, and `update` neither resurrects nor deletes a vacated path.
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { promises as fs } from "node:fs";
 import { spawnSync } from "node:child_process";
@@ -117,6 +119,130 @@ describe("end-to-end: npm pack + npx", () => {
       if (extractDir) await fs.rm(extractDir, { recursive: true, force: true });
     }
   }, 180000);
+});
+
+describe("e2e: a fresh install carries no specforge project metadata", () => {
+  // The seven paths that stopped being installed in PRD-005.
+  const VACATED = [
+    "CHANGELOG.md",
+    "VERSION",
+    "docs",
+    "mkdocs.yml",
+    "requirements-docs.txt",
+    "scripts/upgrade.sh",
+    ".github/workflows/cli-release.yml",
+  ];
+
+  let extractDir: string | null = null;
+  let cliEntry = "";
+
+  beforeAll(async () => {
+    if (!tgzPath) return;
+    const prepared = await extractAndPrepare(tgzPath);
+    extractDir = prepared.extractDir;
+    cliEntry = prepared.cliEntry;
+  }, 180000);
+
+  afterAll(async () => {
+    if (extractDir) await fs.rm(extractDir, { recursive: true, force: true });
+  });
+
+  /** `specforge init` in a fresh tmpdir. Returns the directory. */
+  async function initTmp(label: string): Promise<string> {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), `specforge-prd005-${label}-`));
+    const r = spawnSync(process.execPath, [cliEntry, "init", "--quiet"], {
+      cwd: dir,
+      encoding: "utf8",
+      timeout: 30000,
+    });
+    expect(r.status, r.stderr).toBe(0);
+    return dir;
+  }
+
+  it("init writes none of the seven vacated paths, and doctor exits 0", async () => {
+    if (!tgzPath) {
+      console.warn("DEVIATION: npm pack failed; PRD-005 vacated-path e2e skipped");
+      return;
+    }
+    const dir = await initTmp("fresh");
+    try {
+      for (const rel of VACATED) {
+        await expect(
+          fs.access(path.join(dir, rel)),
+          `${rel} must not be installed`,
+        ).rejects.toThrow();
+      }
+      const doctor = spawnSync(process.execPath, [cliEntry, "doctor", "--quiet"], {
+        cwd: dir,
+        encoding: "utf8",
+        timeout: 30000,
+      });
+      expect(doctor.status, doctor.stderr).toBe(0);
+    } finally {
+      await fs.rm(dir, { recursive: true, force: true });
+    }
+  }, 120000);
+
+  it("update leaves leftover metadata byte-identical and does not recreate a deleted one", async () => {
+    if (!tgzPath) {
+      console.warn("DEVIATION: npm pack failed; PRD-005 leftover-metadata e2e skipped");
+      return;
+    }
+    const dir = await initTmp("leftover");
+    try {
+      // What a 0.9.0 install left behind.
+      const changelog = "# Changelog\n\n## 0.9.0\n\n- from the previous install\n";
+      const docsFile = "# specforge docs page from the previous install\n";
+      await fs.writeFile(path.join(dir, "CHANGELOG.md"), changelog);
+      await fs.mkdir(path.join(dir, "docs"), { recursive: true });
+      await fs.writeFile(path.join(dir, "docs", "x.md"), docsFile);
+
+      const update = spawnSync(process.execPath, [cliEntry, "update", "--quiet"], {
+        cwd: dir,
+        encoding: "utf8",
+        timeout: 30000,
+      });
+      expect(update.status, update.stderr).toBe(0);
+
+      expect(await fs.readFile(path.join(dir, "CHANGELOG.md"), "utf8")).toBe(changelog);
+      expect(await fs.readFile(path.join(dir, "docs", "x.md"), "utf8")).toBe(docsFile);
+
+      // Deleting one must stick: `update` writes only paths in the bundle.
+      await fs.rm(path.join(dir, "docs", "x.md"));
+      const update2 = spawnSync(process.execPath, [cliEntry, "update", "--quiet"], {
+        cwd: dir,
+        encoding: "utf8",
+        timeout: 30000,
+      });
+      expect(update2.status, update2.stderr).toBe(0);
+      await expect(fs.access(path.join(dir, "docs", "x.md"))).rejects.toThrow();
+    } finally {
+      await fs.rm(dir, { recursive: true, force: true });
+    }
+  }, 120000);
+
+  it("a team-authored file at a vacated path survives update", async () => {
+    if (!tgzPath) {
+      console.warn("DEVIATION: npm pack failed; PRD-005 team-file e2e skipped");
+      return;
+    }
+    const dir = await initTmp("teamfile");
+    try {
+      const teamChangelog =
+        "# Our product's changelog\n\n## 2026-08-05\n\n- this file belongs to the adopting team\n";
+      await fs.writeFile(path.join(dir, "CHANGELOG.md"), teamChangelog);
+
+      const update = spawnSync(process.execPath, [cliEntry, "update", "--quiet"], {
+        cwd: dir,
+        encoding: "utf8",
+        timeout: 30000,
+      });
+      expect(update.status, update.stderr).toBe(0);
+      expect(await fs.readFile(path.join(dir, "CHANGELOG.md"), "utf8")).toBe(teamChangelog);
+    } finally {
+      await fs.rm(dir, { recursive: true, force: true });
+    }
+  }, 120000);
 });
 
 describe("e2e: pack + npx produces doctor-clean layout", () => {

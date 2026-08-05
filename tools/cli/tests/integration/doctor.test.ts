@@ -1,10 +1,17 @@
 // Rows #19, #20, #32, #33, #38, #46, #48: doctor command integration tests
+// PRD-005 § 9 row 13: an install carrying the seven vacated paths gains no
+// doctor findings after updating onto the reduced bundle.
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { mkTmpDir, synthBundleImportMetaUrl } from "../helpers.js";
 import { runInit } from "../../src/commands/init.js";
+import { runUpdate } from "../../src/commands/update.js";
 import { runDoctor } from "../../src/commands/doctor.js";
+import { runPrepublish } from "../../scripts/prepublish.js";
+import { sha256OfFile } from "../../src/sha.js";
+import { ALL_VALIDATORS } from "../../src/validators/index.js";
 
 let tmpDir: string;
 
@@ -229,6 +236,116 @@ describe("framework-file-integrity validator", () => {
       importMetaUrl,
     });
     // When versions differ, validator no-ops → 0 errors
+    expect(exitCode).toBe(0);
+  });
+});
+
+describe("doctor: a pre-0.10.0 install carrying the vacated paths stays clean", () => {
+  const REPO_ROOT = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../../../..",
+  );
+  const LEGACY_PATHS = [
+    "CHANGELOG.md",
+    "VERSION",
+    "mkdocs.yml",
+    "requirements-docs.txt",
+    "docs/faq.md",
+    "scripts/upgrade.sh",
+    ".github/workflows/cli-release.yml",
+  ];
+
+  let pkgDir: string;
+
+  beforeEach(async () => {
+    pkgDir = await mkTmpDir();
+    await fs.writeFile(
+      path.join(pkgDir, "package.json"),
+      JSON.stringify({ name: "@angelkurten/specforge", version: "0.0.0" }, null, 2) + "\n",
+    );
+    expect(await runPrepublish({ repoRoot: REPO_ROOT, cliRoot: pkgDir })).toBe(0);
+  });
+
+  afterEach(async () => {
+    await fs.rm(pkgDir, { recursive: true, force: true });
+  });
+
+  it("update then doctor reports 0 findings across every validator, exit 0", async () => {
+    const importMetaUrl = pathToFileURL(path.join(pkgDir, "dist", "cli.js")).href;
+
+    // Install the retained set, then reshape the result into what a pre-0.10.0
+    // install looks like: an older framework_version, the seven paths on disk,
+    // and manifest entries claiming them as framework files.
+    expect(
+      await runInit({
+        cwd: tmpDir,
+        force: false,
+        erase: false,
+        noGitSafety: false,
+        dryRun: false,
+        quiet: true,
+        importMetaUrl,
+      }),
+    ).toBe(0);
+
+    const manifestPath = path.join(tmpDir, ".specforge", "manifest.json");
+    const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+    // Any version older than the bundle's: the point is that the install
+    // predates the release that vacated these paths.
+    manifest.framework_version = "0.8.0";
+    for (const rel of LEGACY_PATHS) {
+      const abs = path.join(tmpDir, rel);
+      await fs.mkdir(path.dirname(abs), { recursive: true });
+      await fs.writeFile(abs, `legacy ${rel}\n`);
+      manifest.framework_files.push({
+        path: rel,
+        sha256_at_install: await sha256OfFile(abs),
+      });
+    }
+    await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
+
+    expect(
+      await runUpdate({
+        cwd: tmpDir,
+        strategy: null,
+        dryRun: false,
+        quiet: true,
+        importMetaUrl,
+      }),
+    ).toBe(0);
+
+    // The stale entries drop out of the manifest as a side effect; the files
+    // themselves are neither refreshed nor deleted.
+    const after = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+    const trackedPaths = after.framework_files.map((f: { path: string }) => f.path);
+    for (const rel of LEGACY_PATHS) {
+      expect(trackedPaths, `${rel} must leave framework_files`).not.toContain(rel);
+      await expect(
+        fs.access(path.join(tmpDir, rel)),
+        `${rel} must survive update`,
+      ).resolves.toBeUndefined();
+    }
+
+    const chunks: string[] = [];
+    const origWrite = process.stdout.write.bind(process.stdout);
+    process.stdout.write = (chunk: any) => { chunks.push(String(chunk)); return true; };
+    let exitCode: number;
+    try {
+      exitCode = await runDoctor({
+        cwd: tmpDir,
+        json: true,
+        rules: [],
+        ignoreSiblings: [],
+        quiet: false,
+        importMetaUrl,
+      });
+    } finally {
+      process.stdout.write = origWrite;
+    }
+
+    const report = JSON.parse(chunks.join(""));
+    expect(report.validators_run).toHaveLength(ALL_VALIDATORS.length);
+    expect(report.findings).toEqual([]);
     expect(exitCode).toBe(0);
   });
 });

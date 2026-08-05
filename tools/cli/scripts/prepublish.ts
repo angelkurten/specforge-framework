@@ -1,9 +1,9 @@
 // Prepublish: copy the framework tree from the repo root into
-// tools/cli/framework/. PRD-003 § 7.2.
+// tools/cli/framework/. PRD-003 § 7.2, PRD-005 § 6.2.
 //
 // 1. Read VERSION from the repo root.
 // 2. Write the same value into tools/cli/package.json's `version`.
-// 3. Import the framework list from src/partition.ts.
+// 3. Import the framework list and the bundle-only list from src/partition.ts.
 // 4. Copy each enumerated path from repo root into tools/cli/framework/,
 //    preserving relative paths. Glob patterns (`**`) are expanded.
 // 5. Exit non-zero if any required file is missing.
@@ -12,15 +12,36 @@ import { promises as fs } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { FRAMEWORK_FILES } from "../src/partition.js";
+import { BUNDLE_ONLY_FILES, FRAMEWORK_FILES } from "../src/partition.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 // `here` is <pkg>/scripts when run from source but <pkg>/dist-scripts/scripts
 // when compiled (tsconfig.scripts.json outDir) — hop the extra level.
 const parent = path.resolve(here, "..");
-const cliRoot = path.basename(parent) === "dist-scripts" ? path.resolve(parent, "..") : parent;
-const repoRoot = path.resolve(cliRoot, "..", "..");
-const bundleRoot = path.join(cliRoot, "framework");
+const DEFAULT_CLI_ROOT =
+  path.basename(parent) === "dist-scripts" ? path.resolve(parent, "..") : parent;
+const DEFAULT_REPO_ROOT = path.resolve(DEFAULT_CLI_ROOT, "..", "..");
+
+/**
+ * FRAMEWORK_FILES patterns whose absence is acceptable on some checkouts.
+ * Keep this narrow: every entry silently excuses a missing file, so an entry
+ * that is no longer reachable from FRAMEWORK_FILES must be deleted rather
+ * than left behind (PRD-005 § 10 step 2).
+ *
+ * BUNDLE_ONLY_FILES entries are never excused — a missing one is fatal.
+ */
+export const OPTIONAL: ReadonlySet<string> = new Set(["README.es.md"]);
+
+export interface PrepublishOptions {
+  /** Repo root the framework tree is read from. Defaults to the real repo. */
+  repoRoot?: string;
+  /** Package root the bundle and package.json are written to. */
+  cliRoot?: string;
+  /** Overridable for tests; defaults to the partition's FRAMEWORK_FILES. */
+  frameworkFiles?: ReadonlyArray<string>;
+  /** Overridable for tests; defaults to the partition's BUNDLE_ONLY_FILES. */
+  bundleOnlyFiles?: ReadonlyArray<string>;
+}
 
 async function exists(p: string): Promise<boolean> {
   try {
@@ -52,7 +73,10 @@ async function walkDir(absDir: string, relPrefix: string): Promise<string[]> {
   return out;
 }
 
-async function resolveEntry(pattern: string): Promise<{ paths: string[]; missing: string[] }> {
+async function resolveEntry(
+  repoRoot: string,
+  pattern: string,
+): Promise<{ paths: string[]; missing: string[] }> {
   if (pattern.endsWith("/**")) {
     const baseRel = pattern.slice(0, -3);
     const baseAbs = path.join(repoRoot, baseRel);
@@ -69,7 +93,25 @@ async function resolveEntry(pattern: string): Promise<{ paths: string[]; missing
   return { paths: [], missing: [pattern] };
 }
 
-async function copyFile(rel: string): Promise<void> {
+async function resolveList(
+  repoRoot: string,
+  patterns: ReadonlyArray<string>,
+): Promise<{ paths: string[]; missing: string[] }> {
+  const paths: string[] = [];
+  const missing: string[] = [];
+  for (const pat of patterns) {
+    const r = await resolveEntry(repoRoot, pat);
+    paths.push(...r.paths);
+    missing.push(...r.missing);
+  }
+  return { paths, missing };
+}
+
+async function copyFile(
+  repoRoot: string,
+  bundleRoot: string,
+  rel: string,
+): Promise<void> {
   const src = path.join(repoRoot, rel);
   const dst = path.join(bundleRoot, rel);
   await fs.mkdir(path.dirname(dst), { recursive: true });
@@ -77,7 +119,15 @@ async function copyFile(rel: string): Promise<void> {
   await fs.writeFile(dst, bytes);
 }
 
-async function main(): Promise<number> {
+export async function runPrepublish(
+  opts: PrepublishOptions = {},
+): Promise<number> {
+  const repoRoot = opts.repoRoot ?? DEFAULT_REPO_ROOT;
+  const cliRoot = opts.cliRoot ?? DEFAULT_CLI_ROOT;
+  const frameworkFiles = opts.frameworkFiles ?? FRAMEWORK_FILES;
+  const bundleOnlyFiles = opts.bundleOnlyFiles ?? BUNDLE_ONLY_FILES;
+  const bundleRoot = path.join(cliRoot, "framework");
+
   // Step 1: VERSION.
   const versionPath = path.join(repoRoot, "VERSION");
   if (!(await exists(versionPath))) {
@@ -97,49 +147,51 @@ async function main(): Promise<number> {
   await fs.rm(bundleRoot, { recursive: true, force: true });
   await fs.mkdir(bundleRoot, { recursive: true });
 
-  // Step 4: resolve and copy.
-  const allPaths: string[] = [];
-  const allMissing: string[] = [];
-  for (const pat of FRAMEWORK_FILES) {
-    const r = await resolveEntry(pat);
-    allPaths.push(...r.paths);
-    allMissing.push(...r.missing);
-  }
+  // Step 4: resolve both lists. Framework entries may be excused by OPTIONAL;
+  // bundle-only entries never are — the bundle must carry them or the tarball
+  // ships a CLI that cannot resolve its own version (PRD-005 § 4.3).
+  const framework = await resolveList(repoRoot, frameworkFiles);
+  const bundleOnly = await resolveList(repoRoot, bundleOnlyFiles);
 
-  // Patterns that are inherently optional (their absence is acceptable on
-  // some checkouts) — keep this list narrow.
-  const OPTIONAL = new Set([
-    "scripts/upgrade.sh",
-    "mkdocs.yml",
-    "requirements-docs.txt",
-    "docs/**",
-    ".github/workflows/cli-release.yml",
-    ".github/workflows/specforge-ci.yml",
-    "CHANGELOG.md",
-    "README.es.md",
-  ]);
-  const fatalMissing = allMissing.filter((p) => !OPTIONAL.has(p));
+  const fatalMissing = framework.missing.filter((p) => !OPTIONAL.has(p));
   if (fatalMissing.length > 0) {
     process.stderr.write(`prepublish: required framework files missing:\n`);
     for (const m of fatalMissing) process.stderr.write(`  ${m}\n`);
     return 1;
   }
-  if (allMissing.length > 0) {
+  if (bundleOnly.missing.length > 0) {
+    process.stderr.write(`prepublish: required bundle-only files missing:\n`);
+    for (const m of bundleOnly.missing) process.stderr.write(`  ${m}\n`);
+    return 1;
+  }
+  if (framework.missing.length > 0) {
     process.stderr.write(`prepublish: optional framework files missing (continuing):\n`);
-    for (const m of allMissing) process.stderr.write(`  ${m}\n`);
+    for (const m of framework.missing) process.stderr.write(`  ${m}\n`);
   }
 
+  // Step 5: copy.
+  const allPaths = [...framework.paths, ...bundleOnly.paths];
   for (const rel of allPaths) {
-    await copyFile(rel);
+    await copyFile(repoRoot, bundleRoot, rel);
   }
 
   process.stdout.write(`prepublish: bundled framework v${version} (${allPaths.length} files) into ${path.relative(cliRoot, bundleRoot)}/\n`);
   return 0;
 }
 
-main()
-  .then((code) => process.exit(code))
-  .catch((err) => {
-    process.stderr.write(`prepublish: ${err instanceof Error ? err.stack : String(err)}\n`);
-    process.exit(1);
-  });
+/**
+ * Run only when invoked as a script (`node dist-scripts/scripts/prepublish.js`).
+ * Importing the module — which the integration tests do — must not execute it.
+ */
+const invokedDirectly =
+  process.argv[1] !== undefined &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (invokedDirectly) {
+  runPrepublish()
+    .then((code) => process.exit(code))
+    .catch((err) => {
+      process.stderr.write(`prepublish: ${err instanceof Error ? err.stack : String(err)}\n`);
+      process.exit(1);
+    });
+}
