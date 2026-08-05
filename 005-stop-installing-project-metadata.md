@@ -1,6 +1,7 @@
 # PRD-005: Stop installing specforge's own project metadata into adopters
 
-**Status**: Draft
+**Status**: Implemented
+**Implemented at**: 2026-08-05
 **Date**: 2026-08-05
 **Author**: AI-assisted
 **Priority**: P1
@@ -427,8 +428,23 @@ in § 3.
 ## Gate: Promotion to `Implemented`
 
 ```yaml
-commit_hash: [TBD]
+commit_hash: 5eb6dc1
 tests:
-  - [TBD]
+  - tools/cli/tests/unit/partition.test.ts
+  - tools/cli/tests/unit/version.test.ts
+  - tools/cli/tests/integration/prepublish.test.ts
+  - tools/cli/tests/integration/init.test.ts
+  - tools/cli/tests/integration/doctor.test.ts
+  - tools/cli/tests/e2e/pack-and-run.test.ts
+  - tools/cli/tests/conformance/framework.test.ts
 system_artifact_diff: []
 ```
+
+`system_artifact_diff` is an empty list because no impacted sibling maintains a
+`SYSTEM_ARTIFACT.md` — `SIBLINGS.md`'s only row declares `Read first:
+CLAUDE.md`. Same shape as PRD-001, PRD-002 and PRD-003.
+
+The post-implementation panel ran four rounds against `5eb6dc1`'s range. One 🔴
+(the npm README never synchronised) and nine 🟡 were raised; every one was
+routed **fix-in-code inside this commit range**, none to a follow-up PRD or a
+`SYSTEM_ARTIFACT.md` note.

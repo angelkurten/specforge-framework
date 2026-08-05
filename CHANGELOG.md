@@ -8,6 +8,34 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.10.0] - 2026-08-05
+
+Shipped via [PRD-005: Stop installing specforge's own project metadata into adopters](005-stop-installing-project-metadata.md) (`Status: Implemented`; gate filled after a four-round post-implementation re-review cleared). Roadmap: [ROADMAP-004](ROADMAP.md) `Shipped`. No migration script — content-only, no layout change.
+
+### Changed
+
+- `init` and `update` no longer write specforge's own project metadata into an adopting team's directory. Eight entries leave `FRAMEWORK_FILES`; seven were files adopters actually received: `CHANGELOG.md`, `VERSION`, `docs/**`, `mkdocs.yml`, `requirements-docs.txt`, `.github/workflows/cli-release.yml`, and `scripts/upgrade.sh`. The eighth, `.github/workflows/specforge-ci.yml`, was a live partition rule with no file behind it. The bundle goes from 45 files to 33; `init` writes 32.
+- `VERSION` moves to a new `BUNDLE_ONLY_FILES` list in `tools/cli/src/partition.ts`. It stays inside the npm tarball, because `bundleVersion()` reads `framework/VERSION` unguarded from `init`, `update` and `migrate`, but it is no longer installed. `listBundledFrameworkFiles` already filtered the bundle walk by `classify() === "framework"`, so no call site changed.
+- `README.md`, `README.es.md` and the npm README lose every reference to a vacated path — the file-layout tree, the `VERSION` and `CHANGELOG.md` links, and the legacy `scripts/upgrade.sh` section. A shipped framework file pointing at a path `init` no longer writes is the same failure this release fixes.
+
+### Fixed
+
+- `prepublish`'s auto-run guard compared a lexically-resolved `process.argv[1]` against an ESM-realpath'd `import.meta.url`, so invoking it by an absolute path through a symlink loaded the module, failed the guard, and exited 0 having written nothing. Because `tools/cli/framework/` is gitignored, that publishes whatever stale bundle is on disk while reporting success. Both operands are realpath'd now, and the post-run check compares the bundle against the resolved file set rather than testing non-emptiness, so a copy that did not land and a stale file that survived the wipe both fail.
+- `runPrepublish` accepted a partial option specification — `{ frameworkFiles: [] }` with no roots — that defaulted the bundle root to the real package and recursively deleted it, returning 0 with a wrong-but-non-empty bundle. Any explicit option now requires explicit roots, including prototype-inherited ones.
+
+### Cleanup for existing adopters
+
+Nothing is deleted from your directory by this release. After running `npx @angelkurten/specforge@latest update`, you may remove these from your specforge directory. Nothing in the CLI reads any of them from an install.
+
+**Should delete — not cosmetic:**
+
+- `.github/workflows/cli-release.yml` — live on `v*.*.*` tag push, holds `id-token: write` and an `npm publish` step against `secrets.NPM_TOKEN`. If you installed specforge as its own repository, tagging your own release triggers it.
+- `scripts/upgrade.sh` — executable, no longer covered by `doctor`'s integrity check, and it applies its own partition that would reinstall the files this release removes.
+
+**May delete — cosmetic:**
+
+- `CHANGELOG.md`, `VERSION`, `docs/`, `mkdocs.yml`, `requirements-docs.txt`.
+
 ## [0.9.0] - 2026-08-05
 
 ### Added
