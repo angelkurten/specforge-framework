@@ -166,4 +166,19 @@ describe("subagent-frontmatter: reserved-prefix class outside the namespace", ()
     await write("specforge/README.txt", "not a definition\n");
     expect(await validator.run(tmpDir)).toEqual([]);
   });
+
+  it("detects an uppercase `.MD` shadow (case-insensitive extension match)", async () => {
+    // `.claude/agents/team/SHADOW.MD` is a real shadow on case-insensitive
+    // APFS; a case-sensitive `.md` check produces no finding at all. The
+    // .md-only scope is preserved — only the case gap is closed.
+    await write(
+      "team/SHADOW.MD",
+      subagentDefinition("specforge-security-reviewer", "opus"),
+    );
+    const findings = await validator.run(tmpDir);
+    expect(findings).toHaveLength(1);
+    expect(findings[0]!.severity).toBe("error");
+    expect(findings[0]!.file).toBe(".claude/agents/team/SHADOW.MD");
+    expect(findings[0]!.message).toContain("specforge-");
+  });
 });

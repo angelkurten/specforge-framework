@@ -23,6 +23,25 @@ const REPO = path.resolve(
 
 const read = (rel: string) => fs.readFile(path.join(REPO, rel), "utf8");
 
+/** `FRAMEWORK_FILES` resolved to concrete files against the repo root — the
+ *  bundle dir is gitignored and stale without a prepublish run. Shared by
+ *  rows 16 and 19 so both self-maintain when a framework file is added. */
+async function resolveFrameworkFiles(): Promise<string[]> {
+  const out: string[] = [];
+  const walk = async (rel: string): Promise<void> => {
+    for (const e of await fs.readdir(path.join(REPO, rel), { withFileTypes: true })) {
+      const child = `${rel}/${e.name}`;
+      if (e.isDirectory()) await walk(child);
+      else if (e.isFile()) out.push(child);
+    }
+  };
+  for (const entry of FRAMEWORK_FILES) {
+    if (entry.endsWith("/**")) await walk(entry.slice(0, -3));
+    else out.push(entry);
+  }
+  return out;
+}
+
 let hardRules: string;
 let claudeMd: string;
 let prdAuthoring: string;
@@ -547,24 +566,6 @@ describe("PRD-006 § 9 row 16 — no shipped file cites the vacated agents/ path
    *  lookbehind. Trees are row 20's territory. */
   const isTreeLine = (l: string) => /^\s*[│├└]/.test(l);
 
-  /** FRAMEWORK_FILES against the repo root — the bundle dir is gitignored
-   *  and stale without a prepublish run. */
-  async function resolveFrameworkFiles(): Promise<string[]> {
-    const out: string[] = [];
-    const walk = async (rel: string): Promise<void> => {
-      for (const e of await fs.readdir(path.join(REPO, rel), { withFileTypes: true })) {
-        const child = `${rel}/${e.name}`;
-        if (e.isDirectory()) await walk(child);
-        else if (e.isFile()) out.push(child);
-      }
-    };
-    for (const entry of FRAMEWORK_FILES) {
-      if (entry.endsWith("/**")) await walk(entry.slice(0, -3));
-      else out.push(entry);
-    }
-    return out;
-  }
-
   let files: string[];
 
   beforeAll(async () => {
@@ -651,23 +652,45 @@ describe("PRD-006 § 9 row 19 — the reviewer brief is six fields, not five", (
   // cannot cross the backtick misses exactly the case it exists to guard.
   const STALE_COUNT = /\bfive[\s-]+[`'"*]*(\{\{VARIABLE\}\}|variables?|fields?|mandatory variables?)/i;
 
-  const NON_FROZEN = [
-    "CLAUDE.md",
-    "CONVENTIONS.md",
-    "README.md",
-    "README.es.md",
-    "tools/cli/README.md",
-    ".claude/rules/framework-maintenance.md",
-    ".claude/rules/workflow.md",
-    ".claude/rules/model-selection.md",
-    ".claude/rules/prd-authoring.md",
-    "docs/concepts/siblings.md",
-    "docs/faq.md",
-  ];
+  // Derived from resolveFrameworkFiles() (row 16's helper) plus the same
+  // out-of-partition published files, minus frozen snapshots — so adding a
+  // framework file (a rule, a definition, a template, an example) extends the
+  // guard automatically instead of needing a hand-edit here. The prior
+  // hardcoded list omitted templates/**, examples/**, the twelve definitions,
+  // and four rule files, so the guard passed only by luck of what was absent.
+  // Frozen PRDs/ADRs and CHANGELOG.md are excluded: bare "five" has unrelated
+  // uses in them and hard rule 7 forbids editing them anyway.
+  const FROZEN = /(^|\/)(CHANGELOG\.md|(ADR-)?\d{3}-[^/]*\.md)$/;
+  let nonFrozen: string[];
+
+  beforeAll(async () => {
+    nonFrozen = [
+      ...(await resolveFrameworkFiles()),
+      "tools/cli/README.md",
+      "docs/concepts/siblings.md",
+      "docs/faq.md",
+    ].filter((f) => !FROZEN.test(f));
+  });
+
+  it("the derived set covers the files the hardcoded list omitted", () => {
+    for (const f of [
+      ".claude/rules/hard-rules.md",
+      ".claude/rules/gate-block.md",
+      ".claude/rules/roadmap.md",
+      ".claude/rules/adr-specific.md",
+      ".claude/agents/specforge/specforge-backend-reviewer.md",
+      "templates/prd.md",
+      "examples/prd-001-login-example.md",
+      "tools/cli/README.md",
+    ]) {
+      expect(nonFrozen, `${f} must be in the swept set`).toContain(f);
+    }
+    expect(nonFrozen.some((f) => FROZEN.test(f))).toBe(false);
+  });
 
   it("no non-frozen shipped file still states the five-variable count", async () => {
     const hits: string[] = [];
-    for (const f of NON_FROZEN) {
+    for (const f of nonFrozen) {
       const m = STALE_COUNT.exec(await read(f));
       if (m) hits.push(`${f}: ${m[0]}`);
     }

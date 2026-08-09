@@ -137,10 +137,26 @@ export const validator: Validator = {
   async run(cwd: string): Promise<Finding[]> {
     const findings: Finding[] = [];
 
+    // Cycle bound for symlinked-directory traversal: the realpath of every
+    // directory we descend into, so a symlink pointing back at an ancestor
+    // (or at the namespace root) is entered at most once. Keyed on realpath,
+    // not on the link-relative path, because two links can name the same real
+    // directory.
+    const visited = new Set<string>();
+
     // Scope is the project tree, and that limit is structural: the validator
     // receives `cwd` and its walk is rooted there, so a shadow at user-scope
     // `~/.claude/agents/` is unreachable by any repo-scoped control (§ 8).
     async function walk(rel: string): Promise<void> {
+      let real: string;
+      try {
+        real = await fs.realpath(path.join(cwd, rel));
+      } catch {
+        return; // missing or unreadable directory — nothing to walk
+      }
+      if (visited.has(real)) return; // symlink cycle — already descended here
+      visited.add(real);
+
       let entries;
       try {
         entries = await fs.readdir(path.join(cwd, rel), { withFileTypes: true });
@@ -163,30 +179,57 @@ export const validator: Validator = {
           } catch {
             target = "<unreadable>";
           }
+
+          // Then resolve it: a terminal symlink finding alone would re-open
+          // the evasion one severity notch down, since a warning outside the
+          // namespace does not change `doctor`'s exit code. A symlinked
+          // *directory* is traversed like any other — a shadow planted inside
+          // `.claude/agents/team → ../../hidden` would otherwise stay
+          // invisible and leave the exit code at 0 — with the realpath
+          // `visited` set (above) bounding cycles. Resolving may read a
+          // target outside cwd; that is acceptable for a read-only validator,
+          // and the finding reports the link target. The finding message is
+          // conditional: it only claims "resolved and checked" on the path
+          // that actually read and checked the target's frontmatter.
+          const isMd = e.name.toLowerCase().endsWith(".md");
+          let st;
+          try {
+            st = await fs.stat(abs);
+          } catch {
+            st = undefined; // broken link
+          }
+
+          let resolution: string;
+          let text: string | undefined;
+          if (!st) {
+            resolution = "broken link, not resolved";
+          } else if (st.isDirectory()) {
+            resolution = "resolved and traversed, not skipped";
+          } else if (!st.isFile()) {
+            resolution = "resolved; not a regular file, contents not checked";
+          } else if (!isMd) {
+            resolution = "resolved; not a `.md` file, contents not checked";
+          } else {
+            try {
+              text = await fs.readFile(abs, "utf8");
+              resolution = "resolved and checked, not skipped";
+            } catch {
+              resolution = "resolved but unreadable, contents not checked";
+            }
+          }
+
           findings.push({
             rule: id,
             severity: inside ? "error" : "warning",
             file: childRel,
-            message: `symlinked entry under \`${AGENTS_DIR}/\` → \`${target}\` (resolved and checked, not skipped)`,
+            message: `symlinked entry under \`${AGENTS_DIR}/\` → \`${target}\` (${resolution})`,
           });
-          // And then resolve it: a terminal symlink finding alone would
-          // re-open the evasion one severity notch down, since a warning
-          // outside the namespace does not change `doctor`'s exit code.
-          // Resolving may read a target outside cwd; that is acceptable for a
-          // read-only validator, and the finding above reports the target.
-          if (!e.name.endsWith(".md")) continue;
-          let text: string;
-          try {
-            const st = await fs.stat(abs);
-            // A link to a directory gets the finding above but is not
-            // traversed — resolving into it risks a cycle, and the class
-            // checks operate on frontmatter.
-            if (!st.isFile()) continue;
-            text = await fs.readFile(abs, "utf8");
-          } catch {
-            continue; // broken link — the finding above is the record
+
+          if (st?.isDirectory()) {
+            await walk(childRel);
+          } else if (text !== undefined) {
+            findings.push(...checkContents(childRel, inside, text));
           }
-          findings.push(...checkContents(childRel, inside, text));
           continue;
         }
 
@@ -194,7 +237,10 @@ export const validator: Validator = {
           await walk(childRel);
           continue;
         }
-        if (!e.isFile() || !e.name.endsWith(".md")) continue;
+        // Case-insensitive `.md` match: `SHADOW.MD` is a real shadow on
+        // case-insensitive APFS and must not slip past. The .md-only scope is
+        // deliberate; only the case gap is closed here.
+        if (!e.isFile() || !e.name.toLowerCase().endsWith(".md")) continue;
 
         const inside = insideNamespace(childRel);
         let text: string;

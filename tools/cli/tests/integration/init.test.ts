@@ -372,7 +372,7 @@ describe("init/update: the specforge namespace is framework-owned", () => {
 // throwing, and the loop's previous best-effort catch swallowed everything —
 // a refusal that lands in an empty catch is no defence at all.
 describe("init --force --erase: a failed deletion is printed and the erase continues", () => {
-  it("prints the error through the error printer, deletes the rest, and installs", async () => {
+  it("prints the error, deletes the rest, installs, and exits non-zero", async () => {
     if (process.platform === "win32") return;
     // DEVIATION from § 9 row 30's suggested inducement: a directory cannot be
     // planted "at a collected erase path", because `listEraseTargets` pushes
@@ -422,7 +422,9 @@ describe("init --force --erase: a failed deletion is printed and the erase conti
     await expect(
       fs.access(path.join(tmpDir, "examples", "deletable.md")),
     ).rejects.toThrow();
-    expect(exitCode).toBe(0);
+    // But the refusal must move the exit code off 0 so a chained
+    // `specforge init --force --erase && deploy` does not proceed over it.
+    expect(exitCode).toBe(10);
     await expect(
       fs.access(path.join(tmpDir, ".specforge", "manifest.json")),
     ).resolves.toBeUndefined();

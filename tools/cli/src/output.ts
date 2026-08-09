@@ -38,7 +38,10 @@ export function writeJson(obj: unknown): void {
 export interface CliError {
   message: string;
   remediation: string;
-  exitCode: number;
+  // Documentation-only: `printError` never reads it, and callers set the
+  // process exit code by returning it themselves. Optional so a site that
+  // returns its status elsewhere need not restate an inert value.
+  exitCode?: number;
 }
 
 export function printError(e: CliError): void {

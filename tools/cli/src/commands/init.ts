@@ -167,6 +167,11 @@ export async function runInit(opts: InitOptions): Promise<number> {
     throw e;
   }
 
+  // Non-zero when any erase target was refused (§ 8.3 / PRD-006 § 9 row 30):
+  // a swallowed refusal that leaves the exit code at 0 lets
+  // `specforge init --force --erase && deploy` proceed over an anomaly.
+  let eraseRefusals = 0;
+
   try {
     // Step 5: --erase deletions.
     if (opts.erase) {
@@ -182,11 +187,11 @@ export async function runInit(opts: InitOptions): Promise<number> {
           // empty catch is no defence at all.
           await safeUnlink(opts.cwd, t);
         } catch (e) {
+          eraseRefusals++;
           printError({
             message: `could not delete ${t}: ${e instanceof Error ? e.message : String(e)}`,
             remediation:
               "remove the path manually, then re-run `specforge init --force --erase`",
-            exitCode: 10,
           });
           // Continue: one refused target must not abandon the rest of the
           // erase, and the printed error is what makes the refusal visible.
@@ -236,6 +241,15 @@ export async function runInit(opts: InitOptions): Promise<number> {
 
     summary(opts, `init complete: framework v${bundleVer} installed (${frameworkEntries.length} framework files)`);
     info(opts, "next steps: edit SIBLINGS.md and ROADMAP.md, then `specforge doctor`, `specforge update`, `specforge --help`");
+    if (eraseRefusals > 0) {
+      // The framework install itself completed, but at least one erase target
+      // was refused; a non-zero status stops a chained `&& deploy`.
+      summary(
+        opts,
+        `warning: ${eraseRefusals} erase target(s) could not be deleted (see errors above)`,
+      );
+      return 10;
+    }
     return 0;
   } catch (e) {
     printError({

@@ -547,6 +547,50 @@ describe("doctor validator: subagent-frontmatter reserved-prefix shadow", () => 
     expect(exitCode).toBeGreaterThan(0);
   });
 
+  it("traverses a symlinked directory and reports the shadow hidden inside it", async () => {
+    if (process.platform === "win32") return;
+    const importMetaUrl = await doInit(tmpDir);
+    await plantSubagentDefinitions(
+      path.join(tmpDir, ".claude", "agents", "specforge"),
+    );
+    // A shadow behind a symlinked *directory*: warning-only on the link
+    // without descending leaves doctor's exit code at 0 — reopening exactly
+    // the evasion §5.4's exit-code reasoning rejects. The validator must
+    // traverse the link (cycle-bounded by a realpath visited-set) and surface
+    // the class-2 error inside it.
+    await fs.mkdir(path.join(tmpDir, "hidden"), { recursive: true });
+    await fs.writeFile(
+      path.join(tmpDir, "hidden", "specforge-security-reviewer.md"),
+      subagentDefinition("specforge-security-reviewer", "opus"),
+    );
+    await fs.symlink(
+      "../../hidden",
+      path.join(tmpDir, ".claude", "agents", "team"),
+    );
+
+    const { report, exitCode } = await doctorJson(tmpDir, importMetaUrl, [
+      "subagent-frontmatter",
+    ]);
+
+    const link = report.findings.find(
+      (f: any) => f.severity === "warning" && f.file === ".claude/agents/team",
+    );
+    expect(link, "the symlinked directory itself must be reported").toBeDefined();
+    expect(link.message).toContain("../../hidden");
+
+    const shadow = report.findings.find((f: any) => f.severity === "error");
+    expect(
+      shadow,
+      "a shadow behind a symlinked directory must produce the class-2 error",
+    ).toBeDefined();
+    expect(shadow.file).toBe(
+      ".claude/agents/team/specforge-security-reviewer.md",
+    );
+    expect(shadow.message).toContain("specforge-");
+    // The error is what moves doctor's exit code off 0 so gated CI fails.
+    expect(exitCode).toBeGreaterThan(0);
+  });
+
   it("stays silent on a correct install", async () => {
     const importMetaUrl = await doInit(tmpDir);
     await plantSubagentDefinitions(
