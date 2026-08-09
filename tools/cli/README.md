@@ -140,7 +140,7 @@ If you see that, repeat the request on every prompt with a `UserPromptSubmit` ho
 
 ## Turning the panels off
 
-The 12 definitions are registered subagents the host model can delegate to on its own, outside the workflow — and the four reviewers hold `Bash` so they can walk a diff. There is no frontmatter off-switch; `permissions.deny` is the only capability-level control. **If you do not run the review or roadmap panels, deny them** in `.claude/settings.json` (or `~/.claude/settings.json`), and drop the entries for the panels you do run:
+The 12 definitions are registered subagents the host model can delegate to on its own, outside the workflow — and the four reviewers hold `Bash` so they can walk a diff and `WebFetch` so they can check a changelog or advisory against its live source. A mis-delegated reviewer therefore holds shell access and live network access at once. There is no frontmatter off-switch; `permissions.deny` is the only capability-level control. **If you do not run the review or roadmap panels, deny them** in `.claude/settings.json` (or `~/.claude/settings.json`), and drop the entries for the panels you do run:
 
 ```json
 {
@@ -164,6 +164,20 @@ The 12 definitions are registered subagents the host model can delegate to on it
 ```
 
 `permissions.deny` is also the one control that reaches a definition installed at user scope (`~/.claude/agents/`), which no repo-scoped check can see.
+
+To bound where the reviewers may fetch from, add a `WebFetch` domain rule to the same `.claude/settings.json`:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:example.com)"
+    ]
+  }
+}
+```
+
+Two caveats. The rule is session-wide, not per subagent — all four reviewers share one list, and so does the main session. And whether pairing an `allow` entry with a blanket `WebFetch` deny actually *restricts* fetches, rather than only suppressing the approval prompt for the allowed domain, is **unverified**: Claude Code's precedence for that combination was not established when this was written. Treat the rule as scoping you should confirm against your own Claude Code version, not as a sandbox you already have.
 
 ## Quickstart
 

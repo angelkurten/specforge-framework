@@ -140,7 +140,7 @@ Si lo ves, repetí el pedido en cada prompt con un hook `UserPromptSubmit` — e
 
 ## Apagar los paneles
 
-Las 12 definiciones son subagentes registrados a los que el modelo host puede delegar por su cuenta, fuera del workflow — y los cuatro revisores tienen `Bash` para poder recorrer un diff. No hay off-switch en el frontmatter; `permissions.deny` es el único control a nivel de capacidad. **Si no corrés los paneles de review ni los de roadmap, denegalos** en `.claude/settings.json` (o `~/.claude/settings.json`), y borrá las entradas de los paneles que sí corrés:
+Las 12 definiciones son subagentes registrados a los que el modelo host puede delegar por su cuenta, fuera del workflow — y los cuatro revisores tienen `Bash` para poder recorrer un diff y `WebFetch` para poder chequear un changelog o un advisory contra su fuente viva. Un revisor mal delegado tiene entonces acceso a shell y a red en simultáneo. No hay off-switch en el frontmatter; `permissions.deny` es el único control a nivel de capacidad. **Si no corrés los paneles de review ni los de roadmap, denegalos** en `.claude/settings.json` (o `~/.claude/settings.json`), y borrá las entradas de los paneles que sí corrés:
 
 ```json
 {
@@ -164,6 +164,20 @@ Las 12 definiciones son subagentes registrados a los que el modelo host puede de
 ```
 
 `permissions.deny` es también el único control que alcanza una definición instalada a nivel usuario (`~/.claude/agents/`), que ningún chequeo scopeado al repo puede ver.
+
+Para acotar desde dónde pueden fetchear los revisores, agregá una regla de dominio `WebFetch` en el mismo `.claude/settings.json`:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:example.com)"
+    ]
+  }
+}
+```
+
+Dos caveats. La regla es session-wide, no por subagente — los cuatro revisores comparten una sola lista, y la sesión principal también. Y si combinar una entrada `allow` con un deny general de `WebFetch` realmente *restringe* los fetches, o solamente suprime el prompt de aprobación para el dominio permitido, está **sin verificar**: la precedencia de Claude Code para esa combinación no quedó establecida al momento de escribir esto. Tratala como scoping que conviene confirmar contra tu propia versión de Claude Code, no como un sandbox que ya tenés.
 
 ## Quickstart
 
