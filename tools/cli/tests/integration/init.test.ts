@@ -372,7 +372,7 @@ describe("init/update: the specforge namespace is framework-owned", () => {
 // throwing, and the loop's previous best-effort catch swallowed everything —
 // a refusal that lands in an empty catch is no defence at all.
 describe("init --force --erase: a failed deletion is printed and the erase continues", () => {
-  it("prints the error, deletes the rest, installs, and exits non-zero", async () => {
+  it("prints the error, deletes the rest, installs, and exits 0 (install completed)", async () => {
     if (process.platform === "win32") return;
     // DEVIATION from § 9 row 30's suggested inducement: a directory cannot be
     // planted "at a collected erase path", because `listEraseTargets` pushes
@@ -422,9 +422,11 @@ describe("init --force --erase: a failed deletion is printed and the erase conti
     await expect(
       fs.access(path.join(tmpDir, "examples", "deletable.md")),
     ).rejects.toThrow();
-    // But the refusal must move the exit code off 0 so a chained
-    // `specforge init --force --erase && deploy` does not proceed over it.
-    expect(exitCode).toBe(10);
+    // The refusal is surfaced (printed above) and the erase continued, but the
+    // install itself completed, so the exit code stays 0: PRD-003 § 5.1 maps 0
+    // to "Install completed" and 10 to "I/O error during copy", and the refusal
+    // precedes any copy (§ 10 step 2 asks only for printed + continues).
+    expect(exitCode).toBe(0);
     await expect(
       fs.access(path.join(tmpDir, ".specforge", "manifest.json")),
     ).resolves.toBeUndefined();

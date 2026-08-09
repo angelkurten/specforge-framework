@@ -591,6 +591,99 @@ describe("doctor validator: subagent-frontmatter reserved-prefix shadow", () => 
     expect(exitCode).toBeGreaterThan(0);
   });
 
+  it("a symlinked namespace ROOT produces an error, not a warning, and moves the exit code", async () => {
+    if (process.platform === "win32") return;
+    const importMetaUrl = await doInit(tmpDir);
+    // Forged framework definitions live outside the integrity-checked
+    // namespace; each one is schema-valid on its own.
+    await fs.mkdir(path.join(tmpDir, "evil"), { recursive: true });
+    await fs.writeFile(
+      path.join(tmpDir, "evil", "security-reviewer.md"),
+      subagentDefinition("specforge-security-reviewer", "opus"),
+    );
+    // Plant the namespace ROOT itself (no trailing slash) as a symlink. Its
+    // children carry the trailing slash and pass class 1 cleanly under forged
+    // framework names, so only the root's OWN finding can move the exit code —
+    // and it must be an error (inside branch), not a warning.
+    await fs.mkdir(path.join(tmpDir, ".claude", "agents"), { recursive: true });
+    await fs.symlink(
+      "../../evil",
+      path.join(tmpDir, ".claude", "agents", "specforge"),
+    );
+
+    const { report, exitCode } = await doctorJson(tmpDir, importMetaUrl, [
+      "subagent-frontmatter",
+    ]);
+
+    const root = report.findings.find(
+      (f: any) => f.file === ".claude/agents/specforge",
+    );
+    expect(
+      root,
+      "the symlinked namespace root itself must be reported",
+    ).toBeDefined();
+    expect(
+      root.severity,
+      "the root takes the inside branch, so a symlinked root is an error",
+    ).toBe("error");
+    expect(root.message).toContain("../../evil");
+    // The forged child passes class 1; the root's error is what fails gated CI.
+    expect(exitCode).toBeGreaterThan(0);
+  });
+
+  it("a mirror sorting ahead of the real namespace does not preempt its class-1 coverage", async () => {
+    if (process.platform === "win32") return;
+    const importMetaUrl = await doInit(tmpDir);
+    // A correct install (12 valid defs) plus one schema-invalid def inside the
+    // real namespace: a concrete model ID is rejected by class 1.
+    await plantSubagentDefinitions(
+      path.join(tmpDir, ".claude", "agents", "specforge"),
+    );
+    await fs.writeFile(
+      path.join(tmpDir, ".claude", "agents", "specforge", "specforge-bad.md"),
+      subagentDefinition("specforge-bad", "claude-opus-5"),
+    );
+    // `aaa-mirror` sorts before `specforge`. If the mirror is walked first it
+    // registers the namespace's realpath and the real directory is
+    // short-circuited when reached — dropping class-1 coverage on the real path
+    // and producing spurious class-2 errors against the mirror. The fix walks
+    // the canonical (non-symlink) directory first.
+    await fs.symlink(
+      "./specforge",
+      path.join(tmpDir, ".claude", "agents", "aaa-mirror"),
+    );
+
+    const { report, exitCode } = await doctorJson(tmpDir, importMetaUrl, [
+      "subagent-frontmatter",
+    ]);
+
+    const errors = report.findings.filter((f: any) => f.severity === "error");
+    // The class-1 error fires against the REAL namespace path...
+    expect(
+      errors.find(
+        (f: any) => f.file === ".claude/agents/specforge/specforge-bad.md",
+      ),
+      "class-1 must fire against the real namespace path",
+    ).toBeDefined();
+    // ...and nowhere else: no spurious duplication against the mirror, and the
+    // 12 valid defs stay clean.
+    expect(
+      errors.filter((f: any) =>
+        f.file.startsWith(".claude/agents/aaa-mirror"),
+      ),
+      "the mirror must not be re-descended into spurious errors",
+    ).toEqual([]);
+    expect(errors).toHaveLength(1);
+    // The mirror symlink itself is still reported (refuse-don't-skip), as a
+    // warning that does not change the exit code.
+    const link = report.findings.find(
+      (f: any) =>
+        f.severity === "warning" && f.file === ".claude/agents/aaa-mirror",
+    );
+    expect(link, "the mirror symlink itself must be reported").toBeDefined();
+    expect(exitCode).toBeGreaterThan(0);
+  });
+
   it("stays silent on a correct install", async () => {
     const importMetaUrl = await doInit(tmpDir);
     await plantSubagentDefinitions(

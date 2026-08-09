@@ -46,7 +46,16 @@ const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---\n/;
  * namespace itself reserved, which is one coherent posture on both families.
  */
 function insideNamespace(rel: string): boolean {
-  return rel.toLowerCase().startsWith(NAMESPACE);
+  const lower = rel.toLowerCase();
+  // The namespace ROOT itself (no trailing slash) counts as inside. Without the
+  // equality check, a `startsWith(NAMESPACE)` test with the trailing slash
+  // returns false for `.claude/agents/specforge` exactly, so a symlink planted
+  // AS the root takes the *outside* branch (a warning, which does not change
+  // `doctor`'s exit code) while traversal into its target reaches children that
+  // DO carry the trailing slash and pass class 1 cleanly under forged framework
+  // names — the exit code never moves. Treating the root as inside makes a
+  // symlinked root produce the class-2/inside ERROR and moves the exit code.
+  return lower === NAMESPACE.slice(0, -1) || lower.startsWith(NAMESPACE);
 }
 
 /** The `name`-prefix comparison is case-insensitive for the same reason:
@@ -163,7 +172,24 @@ export const validator: Validator = {
       } catch {
         return;
       }
-      for (const e of [...entries].sort((a, b) => (a.name < b.name ? -1 : 1))) {
+      // Order non-symlink entries ahead of symlinks at each level so a
+      // canonical directory claims its realpath in `visited` before any symlink
+      // that mirrors it. Otherwise a mirror sorting alphabetically ahead of the
+      // real namespace (e.g. `.claude/agents/aaa-mirror → ./specforge`) would
+      // register the namespace's realpath first, short-circuit the real
+      // directory when the walk reaches it (dropping its class-1 coverage), and
+      // emit spurious class-2 errors against the mirror's children. With the
+      // real directory walked first, the mirror hits `visited` and is not
+      // re-descended — the run-scoped realpath set (and its cycle bound: a→b→a
+      // and self-loops still terminate) is otherwise unchanged. Within each
+      // group entries stay name-sorted for deterministic finding order.
+      const ordered = [...entries].sort((a, b) => {
+        const as = a.isSymbolicLink() ? 1 : 0;
+        const bs = b.isSymbolicLink() ? 1 : 0;
+        if (as !== bs) return as - bs;
+        return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+      });
+      for (const e of ordered) {
         const childRel = `${rel}/${e.name}`;
         const abs = path.join(cwd, childRel);
 

@@ -167,9 +167,16 @@ export async function runInit(opts: InitOptions): Promise<number> {
     throw e;
   }
 
-  // Non-zero when any erase target was refused (§ 8.3 / PRD-006 § 9 row 30):
-  // a swallowed refusal that leaves the exit code at 0 lets
-  // `specforge init --force --erase && deploy` proceed over an anomaly.
+  // Count refused erase targets so the summary can carry a printed warning.
+  // The exit code stays 0: PRD-003 § 5.1's frozen table maps 0 to "Install
+  // completed" and 10 to "I/O error during copy", the refusal happens in the
+  // erase phase (step 5) BEFORE any copy (step 6), and the install itself runs
+  // to completion — PRD-006 § 5 opens with "No new CLI command, flag, or exit
+  // code." What § 10 step 2 / § 9 row 30 require is that the refusal be
+  // *printed* and the erase *continue*; the catch below does both, and a
+  // printed warning on exit 0 satisfies it. Returning a non-zero code on a
+  // completed install would require a follow-up PRD amending PRD-003 § 5.1's
+  // exit-code table — do NOT implement it here.
   let eraseRefusals = 0;
 
   try {
@@ -242,13 +249,14 @@ export async function runInit(opts: InitOptions): Promise<number> {
     summary(opts, `init complete: framework v${bundleVer} installed (${frameworkEntries.length} framework files)`);
     info(opts, "next steps: edit SIBLINGS.md and ROADMAP.md, then `specforge doctor`, `specforge update`, `specforge --help`");
     if (eraseRefusals > 0) {
-      // The framework install itself completed, but at least one erase target
-      // was refused; a non-zero status stops a chained `&& deploy`.
+      // The framework install completed; the refused targets were already
+      // printed one-by-one in the erase loop. Surface a summary warning too,
+      // but keep the exit code at 0 — the install succeeded (see the counter's
+      // declaration for the PRD-003 § 5.1 exit-code rationale).
       summary(
         opts,
         `warning: ${eraseRefusals} erase target(s) could not be deleted (see errors above)`,
       );
-      return 10;
     }
     return 0;
   } catch (e) {
