@@ -80,3 +80,19 @@
 - [PRD-005] — retroactive meta-reference per `.claude/rules/roadmap.md` § Evidence category 7
 
 **Caveats**: Existing installs are not cleaned up automatically. Automatic deletion was designed and rejected — see PRD-005 § 3; it required building the CLI's first destructive operation, and the review panel found four ordering and idempotency defects plus six security ones in that design.
+
+### ROADMAP-005: Subagent briefings and review-loop hardening
+
+**Status**: Shipped
+**Last reviewed**: 2026-08-09
+**Theme**: —
+**PRD**: PRD-006
+
+**Problem / outcome**: the 12 reviewer/generator/critic briefings were plain-markdown paste templates whose per-role model assignment and dispatch mode depended on lead-agent discipline with nothing enforcing them, and the review loop converged slowly — a field report from an adopting team showed a seven-round cycle whose dominant costs were fix-propagation failures and reviewer-proposed fixes applied as patches. The briefings are now Claude Code subagent definitions under `.claude/agents/specforge/` (model/tools in frontmatter, reserved `specforge-` prefix enforced by a `subagent-frontmatter` validator), and `workflow.md` gained the propagation pass, the mechanism-fix adversarial bounce, re-verification mode with a prior-findings ledger and moving-target freeze, and a draft-loop escalation counter.
+**User**: specforge maintainers and adopting teams
+**Siblings likely impacted**: specforge
+
+**Evidence**:
+- [PRD-006] — retroactive meta-reference per `.claude/rules/roadmap.md` § Evidence category 7
+
+**Caveats**: Two 🟡 follow-ups tracked in PRD-007 (in-namespace forgery detection; an exit code for incomplete erase). The shadowing control is repo-scoped and detective (runs on `doctor`), not dispatch-time; `permissions.deny` is the recommended defence for adopters who do not run the panels.

@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 
 import { BUNDLE_ONLY_FILES, FRAMEWORK_FILES } from "../../src/partition.js";
 import { OPTIONAL, runPrepublish } from "../../scripts/prepublish.js";
-import { mkTmpDir } from "../helpers.js";
+import { mkTmpDir, SUBAGENT_DEFINITIONS } from "../helpers.js";
 
 const REPO_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -78,13 +78,20 @@ describe("prepublish: bundles the reduced framework set plus VERSION", () => {
       ".claude/rules/hard-rules.md",
       ".claude/rules/workflow.md",
       "templates/prd.md",
-      "agents/backend-reviewer.md",
       "examples/prd-001-login-example.md",
+      // PRD-006 § 9 row 7: all twelve asserted by name. A symlinked
+      // definition drops silently from `walkDir`, so a total alone would not
+      // catch an 11-file bundle.
+      ...SUBAGENT_DEFINITIONS.map(
+        (d) => `.claude/agents/specforge/${d.name}.md`,
+      ),
     ]) {
       expect(bundled, `${rel} must be bundled`).toContain(rel);
     }
 
     for (const rel of [
+      "agents/backend-reviewer.md",
+      "agents/roadmap-market-generator.md",
       "CHANGELOG.md",
       "mkdocs.yml",
       "requirements-docs.txt",
@@ -96,9 +103,11 @@ describe("prepublish: bundles the reduced framework set plus VERSION", () => {
     }
     expect(bundled.filter((p) => p.startsWith("docs/"))).toEqual([]);
 
-    // PRD-005 § 5.1: 32 framework files + VERSION. Adding a rule, template,
-    // agent, or example moves this number — update it here and in § 5.1's
-    // successor rather than loosening the assertion.
+    // PRD-005 § 5.1: 32 framework files + VERSION. PRD-006 swapped twelve
+    // briefings for twelve subagent definitions, so the count is unchanged.
+    // Adding a rule, template, definition, or example moves this number —
+    // update it here and in § 5.1's successor rather than loosening the
+    // assertion.
     expect(bundled).toHaveLength(33);
   });
 });
@@ -242,8 +251,11 @@ describe("prepublish: a symlinked invocation is not silently skipped", () => {
         "README.es.md",
         "LICENSE",
         ".claude/rules/hard-rules.md",
+        // The namespace must exist in the fixture repo: `resolveEntry`
+        // reports an absent `dir/**` base as missing, and a missing
+        // framework entry is fatal unless it is in OPTIONAL.
+        ".claude/agents/specforge/specforge-backend-reviewer.md",
         "templates/prd.md",
-        "agents/backend-reviewer.md",
         "examples/prd-001-login-example.md",
       ]) {
         const abs = path.join(repo, rel);

@@ -2,7 +2,12 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
-import { mkTmpDir, synthBundleImportMetaUrl } from "../helpers.js";
+import {
+  mkTmpDir,
+  subagentDefinition,
+  synthBundleAt,
+  synthBundleImportMetaUrl,
+} from "../helpers.js";
 import { runInit } from "../../src/commands/init.js";
 import { runUpdate } from "../../src/commands/update.js";
 
@@ -153,6 +158,69 @@ describe("update: --strategy=merge conflict", () => {
     // Conflict markers must NOT be present (no true 3-way conflict possible).
     expect(after).not.toContain("<<<<<<<");
     expect(after).not.toContain(">>>>>>>");
+  });
+});
+
+// PRD-006 § 9 row 6: PRD-003's drift behaviour must hold at the new path.
+// Driven against a purpose-built bundle rather than the repo's own, so the
+// assertion does not depend on which definitions the framework currently
+// ships.
+describe("update: a team-edited subagent definition drift-halts", () => {
+  const REL = ".claude/agents/specforge/specforge-backend-reviewer.md";
+
+  it("halts without --strategy and is resolved by --strategy=theirs", async () => {
+    const bundleParent = await mkTmpDir();
+    try {
+      const importMetaUrl = await synthBundleAt(bundleParent, "0.7.0");
+      const bundled = subagentDefinition(
+        "specforge-backend-reviewer",
+        "opus",
+        "Read, Grep, Glob, Bash",
+      );
+      const inBundle = path.join(bundleParent, "fake-pkg", "framework", REL);
+      await fs.mkdir(path.dirname(inBundle), { recursive: true });
+      await fs.writeFile(inBundle, bundled);
+
+      expect(
+        await runInit({
+          cwd: tmpDir,
+          force: false,
+          erase: false,
+          noGitSafety: false,
+          dryRun: false,
+          quiet: true,
+          importMetaUrl,
+        }),
+      ).toBe(0);
+      expect(await fs.readFile(path.join(tmpDir, REL), "utf8")).toBe(bundled);
+
+      const edited = bundled.replace("model: opus", "model: sonnet");
+      await fs.writeFile(path.join(tmpDir, REL), edited);
+
+      expect(
+        await runUpdate({
+          cwd: tmpDir,
+          strategy: null,
+          dryRun: false,
+          quiet: true,
+          importMetaUrl,
+        }),
+      ).toBe(1);
+      expect(await fs.readFile(path.join(tmpDir, REL), "utf8")).toBe(edited);
+
+      expect(
+        await runUpdate({
+          cwd: tmpDir,
+          strategy: "theirs",
+          dryRun: false,
+          quiet: true,
+          importMetaUrl,
+        }),
+      ).toBe(0);
+      expect(await fs.readFile(path.join(tmpDir, REL), "utf8")).toBe(bundled);
+    } finally {
+      await fs.rm(bundleParent, { recursive: true, force: true });
+    }
   });
 });
 

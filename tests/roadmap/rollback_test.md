@@ -25,14 +25,14 @@ Rollback PRD-N is authored per §10.3, specifying removal and reversal operation
    1. `ROADMAP.md`
    2. `.claude/rules/roadmap.md`
    3. `templates/roadmap.md`
-   4. `agents/roadmap-product-generator.md`
-   5. `agents/roadmap-ux-generator.md`
-   6. `agents/roadmap-market-generator.md`
-   7. `agents/roadmap-support-generator.md`
-   8. `agents/roadmap-evidence-critic.md`
-   9. `agents/roadmap-devils-advocate-critic.md`
-   10. `agents/roadmap-opportunity-cost-critic.md`
-   11. `agents/roadmap-risk-critic.md`
+   4. `.claude/agents/specforge/specforge-roadmap-product-generator.md`
+   5. `.claude/agents/specforge/specforge-roadmap-ux-generator.md`
+   6. `.claude/agents/specforge/specforge-roadmap-market-generator.md`
+   7. `.claude/agents/specforge/specforge-roadmap-support-generator.md`
+   8. `.claude/agents/specforge/specforge-roadmap-evidence-critic.md`
+   9. `.claude/agents/specforge/specforge-roadmap-devils-advocate-critic.md`
+   10. `.claude/agents/specforge/specforge-roadmap-opportunity-cost-critic.md`
+   11. `.claude/agents/specforge/specforge-roadmap-risk-critic.md`
 3. Inspect the **5 edited files** for reversion to their pre-PRD-001 state: `CLAUDE.md`, `.claude/rules/hard-rules.md`, `.claude/rules/workflow.md`, `.claude/rules/prd-authoring.md`, `.claude/rules/framework-maintenance.md`.
 4. Inspect the pre-existing team `ROADMAP.md`.
 5. Inspect in-flight PRDs for handling of their dead `Roadmap item:` headers.

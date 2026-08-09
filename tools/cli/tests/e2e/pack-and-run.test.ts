@@ -221,6 +221,41 @@ describe("e2e: a fresh install carries no specforge project metadata", () => {
     }
   }, 120000);
 
+  // PRD-006 § 9 row 4: only `.claude/agents/specforge/**` is framework-owned.
+  // Everything else under `.claude/agents/` stays the adopter's — never
+  // written, never tracked, never drift-checked.
+  it("an adopter's own subagent under .claude/agents/ survives update byte-identically", async () => {
+    if (!tgzPath) {
+      console.warn("DEVIATION: npm pack failed; PRD-006 adopter-subagent e2e skipped");
+      return;
+    }
+    const dir = await initTmp("subagent");
+    try {
+      const custom =
+        `---\nname: my-own-agent\ndescription: "The team's own subagent."\nmodel: sonnet\n---\n\nOur body.\n`;
+      const rel = ".claude/agents/custom.md";
+      await fs.mkdir(path.join(dir, ".claude", "agents"), { recursive: true });
+      await fs.writeFile(path.join(dir, rel), custom);
+
+      const update = spawnSync(process.execPath, [cliEntry, "update", "--quiet"], {
+        cwd: dir,
+        encoding: "utf8",
+        timeout: 30000,
+      });
+      expect(update.status, update.stderr).toBe(0);
+      expect(await fs.readFile(path.join(dir, rel), "utf8")).toBe(custom);
+
+      const manifest = JSON.parse(
+        await fs.readFile(path.join(dir, ".specforge", "manifest.json"), "utf8"),
+      );
+      expect(
+        manifest.framework_files.map((f: { path: string }) => f.path),
+      ).not.toContain(rel);
+    } finally {
+      await fs.rm(dir, { recursive: true, force: true });
+    }
+  }, 120000);
+
   it("a team-authored file at a vacated path survives update", async () => {
     if (!tgzPath) {
       console.warn("DEVIATION: npm pack failed; PRD-005 team-file e2e skipped");

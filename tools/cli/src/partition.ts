@@ -17,8 +17,11 @@ export const FRAMEWORK_FILES: ReadonlyArray<string> = [
   "README.es.md",
   "LICENSE",
   ".claude/rules/**",
+  // Only the namespaced subdirectory is framework-owned (PRD-006 § 6.1).
+  // Everything else under `.claude/agents/` is the adopter's: never written
+  // by `update`, never collected by `init --force --erase`.
+  ".claude/agents/specforge/**",
   "templates/**",
-  "agents/**",
   "examples/**",
 ];
 

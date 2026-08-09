@@ -88,7 +88,7 @@ This is the opposite of loading the entire project into one prompt. The main ses
 
 Claude Code does **not** auto-load sibling `CLAUDE.md` files. It walks the directory tree **up** from the cwd (ancestors) and loads subdirectory `CLAUDE.md`s on demand, but it never walks to **siblings**.
 
-When the team lead dispatches a sub-agent to work against a sibling, the team lead must **explicitly brief** the sub-agent with the path to that sibling's `CLAUDE.md` and an instruction to Read it first. The reviewer briefings in `agents/*-reviewer.md` encode this as a required step: `{{SIBLING_CLAUDE_MD_PATH}}` is one of the five mandatory variables, and "Read `{{SIBLING_CLAUDE_MD_PATH}}` first" is the first step in every briefing's action checklist.
+When the team lead dispatches a sub-agent to work against a sibling, the team lead must **explicitly brief** the sub-agent with the path to that sibling's `CLAUDE.md` and an instruction to Read it first. The reviewer definitions in `.claude/agents/specforge/` encode this as a required step: `SIBLING_CLAUDE_MD_PATH` is one of the six mandatory brief fields, and "Read the sibling's `CLAUDE.md` first" is the first step in every definition's action checklist.
 
 Without this dispatch-by-brief pattern, a sub-agent would ground against specforge's generic rules and miss the sibling's stack-specific idioms (lint, test runner, layering, error handling, transaction patterns). The brief is the only mechanism that crosses the sibling boundary.
 

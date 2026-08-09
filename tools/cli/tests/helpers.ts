@@ -89,6 +89,63 @@ export async function synthBundleAt(
 }
 
 /**
+ * The 12 subagent definitions of PRD-006 § 6.2, as name/model/tools triples.
+ * Tests plant these rather than reading the repo's real
+ * `.claude/agents/specforge/` tree: a unit test that asserts against shipped
+ * content is a conformance test wearing the wrong hat, and it would couple
+ * every validator assertion to whatever the framework currently ships.
+ */
+export const SUBAGENT_DEFINITIONS: ReadonlyArray<{
+  name: string;
+  model: string;
+  tools: string;
+}> = [
+  { name: "specforge-backend-reviewer", model: "opus", tools: "Read, Grep, Glob, Bash" },
+  { name: "specforge-security-reviewer", model: "opus", tools: "Read, Grep, Glob, Bash" },
+  { name: "specforge-frontend-reviewer", model: "sonnet", tools: "Read, Grep, Glob, Bash" },
+  { name: "specforge-quality-reviewer", model: "sonnet", tools: "Read, Grep, Glob, Bash" },
+  { name: "specforge-roadmap-market-generator", model: "sonnet", tools: "Read, Grep, Glob" },
+  { name: "specforge-roadmap-ux-generator", model: "sonnet", tools: "Read, Grep, Glob" },
+  { name: "specforge-roadmap-product-generator", model: "sonnet", tools: "Read, Grep, Glob" },
+  { name: "specforge-roadmap-support-generator", model: "sonnet", tools: "Read, Grep, Glob" },
+  { name: "specforge-roadmap-evidence-critic", model: "opus", tools: "Read, Grep, Glob" },
+  { name: "specforge-roadmap-risk-critic", model: "opus", tools: "Read, Grep, Glob" },
+  { name: "specforge-roadmap-devils-advocate-critic", model: "sonnet", tools: "Read, Grep, Glob" },
+  { name: "specforge-roadmap-opportunity-cost-critic", model: "sonnet", tools: "Read, Grep, Glob" },
+];
+
+/** One definition file's bytes, shaped like the shipped ones. */
+export function subagentDefinition(
+  name: string,
+  model = "sonnet",
+  tools = "Read, Grep, Glob",
+): string {
+  return (
+    `---\n` +
+    `name: ${name}\n` +
+    `description: "Test fixture for ${name}. Dispatched explicitly by the specforge workflow with a structured brief, not intended for automatic delegation."\n` +
+    `model: ${model}\n` +
+    `tools: ${tools}\n` +
+    `---\n\n# ${name}\n\nFixture body.\n`
+  );
+}
+
+/**
+ * Plant the 12 definitions into `dir` (an absolute path). Returns the
+ * absolute paths written.
+ */
+export async function plantSubagentDefinitions(dir: string): Promise<string[]> {
+  await fs.mkdir(dir, { recursive: true });
+  const written: string[] = [];
+  for (const d of SUBAGENT_DEFINITIONS) {
+    const abs = path.join(dir, `${d.name}.md`);
+    await fs.writeFile(abs, subagentDefinition(d.name, d.model, d.tools));
+    written.push(abs);
+  }
+  return written;
+}
+
+/**
  * Write a minimal valid manifest to a tmpdir.
  */
 export async function writeMinimalManifest(

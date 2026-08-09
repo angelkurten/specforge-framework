@@ -13,6 +13,8 @@ import { validator as claudeMdSize } from "./claude-md-size.js";
 import { validator as ruleFrontmatter } from "./rule-frontmatter.js";
 import { validator as roadmapEvidenceCategories } from "./roadmap-evidence-categories.js";
 import { validator as roadmapPii } from "./roadmap-pii.js";
+import { validator as staleBriefings } from "./stale-briefings.js";
+import { validator as subagentFrontmatter } from "./subagent-frontmatter.js";
 import type { Validator } from "./types.js";
 
 export const ALL_VALIDATORS: ReadonlyArray<Validator> = [
@@ -29,6 +31,8 @@ export const ALL_VALIDATORS: ReadonlyArray<Validator> = [
   ruleFrontmatter,
   roadmapEvidenceCategories,
   roadmapPii,
+  staleBriefings,
+  subagentFrontmatter,
 ];
 
 export const VALIDATOR_IDS: ReadonlyArray<string> = ALL_VALIDATORS.map(
