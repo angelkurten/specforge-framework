@@ -25,12 +25,13 @@ Because a typical PRD touches 2-3 different sibling projects. If the template ha
 
 ## What is `REVIEW_MODE`?
 
-The reviewer briefings in `agents/*-reviewer.md` operate in two distinct modes:
+The reviewer definitions in `.claude/agents/specforge/` operate in three distinct modes:
 
 - **`draft`** (step 5) — critiques the PRD itself. "Is this spec sound?"
 - **`post-implementation`** (step 9) — verifies that the shipped code honors the frozen PRD. "Does the code honor the spec?"
+- **`re-verification`** (step 7, and step 9 fix rounds) — verdicts each finding from the previous round `fixed` or `not-fixed` against a ledger the lead supplies. "Did the applied resolutions actually close what this reviewer raised?"
 
-The two modes use the same briefings but produce different findings: a `draft`-mode reviewer says "PRD §5 should specify rate limits"; a `post-implementation`-mode reviewer says "PRD §5 specifies rate limits but `<file>:<line>` does not enforce them". The team lead sets `{{REVIEW_MODE}}` explicitly on every dispatch; a missing mode causes the reviewer to emit `VERDICT: BLOCK` and halt.
+The modes share one definition but produce different findings: a `draft`-mode reviewer says "PRD §5 should specify rate limits"; a `post-implementation`-mode reviewer says "PRD §5 specifies rate limits but `<file>:<line>` does not enforce them"; a `re-verification`-mode reviewer says "finding B-3: `not-fixed` — the §9 row still signs the old message pair". The team lead sets `REVIEW_MODE` explicitly on every dispatch; a missing mode causes the reviewer to emit `VERDICT: BLOCK` and halt.
 
 ## Can I run specforge without a SYSTEM_ARTIFACT.md for every sibling?
 
@@ -88,7 +89,7 @@ specforge is written for Claude Code (the `.claude/rules/` directory is loaded a
 
 - `CLAUDE.md` at the specforge root → auto-loaded by Claude Code; for other tools, include it as context manually.
 - `.claude/rules/*.md` → Claude Code loads the unscoped files automatically and path-scoped files on match. For other tools, load the unscoped files manually.
-- `agents/*-reviewer.md` briefings → used as sub-agent prompts; the templating variables (`{{PRD_PATH}}`, `{{REVIEW_MODE}}`, etc.) are filled by the team lead before dispatch.
+- `.claude/agents/specforge/*.md` → Claude Code registers these as named subagents (recursive scan of `.claude/agents/`); the definition body becomes the sub-agent's system prompt and the team lead supplies the brief fields (`PRD_PATH`, `REVIEW_MODE`, etc.) as labelled lines in the dispatch prompt. For other tools, paste a definition body as the sub-agent prompt and prepend the same labelled lines.
 
 ## What is ROADMAP.md and do I need one?
 

@@ -42,37 +42,38 @@ paths:          # omit entirely for unscoped (always-loaded) rules
 
 ## Adding a new reviewer role
 
-The default multi-reviewer panel is four roles (backend, frontend, security, quality). Teams may need more — `performance-reviewer`, `a11y-reviewer`, `data-reviewer`, `infra-reviewer`, etc. To add one:
+The default multi-reviewer panel is four roles (backend, frontend, security, quality), shipped as Claude Code subagent definitions under `.claude/agents/specforge/`. Teams may need more — `performance-reviewer`, `a11y-reviewer`, `data-reviewer`, `infra-reviewer`, etc. To add one:
 
-1. Drop a new briefing file in `agents/` following the pattern `<role>-reviewer.md`.
-2. Copy the structure of an existing briefing (e.g. `agents/backend-reviewer.md`): the five `{{VARIABLE}}` inputs (`{{PRD_PATH}}`, `{{SIBLING_CLAUDE_MD_PATH}}`, `{{CODE_REFERENCES}}`, `{{SYSTEM_ARTIFACT_PATH}}`, `{{DOMAIN_CONTEXT}}`), the "What you must do" steps including the mandatory "Read `{{SIBLING_CLAUDE_MD_PATH}}` first" step, the severity scheme (🔴🟡🟢), the report format with `file:line` citations, and the single-line verdict.
-3. **No registry update is needed.** Reviewer roles are not enumerated in `CLAUDE.md` or any rule file. The team lead dispatching the panel at workflow step 5 chooses which briefings to launch based on the PRD's domain — `workflow.md` step 5 says "a typical panel of 4, adapted to the domain", and that adaptation is driven by which briefings exist in `agents/`.
-4. If the new role has different dispatch semantics than "one instance per impacted sibling" (e.g. cross-cutting threat model like `security-reviewer.md`), document it in the briefing's "Note on multi-sibling PRDs" block so the team lead knows whether to launch one-per-sibling or a single instance.
+1. **Put the definition outside the framework namespace** — `.claude/agents/<team-dir>/<role>-reviewer.md`, or the `.claude/agents/` root. **Never inside `.claude/agents/specforge/`.** That directory is framework-owned: a team file placed there is collected and deleted by `init --force --erase`, invisible to `update`'s drift check (which iterates bundle paths only), and flagged as an error by the `subagent-frontmatter` validator. Outside it the file classifies `unknown` — never written, never erased, never drift-checked — and dispatch works identically, because Claude Code's `.claude/agents/` scan is recursive and identity is the frontmatter `name`, not the directory.
+2. **The `name` must not start with `specforge-`.** That prefix is reserved for the 12 framework definitions, and the `subagent-frontmatter` validator reports a `specforge-`named file outside the namespace as an error (case-insensitively) — it is the shadowing control, since a file anywhere under `.claude/agents/` registers under whatever `name` it declares.
+3. Copy the structure of an existing definition (e.g. `.claude/agents/specforge/specforge-backend-reviewer.md`): the frontmatter (`name`, `description`, `model`, optionally `tools`), the six labelled brief fields the dispatch prompt carries (`PRD_PATH`, `REVIEW_MODE`, `SIBLING_CLAUDE_MD_PATH`, `CODE_REFERENCES`, `SYSTEM_ARTIFACT_PATH`, `DOMAIN_CONTEXT`) with the halt clause for a missing `REVIEW_MODE`, the "What you must do" steps including the mandatory "Read the sibling's `CLAUDE.md` first" step and the diagrams-are-normative step, the data-not-instructions clause, the severity scheme (🔴🟡🟢), the report format with `file:line` citations, and the single-line verdict.
+4. **No registry update is needed.** Reviewer roles are not enumerated in `CLAUDE.md` or any rule file. The team lead dispatching the panel at workflow step 5 chooses which roles to launch based on the PRD's domain — `workflow.md` step 5 says "a typical panel of 4, adapted to the domain", and that adaptation is driven by which definitions exist under `.claude/agents/`.
+5. If the new role has different dispatch semantics than "one instance per impacted sibling" (e.g. a cross-cutting threat model like `specforge-security-reviewer`), document it in the definition's "Note on multi-sibling PRDs" block so the team lead knows whether to launch one-per-sibling or a single instance.
 
-The existing four briefings in `agents/` are canonical reference implementations. When in doubt about format, copy from `agents/backend-reviewer.md`.
+The four reviewer definitions in `.claude/agents/specforge/` are canonical reference implementations. When in doubt about format, copy from `.claude/agents/specforge/specforge-backend-reviewer.md`.
 
-The five-variable canonical contract above applies **only to PRD reviewer briefings**. Generator and critic briefings used by the roadmap cycle (see next section) operate pre-code and use a separate variable contract.
+The six-field brief contract above applies **only to PRD reviewer definitions**. Generator and critic definitions used by the roadmap cycle (see next section) operate pre-code and use a separate brief contract.
 
-## Generator/critic briefing variant
+## Generator/critic definition variant
 
-Roadmap generator and critic briefings (`agents/roadmap-*-generator.md`, `agents/roadmap-*-critic.md`) are pre-code: they reason about proposed roadmap items, not existing sibling code. Their input contract differs from the PRD reviewer contract in the preceding section.
+Roadmap generator and critic definitions (`.claude/agents/specforge/specforge-roadmap-*-generator.md`, `.claude/agents/specforge/specforge-roadmap-*-critic.md`) are pre-code: they reason about proposed roadmap items, not existing sibling code. Their input contract differs from the PRD reviewer contract in the preceding section. Like the reviewers, they receive their brief as labelled lines in the dispatch prompt — there is no template substitution.
 
-**Generator contract (4 variables)** — every `agents/roadmap-*-generator.md` briefing accepts:
+**Generator contract (4 fields)** — every `specforge-roadmap-*-generator` definition accepts:
 
-- `{{ROADMAP_PATH}}` — the current `ROADMAP.md` file.
-- `{{GROUNDING_CONTEXT}}` — the summary produced at the cycle's grounding step (active siblings, their `SYSTEM_ARTIFACT.md`s, PRDs in `Draft`, last N `Implemented`).
-- `{{DOMAIN_CONTEXT}}` — free-form focus note from the lead agent (e.g. "prioritise onboarding and retention this cycle").
-- `{{PANEL_MODE}}` — `generate` for generators (see below).
+- `ROADMAP_PATH` — the current `ROADMAP.md` file.
+- `GROUNDING_CONTEXT` — the summary produced at the cycle's grounding step (active siblings, their `SYSTEM_ARTIFACT.md`s, PRDs in `Draft`, last N `Implemented`).
+- `DOMAIN_CONTEXT` — free-form focus note from the lead agent (e.g. "prioritise onboarding and retention this cycle").
+- `PANEL_MODE` — `generate` for generators (see below).
 
-**Critic contract (5 variables)** — every `agents/roadmap-*-critic.md` briefing accepts the four generator variables plus:
+**Critic contract (5 fields)** — every `specforge-roadmap-*-critic` definition accepts the four generator fields plus:
 
-- `{{CANDIDATE_ITEMS}}` — the consolidated output from the generative panel, ready for critique.
+- `CANDIDATE_ITEMS` — the consolidated output from the generative panel, ready for critique.
 
-`{{PANEL_MODE}}` takes one of two values: `generate` (dispatched by the generative panel) or `critique` (dispatched by the critical panel). **The mode is a contract, not a heuristic** — a briefing dispatched without an explicit `{{PANEL_MODE}}` halts with a single BLOCK finding ("missing required input: `{{PANEL_MODE}}`"). Same pattern as PRD reviewer briefings with `{{REVIEW_MODE}}`.
+`PANEL_MODE` takes one of two values: `generate` (dispatched by the generative panel) or `critique` (dispatched by the critical panel). **The mode is a contract, not a heuristic** — a definition dispatched without an explicit `PANEL_MODE` halts with a single `VERDICT: BLOCK` finding ("missing required brief field: `PANEL_MODE`"). Same pattern as the PRD reviewer definitions with `REVIEW_MODE`.
 
-**Prompt-injection hardening.** Every generator and critic briefing wraps user-supplied evidence text in a triple-backtick fence labelled `untrusted-evidence`, with an explicit preamble directing the sub-agent to treat fence contents as data, not commands. The canonical fence specification (scope, per-entry fencing, preamble re-emission, triple-backtick escape, and the exact template) lives in `.claude/rules/roadmap.md`. Briefings cross-reference that rule; they do not duplicate its text.
+**Prompt-injection hardening.** Every generator and critic definition wraps user-supplied evidence text in a triple-backtick fence labelled `untrusted-evidence`, with an explicit preamble directing the sub-agent to treat fence contents as data, not commands. The canonical fence specification (scope, per-entry fencing, preamble re-emission, triple-backtick escape, and the exact template) lives in `.claude/rules/roadmap.md`. Definitions cross-reference that rule; they do not duplicate its text.
 
-**Scope note.** The five-variable canonical contract in the "Adding a new reviewer role" section above applies only to **PRD reviewer briefings**. The four/five-variable contract in this section applies only to **roadmap generator and critic briefings**. A new briefing that does not fit either pattern requires a new section here before it ships.
+**Scope note.** The six-field contract in the "Adding a new reviewer role" section above applies only to **PRD reviewer definitions**. The 4- and 5-field contracts in this section apply only to **roadmap generator and critic definitions**. A new definition that does not fit either pattern requires a new section here before it ships.
 
 ## Splitting an existing rule file
 
@@ -93,4 +94,4 @@ Same as hard rule 9. Applies to the framework's own files too. Forbidden: "blazi
 
 ## v2.0 upgrade contract
 
-Framework files (`CLAUDE.md`, `CONVENTIONS.md`, `.claude/rules/*`, `templates/*`, `examples/*`, `agents/*`, `README.md`, `LICENSE`) are updated by pulling a new version of specforge. Team data (`SIBLINGS.md`, the team's own PRDs and ADRs) is never touched by upgrades. If you find yourself wanting to put team-mutable content in a framework file, stop — it belongs in `SIBLINGS.md` or in the team's PRDs.
+Framework files (`CLAUDE.md`, `CONVENTIONS.md`, `.claude/rules/*`, `.claude/agents/specforge/*`, `templates/*`, `examples/*`, `README.md`, `LICENSE`) are updated by pulling a new version of specforge. Team data (`SIBLINGS.md`, the team's own PRDs and ADRs) is never touched by upgrades. If you find yourself wanting to put team-mutable content in a framework file, stop — it belongs in `SIBLINGS.md` or in the team's PRDs.

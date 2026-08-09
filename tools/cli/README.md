@@ -59,14 +59,15 @@ specforge is designed to live **as a sibling directory to the code repositories 
 │   ├── README.es.md                ← Spanish version of this README
 │   ├── CLAUDE.md                   ← 47-line pointer file (mental model + TOC), auto-loaded
 │   ├── .claude/
-│   │   └── rules/                  ← behavioural rules, loaded alongside CLAUDE.md
-│   │       ├── hard-rules.md       ← the 14 invariants (unscoped)
-│   │       ├── workflow.md         ← 9-step authoring process (unscoped)
-│   │       ├── gate-block.md       ← Draft → Implemented gate (unscoped)
-│   │       ├── prd-authoring.md    ← required sections, naming (unscoped)
-│   │       ├── roadmap.md          ← roadmap cycle + evidence + PII carve-out (unscoped)
-│   │       ├── adr-specific.md     ← loads only on ADR-*.md
-│   │       └── framework-maintenance.md  ← loads only on framework files
+│   │   ├── rules/                  ← behavioural rules, loaded alongside CLAUDE.md
+│   │   │   ├── hard-rules.md       ← the 14 invariants (unscoped)
+│   │   │   ├── workflow.md         ← 9-step authoring process (unscoped)
+│   │   │   ├── gate-block.md       ← Draft → Implemented gate (unscoped)
+│   │   │   ├── prd-authoring.md    ← required sections, naming (unscoped)
+│   │   │   ├── roadmap.md          ← roadmap cycle + evidence + PII carve-out (unscoped)
+│   │   │   ├── adr-specific.md     ← loads only on ADR-*.md
+│   │   │   └── framework-maintenance.md  ← loads only on framework files
+│   │   └── agents/specforge/       ← 12 subagent definitions: 4 reviewers + 4 roadmap generators + 4 critics
 │   ├── CONVENTIONS.md              ← format reference: shapes, naming, diagrams
 │   ├── SIBLINGS.md                 ← team-mutable registry of sibling projects (fill in on day 1)
 │   ├── ROADMAP.md                  ← team-mutable product-level intent (one global file, living)
@@ -80,19 +81,6 @@ specforge is designed to live **as a sibling directory to the code repositories 
 │   ├── examples/
 │   │   ├── prd-001-login-example.md
 │   │   └── system-artifact-example.md   ← example SYSTEM_ARTIFACT for one sibling
-│   ├── agents/                     ← briefings for reviewer panel + roadmap panels
-│   │   ├── backend-reviewer.md
-│   │   ├── frontend-reviewer.md
-│   │   ├── security-reviewer.md
-│   │   ├── quality-reviewer.md
-│   │   ├── roadmap-product-generator.md     ← generative panel (4 briefings)
-│   │   ├── roadmap-ux-generator.md
-│   │   ├── roadmap-market-generator.md
-│   │   ├── roadmap-support-generator.md
-│   │   ├── roadmap-evidence-critic.md       ← critical panel (4 briefings)
-│   │   ├── roadmap-devils-advocate-critic.md
-│   │   ├── roadmap-opportunity-cost-critic.md
-│   │   └── roadmap-risk-critic.md
 │   ├── tests/
 │   │   └── roadmap/                ← 32 conformance walkthroughs for the roadmap cycle
 │   ├── NNN-your-prd.md             ← your PRDs live at the specforge root
@@ -146,7 +134,36 @@ If you see that, repeat the request on every prompt with a `UserPromptSubmit` ho
 }
 ```
 
-`init` does not write this file and `update` never touches it — settings are team data, not framework data. Naming a briefing explicitly at the prompt (`@"backend-reviewer (agent)"`) is deterministic too, but it only covers that one prompt.
+`init` does not write this file and `update` never touches it — settings are team data, not framework data. Naming a reviewer explicitly at the prompt (`@"specforge-backend-reviewer (agent)"`) is deterministic too, but it only covers that one prompt.
+
+**Restart once after the first install.** If your repo had no `.claude/agents/` directory before, Claude Code registers the 12 definitions only after one session restart. Later edits to them hot-reload; this caveat applies to the first creation of the directory only.
+
+## Turning the panels off
+
+The 12 definitions are registered subagents the host model can delegate to on its own, outside the workflow — and the four reviewers hold `Bash` so they can walk a diff. There is no frontmatter off-switch; `permissions.deny` is the only capability-level control. **If you do not run the review or roadmap panels, deny them** in `.claude/settings.json` (or `~/.claude/settings.json`), and drop the entries for the panels you do run:
+
+```json
+{
+  "permissions": {
+    "deny": [
+      "Agent(specforge-backend-reviewer)",
+      "Agent(specforge-frontend-reviewer)",
+      "Agent(specforge-security-reviewer)",
+      "Agent(specforge-quality-reviewer)",
+      "Agent(specforge-roadmap-market-generator)",
+      "Agent(specforge-roadmap-ux-generator)",
+      "Agent(specforge-roadmap-product-generator)",
+      "Agent(specforge-roadmap-support-generator)",
+      "Agent(specforge-roadmap-evidence-critic)",
+      "Agent(specforge-roadmap-risk-critic)",
+      "Agent(specforge-roadmap-devils-advocate-critic)",
+      "Agent(specforge-roadmap-opportunity-cost-critic)"
+    ]
+  }
+}
+```
+
+`permissions.deny` is also the one control that reaches a definition installed at user scope (`~/.claude/agents/`), which no repo-scoped check can see.
 
 ## Quickstart
 
@@ -159,7 +176,7 @@ If you see that, repeat the request on every prompt with a `UserPromptSubmit` ho
 
 3. **Write your first PRD.** Copy `templates/prd.md`, follow the 9-step workflow in [`.claude/rules/workflow.md`](.claude/rules/workflow.md), and use `examples/prd-001-login-example.md` as a reference for the level of detail expected.
 
-4. **Run the review loop.** Launch four reviewer agents in parallel, each briefed with the relevant prompt from `agents/`. Consolidate findings by severity. Re-review *only* the domains with 🔴 blockers — never run a fresh review from scratch after fixes.
+4. **Run the review loop.** Dispatch the four reviewer subagents in parallel by name — `specforge-backend-reviewer`, `specforge-frontend-reviewer`, `specforge-security-reviewer`, `specforge-quality-reviewer` — each with a structured brief carrying `REVIEW_MODE: draft`, the PRD path, the sibling's `CLAUDE.md` path, and the code references to verify against. Consolidate findings by severity. Re-dispatch *only* the domains with 🔴 blockers, with `REVIEW_MODE: re-verification` and a ledger of the findings that reviewer raised — never run a fresh review from scratch after fixes.
 
 5. **Ship as `Draft`, implement, then gate to `Implemented`.** The gate block at the bottom of the PRD stays with `[TBD]` placeholders until all three fields (`commit_hash`, `tests`, `system_artifact_diff`) are satisfied. Update `SYSTEM_ARTIFACT.md` as part of the same change — that is what the `system_artifact_diff` field references.
 

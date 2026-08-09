@@ -59,14 +59,15 @@ specforge está diseñado para vivir **como un directorio hermano de los repos d
 │   ├── README.es.md                ← este archivo
 │   ├── CLAUDE.md                   ← pointer file de 47 líneas (mental model + índice), auto-loaded
 │   ├── .claude/
-│   │   └── rules/                  ← reglas behavioural, cargadas junto con CLAUDE.md
-│   │       ├── hard-rules.md       ← las 14 invariantes (unscoped)
-│   │       ├── workflow.md         ← proceso de 9 pasos (unscoped)
-│   │       ├── gate-block.md       ← gate Draft → Implemented (unscoped)
-│   │       ├── prd-authoring.md    ← required sections, naming (unscoped)
-│   │       ├── roadmap.md          ← ciclo de roadmap + evidencia + PII carve-out (unscoped)
-│   │       ├── adr-specific.md     ← carga solo al editar ADR-*.md
-│   │       └── framework-maintenance.md  ← carga solo al editar framework files
+│   │   ├── rules/                  ← reglas behavioural, cargadas junto con CLAUDE.md
+│   │   │   ├── hard-rules.md       ← las 14 invariantes (unscoped)
+│   │   │   ├── workflow.md         ← proceso de 9 pasos (unscoped)
+│   │   │   ├── gate-block.md       ← gate Draft → Implemented (unscoped)
+│   │   │   ├── prd-authoring.md    ← required sections, naming (unscoped)
+│   │   │   ├── roadmap.md          ← ciclo de roadmap + evidencia + PII carve-out (unscoped)
+│   │   │   ├── adr-specific.md     ← carga solo al editar ADR-*.md
+│   │   │   └── framework-maintenance.md  ← carga solo al editar framework files
+│   │   └── agents/specforge/       ← 12 definiciones de subagentes: 4 revisores + 4 generadores de roadmap + 4 críticos
 │   ├── CONVENTIONS.md              ← referencia de formato: shapes, naming, diagramas
 │   ├── SIBLINGS.md                 ← registry mutable por el equipo de sibling projects (llenalo el día 1)
 │   ├── ROADMAP.md                  ← intento producto mutable por el equipo (un archivo global, vivo)
@@ -80,19 +81,6 @@ specforge está diseñado para vivir **como un directorio hermano de los repos d
 │   ├── examples/
 │   │   ├── prd-001-login-example.md
 │   │   └── system-artifact-example.md   ← SYSTEM_ARTIFACT de ejemplo para UN sibling
-│   ├── agents/                     ← briefings para panel de revisores + paneles de roadmap
-│   │   ├── backend-reviewer.md
-│   │   ├── frontend-reviewer.md
-│   │   ├── security-reviewer.md
-│   │   ├── quality-reviewer.md
-│   │   ├── roadmap-product-generator.md     ← panel generativo (4 briefings)
-│   │   ├── roadmap-ux-generator.md
-│   │   ├── roadmap-market-generator.md
-│   │   ├── roadmap-support-generator.md
-│   │   ├── roadmap-evidence-critic.md       ← panel crítico (4 briefings)
-│   │   ├── roadmap-devils-advocate-critic.md
-│   │   ├── roadmap-opportunity-cost-critic.md
-│   │   └── roadmap-risk-critic.md
 │   ├── tests/
 │   │   └── roadmap/                ← 32 walkthroughs de conformance del ciclo de roadmap
 │   ├── NNN-tu-prd.md               ← tus PRDs viven en la raíz de specforge
@@ -146,7 +134,36 @@ Si lo ves, repetí el pedido en cada prompt con un hook `UserPromptSubmit` — e
 }
 ```
 
-`init` no escribe este archivo y `update` nunca lo toca — los settings son data de equipo, no data del framework. Nombrar un briefing explícitamente en el prompt (`@"backend-reviewer (agent)"`) también es determinista, pero cubre solo ese prompt.
+`init` no escribe este archivo y `update` nunca lo toca — los settings son data de equipo, no data del framework. Nombrar un revisor explícitamente en el prompt (`@"specforge-backend-reviewer (agent)"`) también es determinista, pero cubre solo ese prompt.
+
+**Reiniciá una vez después de la primera instalación.** Si tu repo no tenía un directorio `.claude/agents/` antes, Claude Code registra las 12 definiciones recién después de un restart de sesión. Las ediciones posteriores se recargan en caliente; este caveat aplica solo a la primera creación del directorio.
+
+## Apagar los paneles
+
+Las 12 definiciones son subagentes registrados a los que el modelo host puede delegar por su cuenta, fuera del workflow — y los cuatro revisores tienen `Bash` para poder recorrer un diff. No hay off-switch en el frontmatter; `permissions.deny` es el único control a nivel de capacidad. **Si no corrés los paneles de review ni los de roadmap, denegalos** en `.claude/settings.json` (o `~/.claude/settings.json`), y borrá las entradas de los paneles que sí corrés:
+
+```json
+{
+  "permissions": {
+    "deny": [
+      "Agent(specforge-backend-reviewer)",
+      "Agent(specforge-frontend-reviewer)",
+      "Agent(specforge-security-reviewer)",
+      "Agent(specforge-quality-reviewer)",
+      "Agent(specforge-roadmap-market-generator)",
+      "Agent(specforge-roadmap-ux-generator)",
+      "Agent(specforge-roadmap-product-generator)",
+      "Agent(specforge-roadmap-support-generator)",
+      "Agent(specforge-roadmap-evidence-critic)",
+      "Agent(specforge-roadmap-risk-critic)",
+      "Agent(specforge-roadmap-devils-advocate-critic)",
+      "Agent(specforge-roadmap-opportunity-cost-critic)"
+    ]
+  }
+}
+```
+
+`permissions.deny` es también el único control que alcanza una definición instalada a nivel usuario (`~/.claude/agents/`), que ningún chequeo scopeado al repo puede ver.
 
 ## Quickstart
 
@@ -159,7 +176,7 @@ Si lo ves, repetí el pedido en cada prompt con un hook `UserPromptSubmit` — e
 
 3. **Escribí tu primer PRD.** Copiá `templates/prd.md`, seguí el workflow de 9 pasos en [`.claude/rules/workflow.md`](.claude/rules/workflow.md), y usá `examples/prd-001-login-example.md` como referencia para el nivel de detalle esperado.
 
-4. **Corré el loop de review.** Lanzá cuatro agentes revisores en paralelo, cada uno briefeado con el prompt correspondiente de `agents/`. Consolidá los findings por severidad. Re-revisá *solo* los dominios con 🔴 bloqueantes — nunca corras un review nuevo desde cero después de los fixes.
+4. **Corré el loop de review.** Despachá los cuatro subagentes revisores en paralelo, por nombre — `specforge-backend-reviewer`, `specforge-frontend-reviewer`, `specforge-security-reviewer`, `specforge-quality-reviewer` — cada uno con un brief estructurado que lleva `REVIEW_MODE: draft`, el path del PRD, el path del `CLAUDE.md` del sibling, y las referencias de código contra las que verificar. Consolidá los findings por severidad. Re-despachá *solo* los dominios con 🔴 bloqueantes, con `REVIEW_MODE: re-verification` y un ledger de los findings que ese revisor levantó — nunca corras un review nuevo desde cero después de los fixes.
 
 5. **Shippeá como `Draft`, implementá, después promové a `Implemented`.** El bloque de compuerta al final del PRD se queda con placeholders `[TBD]` hasta que los tres campos (`commit_hash`, `tests`, `system_artifact_diff`) estén llenos. Actualizá `SYSTEM_ARTIFACT.md` como parte del mismo cambio — eso es lo que referencia el campo `system_artifact_diff`.
 

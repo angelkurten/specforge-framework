@@ -26,7 +26,7 @@ Two candidate items:
 ## Steps
 
 1. Feed both fixtures through consolidation (§4.1 step 4 pre-filter).
-2. Dispatch the evidence critic briefing (`agents/roadmap-evidence-critic.md`) with `{{PANEL_MODE}}: critique` and both fixtures as `{{CANDIDATE_ITEMS}}`.
+2. Dispatch the evidence critic subagent `specforge-roadmap-evidence-critic` (`.claude/agents/specforge/specforge-roadmap-evidence-critic.md`) with `PANEL_MODE: critique` and both fixtures as `CANDIDATE_ITEMS`.
 3. Record the consolidation pre-filter output and the evidence critic findings per candidate.
 
 ## Pass criteria

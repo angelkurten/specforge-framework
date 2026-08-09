@@ -44,5 +44,5 @@ Detailed behavioural rules are in `.claude/rules/`. They load automatically — 
 - [`CONVENTIONS.md`](CONVENTIONS.md) — format reference: header shapes, naming, diagram syntax, cross-references
 - [`templates/`](templates/) — blank PRD, ADR, and SYSTEM_ARTIFACT templates
 - [`examples/`](examples/) — worked examples of each document type
-- [`agents/`](agents/) — briefing templates for the multi-reviewer critique step
+- [`.claude/agents/specforge/`](.claude/agents/specforge/) — subagent definitions for the reviewer and roadmap panels
 - [`README.md`](README.md) — human-facing overview, adoption guide, file layout diagram, bootstrap procedure

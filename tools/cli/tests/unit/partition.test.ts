@@ -7,7 +7,12 @@ import * as path from "node:path";
 
 import { BUNDLE_ONLY_FILES, classify, FRAMEWORK_FILES } from "../../src/partition.js";
 import { runInit } from "../../src/commands/init.js";
-import { mkTmpDir, synthBundleImportMetaUrl } from "../helpers.js";
+import { validator as subagentFrontmatter } from "../../src/validators/subagent-frontmatter.js";
+import {
+  mkTmpDir,
+  plantSubagentDefinitions,
+  synthBundleImportMetaUrl,
+} from "../helpers.js";
 
 describe("partition classification", () => {
   // PRD-005 § 9 row 2 — regression guard against over-removal.
@@ -20,8 +25,12 @@ describe("partition classification", () => {
     expect(classify(".claude/rules/hard-rules.md")).toBe("framework");
     expect(classify(".claude/rules/workflow.md")).toBe("framework");
     expect(classify("templates/prd.md")).toBe("framework");
-    expect(classify("agents/backend-reviewer.md")).toBe("framework");
     expect(classify("examples/worked-example.md")).toBe("framework");
+    // PRD-006 § 9 row 1 — the namespaced subagent definitions.
+    expect(
+      classify(".claude/agents/specforge/specforge-backend-reviewer.md"),
+    ).toBe("framework");
+    expect(classify(".claude/agents/specforge/sub/nested.md")).toBe("framework");
   });
 
   // PRD-005 § 9 row 1 — the vacated paths.
@@ -33,6 +42,23 @@ describe("partition classification", () => {
     expect(classify("docs/x.md")).toBe("unknown");
     expect(classify("docs/a/b.md")).toBe("unknown");
     expect(classify("scripts/upgrade.sh")).toBe("unknown");
+  });
+
+  // PRD-006 § 9 row 2 — the briefings left `agents/`; stale copies must be
+  // inert to the CLI (never refreshed by `update`, never erased).
+  it("declassifies the vacated agents/ briefing directory", () => {
+    expect(classify("agents/backend-reviewer.md")).toBe("unknown");
+    expect(classify("agents/roadmap-market-generator.md")).toBe("unknown");
+    expect(classify("agents/nested/x.md")).toBe("unknown");
+  });
+
+  // PRD-006 § 9 row 3 — the pattern's prefix precision is what keeps the
+  // adopter's own subagents out of the framework class.
+  it("claims only the specforge/ subdirectory of .claude/agents/", () => {
+    expect(classify(".claude/agents/my-own-agent.md")).toBe("unknown");
+    expect(classify(".claude/agents/specforge-lookalike/x.md")).toBe("unknown");
+    expect(classify(".claude/agentsX/y.md")).toBe("unknown");
+    expect(classify(".claude/agents/team/perf-reviewer.md")).toBe("unknown");
   });
 
   it("classifies the two reserved workflow names as team data via the catch-all", () => {
@@ -116,6 +142,30 @@ describe("partition classification", () => {
     expect(classify("ADR-001-x.md")).toBe("team");
     // lowercase adr is not a valid team pattern (regex is case-sensitive)
     expect(classify("adr-001-x.md")).toBe("unknown");
+  });
+});
+
+// PRD-006 § 9 row 25. The two halves diverge deliberately. `classify` compares
+// path strings with no case normalisation (`patternToRegex` builds no `i`
+// flag), so a case-variant namespace falls to `unknown` — which fails safe for
+// the erase path. The validator cannot afford the same divergence: a
+// case-sensitive containment test would fire class 2 twelve times on a
+// correctly-installed APFS tree, and errors change `doctor`'s exit code.
+describe("case-variant namespace: classify vs subagent-frontmatter", () => {
+  it("classify leaves .claude/agents/SpecForge/ unknown (string-level, § 6.1)", () => {
+    expect(classify(".claude/agents/SpecForge/x.md")).toBe("unknown");
+  });
+
+  it("subagent-frontmatter reports nothing for the 12 definitions under SpecForge/ (§ 5.4)", async () => {
+    const dir = await mkTmpDir();
+    try {
+      await plantSubagentDefinitions(
+        path.join(dir, ".claude", "agents", "SpecForge"),
+      );
+      expect(await subagentFrontmatter.run(dir)).toEqual([]);
+    } finally {
+      await fs.rm(dir, { recursive: true, force: true });
+    }
   });
 });
 

@@ -17,7 +17,7 @@ import {
   writeManifest,
 } from "../manifest.js";
 import { classify } from "../partition.js";
-import { safeWriteFile } from "../safe-fs.js";
+import { safeUnlink, safeWriteFile } from "../safe-fs.js";
 import { sha256OfFile } from "../sha.js";
 import { info, printError, summary } from "../output.js";
 
@@ -174,9 +174,22 @@ export async function runInit(opts: InitOptions): Promise<number> {
       for (const t of targets) info(opts, `delete  ${t}`);
       for (const t of targets) {
         try {
-          await fs.unlink(path.join(opts.cwd, t));
-        } catch {
-          // best effort
+          // `safeUnlink` adds safeResolve's lexical + realpath containment
+          // check — the defence `safeReadFile` already documents against a
+          // tampered partition entry, now that the erase set includes a
+          // dot-directory (PRD-006 § 10 step 2). It signals refusal by
+          // throwing, so the refusal must be surfaced: one that lands in an
+          // empty catch is no defence at all.
+          await safeUnlink(opts.cwd, t);
+        } catch (e) {
+          printError({
+            message: `could not delete ${t}: ${e instanceof Error ? e.message : String(e)}`,
+            remediation:
+              "remove the path manually, then re-run `specforge init --force --erase`",
+            exitCode: 10,
+          });
+          // Continue: one refused target must not abandon the rest of the
+          // erase, and the printed error is what makes the refusal visible.
         }
       }
     }
