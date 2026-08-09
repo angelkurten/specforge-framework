@@ -184,6 +184,13 @@ export const validator: Validator = {
     // `realpathInside`). `null` when the namespace does not exist on disk — a
     // fresh repo or a shadow with no real namespace — in which case the
     // regular-file branch falls back to the string test.
+    // The promises `realpath` is load-bearing: on macOS it canonicalizes case
+    // to the on-disk spelling, whereas `fs.realpathSync` returns the requested
+    // casing. `realpathInside` compares with `path.relative` (a pure string
+    // op), so swapping to the sync API would make `canonicalReal` and a walked
+    // directory's realpath disagree in case on APFS, flip all twelve
+    // definitions to "outside", and reproduce the twelve-false-errors CI break
+    // this validator exists to prevent. Keep the promises API here.
     const canonicalReal = await fs
       .realpath(path.join(cwd, NAMESPACE.slice(0, -1)))
       .catch(() => null);

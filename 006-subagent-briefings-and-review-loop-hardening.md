@@ -1,6 +1,7 @@
 # PRD-006: Subagent briefings and review-loop hardening
 
-**Status**: Draft
+**Status**: Implemented
+**Implemented at**: 2026-08-09
 **Date**: 2026-08-09
 **Author**: AI-assisted
 **Priority**: P1
@@ -779,10 +780,56 @@ touches the briefings or the partition.
 
 ## Gate: Promotion to `Implemented`
 
+The post-implementation panel (backend `opus`, security `opus`, quality
+`sonnet`) ran an initial re-review plus three fix rounds against the
+`1c32a1f..0c05488` range. Every 🔴 was closed and re-verified; the shadowing
+control's `insideNamespace`/walk surface produced a sibling 🔴 in each of the
+first two rounds (symlinked directory → namespace-root symlink →
+case-variant on case-sensitive filesystems), which triggered the step-9
+escalation counter after fix-round-2. The user chose option (i), one more
+round; fix-round-3's identity-based (realpath) containment closed the class
+and the re-review found no fresh 🔴.
+
+Four 🟡 were routed to tracked destinations, none left open:
+
+# yellow-tracking: PRD-006 → follow-up PRD-007 (two findings)
+- **In-namespace forgery undetected** — a well-formed definition inside
+  `.claude/agents/specforge/` under a duplicated framework identity passes
+  both validator classes and `doctor` exits 0. Not fixable in
+  `subagent-frontmatter` (signature `run(cwd)`, no bundle knowledge);
+  belongs in `framework-file-integrity`. → **PRD-007** §1.
+- **Erase refusal exits 0** — `init --force --erase` cannot signal a refused
+  deletion without a new exit code, which would amend PRD-003 §5.1's frozen
+  table. → **PRD-007** §1.
+
+# yellow-tracking: PRD-006 → waived (code honors the contract; the frozen text's literal reading does not, and the PRD is frozen)
+- **`.md`-only validator scope** — §5.4 says "a file"; the shipped validator
+  checks only `.md` files. Waived: Claude Code registers only `.md`
+  definitions, so a non-`.md` file cannot shadow anything, and erroring on
+  every stray file in the namespace would be noise. Making the code match the
+  literal text would degrade the validator. Pinned by
+  `subagent-frontmatter.test.ts`'s "ignores non-markdown files" case.
+- **§9 row 30's suggested inducement** — the row suggests inducing the erase
+  throw "with a directory planted at that path", which `listEraseTargets`
+  never collects. Waived: the row's actual contract (printed + continues +
+  not swallowed) is met by the landed test via a read-only parent directory;
+  only the frozen row's suggested mechanism is wrong, and the PRD is frozen.
+
 ```yaml
-commit_hash: [TBD]
+commit_hash: 0c05488
 tests:
-  - [TBD]
-system_artifact_diff:
-  - [TBD]
+  - tools/cli/tests/unit/partition.test.ts
+  - tools/cli/tests/unit/safe-fs.test.ts
+  - tools/cli/tests/unit/validators/subagent-frontmatter.test.ts
+  - tools/cli/tests/integration/prepublish.test.ts
+  - tools/cli/tests/integration/init.test.ts
+  - tools/cli/tests/integration/update.test.ts
+  - tools/cli/tests/integration/doctor.test.ts
+  - tools/cli/tests/e2e/pack-and-run.test.ts
+  - tools/cli/tests/conformance/framework.test.ts
+system_artifact_diff: []
 ```
+
+`system_artifact_diff` is an empty list because no impacted sibling maintains
+a `SYSTEM_ARTIFACT.md` — `SIBLINGS.md`'s only row declares `Read first:
+CLAUDE.md`. Same shape as PRD-001, PRD-002, PRD-003 and PRD-005.
