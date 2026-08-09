@@ -165,19 +165,22 @@ Las 12 definiciones son subagentes registrados a los que el modelo host puede de
 
 `permissions.deny` es también el único control que alcanza una definición instalada a nivel usuario (`~/.claude/agents/`), que ningún chequeo scopeado al repo puede ver.
 
-Para acotar desde dónde pueden fetchear los revisores, agregá una regla de dominio `WebFetch` en el mismo `.claude/settings.json`:
+Para intentar acotar desde dónde pueden fetchear los revisores, combiná una entrada `allow` para los dominios en los que confiás con un deny general de `WebFetch` en el mismo `.claude/settings.json` — el `allow` solo, por sí mismo, únicamente pre-aprueba un dominio y no bloquea ningún otro:
 
 ```json
 {
   "permissions": {
     "allow": [
       "WebFetch(domain:example.com)"
+    ],
+    "deny": [
+      "WebFetch"
     ]
   }
 }
 ```
 
-Dos caveats. La regla es session-wide, no por subagente — los cuatro revisores comparten una sola lista, y la sesión principal también. Y si combinar una entrada `allow` con un deny general de `WebFetch` realmente *restringe* los fetches, o solamente suprime el prompt de aprobación para el dominio permitido, está **sin verificar**: la precedencia de Claude Code para esa combinación no quedó establecida al momento de escribir esto. Tratala como scoping que conviene confirmar contra tu propia versión de Claude Code, no como un sandbox que ya tenés.
+Dos caveats. La regla es session-wide, no por subagente — los cuatro revisores comparten una sola lista, y la sesión principal también. Y si esta combinación de `allow`+`deny` realmente *restringe* los fetches al dominio permitido, o si el `allow` más específico simplemente toma precedencia para ese caso sin que el deny general haga nada útil en el resto, está **sin verificar**: la precedencia de Claude Code para esta combinación no quedó establecida al momento de escribir esto. Tratala como scoping que conviene confirmar contra tu propia versión de Claude Code, no como un sandbox que ya tenés.
 
 ## Quickstart
 

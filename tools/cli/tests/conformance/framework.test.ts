@@ -839,15 +839,42 @@ describe("PRD-008 § 9 row 3 — the READMEs name the new capability", () => {
   const READMES = ["README.md", "README.es.md", "tools/cli/README.md"];
   const DENY_MARKER = '"Agent(specforge-backend-reviewer)"';
 
-  /** The prose paragraph immediately preceding the fence that contains `at`. */
+  /**
+   * The prose paragraph immediately preceding the ```json fence that
+   * actually encloses `at`. Walking back to the nearest preceding
+   * "```json" is not enough on its own — if `at` ever moved out of a
+   * fence into prose, the walk-back would silently land on an unrelated
+   * earlier fence (e.g. the deny snippet's, which also mentions
+   * `.claude/settings.json`) and pass while checking the wrong
+   * paragraph. Guard it: there must be no closing "```" between the
+   * candidate fence's open and `at`.
+   */
   const introBefore = (text: string, at: number): string => {
     const fence = text.lastIndexOf("```json", at);
     expect(fence, "the snippet is not inside a json fence").toBeGreaterThan(-1);
+    const closeBeforeAt = text.indexOf("```", fence + "```json".length);
+    expect(
+      closeBeforeAt === -1 || closeBeforeAt >= at,
+      "the nearest preceding ```json fence closes before `at` — `at` is not actually inside it",
+    ).toBe(true);
     return text
       .slice(0, fence)
       .split(/\n\s*\n/)
       .filter((p) => p.trim())
       .pop()!;
+  };
+
+  /** The prose paragraph immediately following the fence that encloses `at`. */
+  const afterFence = (text: string, at: number): string => {
+    const fence = text.lastIndexOf("```json", at);
+    const close = text.indexOf("```", fence + "```json".length);
+    expect(close, "the enclosing fence never closes").toBeGreaterThan(-1);
+    return (
+      text
+        .slice(close + "```".length)
+        .split(/\n\s*\n/)
+        .filter((p) => p.trim())[0] ?? ""
+    );
   };
 
   for (const rel of READMES) {
@@ -880,8 +907,17 @@ describe("PRD-008 § 9 row 3 — the READMEs name the new capability", () => {
 
     it(`${rel}: does not overclaim what the domain rule restricts`, async () => {
       // § 3 / § 8: allow+deny precedence was never established, so the docs
-      // must say so rather than sell the rule as a sandbox.
-      expect(/unverified|sin verificar/i.test(await read(rel))).toBe(true);
+      // must say so rather than sell the rule as a sandbox — anchored to the
+      // caveat paragraph right after the domain-rule fence, not a whole-file
+      // substring match that would keep passing if the caveat were deleted
+      // and an unrelated "unverified" appeared elsewhere in the file.
+      const text = await read(rel);
+      const rule = /WebFetch\(domain:[^)]+\)/.exec(text);
+      expect(rule, "no worked domain-scoping example").not.toBeNull();
+      const caveat = afterFence(text, rule!.index);
+      expect(/unverified|sin verificar/i.test(caveat), "caveat paragraph missing or moved").toBe(
+        true,
+      );
     });
   }
 });

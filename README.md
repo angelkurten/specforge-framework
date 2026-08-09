@@ -165,19 +165,22 @@ The 12 definitions are registered subagents the host model can delegate to on it
 
 `permissions.deny` is also the one control that reaches a definition installed at user scope (`~/.claude/agents/`), which no repo-scoped check can see.
 
-To bound where the reviewers may fetch from, add a `WebFetch` domain rule to the same `.claude/settings.json`:
+To attempt to bound where the reviewers may fetch from, pair an `allow` entry for the domains you trust with a blanket `WebFetch` deny in the same `.claude/settings.json` — the `allow` half alone only pre-approves a domain and does not itself block any other:
 
 ```json
 {
   "permissions": {
     "allow": [
       "WebFetch(domain:example.com)"
+    ],
+    "deny": [
+      "WebFetch"
     ]
   }
 }
 ```
 
-Two caveats. The rule is session-wide, not per subagent — all four reviewers share one list, and so does the main session. And whether pairing an `allow` entry with a blanket `WebFetch` deny actually *restricts* fetches, rather than only suppressing the approval prompt for the allowed domain, is **unverified**: Claude Code's precedence for that combination was not established when this was written. Treat the rule as scoping you should confirm against your own Claude Code version, not as a sandbox you already have.
+Two caveats. The rule is session-wide, not per subagent — all four reviewers share one list, and so does the main session. And whether this `allow`+`deny` pairing actually *restricts* fetches to the allowed domain, rather than the more specific `allow` merely taking precedence for that one case with the blanket `deny` doing nothing else useful, is **unverified**: Claude Code's precedence for this combination was not established when this was written. Treat the rule as scoping you should confirm against your own Claude Code version, not as a sandbox you already have.
 
 ## Quickstart
 
