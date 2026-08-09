@@ -8,6 +8,36 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.11.0] - 2026-08-09
+
+Shipped via [PRD-006: Subagent briefings and review-loop hardening](006-subagent-briefings-and-review-loop-hardening.md) (`Status: Implemented`; gate filled after a post-implementation re-review plus three fix rounds cleared, one via a step-9 user escalation). Roadmap: [ROADMAP-005](ROADMAP.md) `Shipped`. No migration script — the layout change rides on the partition swap, and the old `agents/` tree ages out via a `doctor` warning and the cleanup notes below.
+
+### Changed
+
+- The 12 reviewer, generator and critic briefings move from `agents/*.md` to Claude Code subagent definitions under `.claude/agents/specforge/`, gaining YAML frontmatter (`name`, `description`, `model`, `tools`) and names prefixed `specforge-`. The per-role `model` assignment now lives in each definition's frontmatter — `.claude/rules/model-selection.md` becomes a non-normative summary of what the frontmatter declares — and the lead dispatches by name (`subagent_type: specforge-<role>`) instead of reading and pasting a template. The `{{VARIABLE}}` substitution contract is retired; the same six (reviewer) or four/five (roadmap) fields travel as labelled lines in the dispatch prompt, and the missing-mode hard-halt (`REVIEW_MODE` / `PANEL_MODE`) is what keeps the contract enforceable without substitution. `FRAMEWORK_FILES` swaps `agents/**` for `.claude/agents/specforge/**`; the bundle stays at 33 files, `init` still writes 32.
+- `.claude/rules/workflow.md` steps 5-9 are hardened against the review-loop churn a field report surfaced: a **propagation pass** (after a fix that changes a stated fact, grep the superseded token across the whole document — prose and Mermaid — before closing the finding), a **mechanism-fix adversarial bounce** (a fix that introduces new mechanism is dispatched to one reviewer to refute before it lands), a **`re-verification` review mode** with a prior-findings ledger and a moving-target freeze (`DOCUMENT_LINES` in the draft loop, `COMMIT_REF` at step 9), and a **draft-loop escalation counter** mirroring the post-implementation one.
+- `effort` is now settable per role via definition frontmatter (it was inert on the old plain-markdown briefings). The framework deliberately sets none; teams may add it locally.
+
+### Added
+
+- `doctor` validator `subagent-frontmatter` (error severity): recursively walks `.claude/agents/**`, enforcing that definitions inside the `specforge/` namespace carry valid frontmatter with a `specforge-` name and an accepted `model` (the four aliases plus `inherit`), and that no file **outside** the namespace claims a reserved `specforge-` name — the shadowing control. The walk is symlink-aware (a shadow behind a symlinked file, directory, or the namespace root is reported, not skipped) and containment is identity-based via `realpath`, so a case-variant directory that is genuinely the same inode stays inside while a distinct one on a case-sensitive filesystem is caught.
+- `doctor` validator `stale-briefings` (warning severity): flags a leftover `agents/` briefing directory coexisting with the new `.claude/agents/specforge/`, pointing at the cleanup below. Warning severity — it does not change `doctor`'s exit code.
+- A "Turning the panels off" section in the READMEs: a copy-pasteable `permissions.deny` snippet for adopters who do not run the review or roadmap panels, plus the restart-once caveat for the first creation of `.claude/agents/`.
+
+### Fixed
+
+- `init --force --erase` routes deletions through `safeUnlink` (path-containment guard) and surfaces a refused deletion through the error printer instead of swallowing it in a best-effort catch, while still completing the install and exiting 0 per PRD-003 §5.1's frozen table.
+
+### Cleanup for existing adopters
+
+Nothing is deleted from your directory by this release. After running `npx @angelkurten/specforge@latest update`, the new `.claude/agents/specforge/` tree is written alongside your old `agents/` directory, and `doctor` emits the `stale-briefings` warning until you remove it.
+
+**Should delete — not inert:** the old `agents/` directory (all 12 briefings). Unlike ordinary orphans these are LLM-readable dispatch instructions: a stale briefing without the `re-verification` mode or with the old un-prefixed dispatch semantics can be read and followed by an agent grounding in your repo, and once its manifest entry drops it is no longer integrity-checked. The live definitions are under `.claude/agents/specforge/`.
+
+**Note:** `.claude/agents/specforge/` is framework-owned — `update` overwrites it and `init --force --erase` deletes files in it. Keep your own subagents outside it (`.claude/agents/<your-dir>/` or the `.claude/agents/` root) and do not use the reserved `specforge-` name prefix.
+
+**Known follow-ups** ([PRD-007](007-doctor-detects-in-namespace-shadows-and-erase-exit-code.md), `Draft`): `doctor` does not yet detect a forged definition placed *inside* the namespace, and a refused erase exits 0 rather than signalling automation. `permissions.deny` is the recommended defence in the meantime.
+
 ## [0.10.0] - 2026-08-05
 
 Shipped via [PRD-005: Stop installing specforge's own project metadata into adopters](005-stop-installing-project-metadata.md) (`Status: Implemented`; gate filled after a four-round post-implementation re-review cleared). Roadmap: [ROADMAP-004](ROADMAP.md) `Shipped`. No migration script — content-only, no layout change.
