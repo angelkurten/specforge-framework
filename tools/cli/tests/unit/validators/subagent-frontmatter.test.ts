@@ -8,7 +8,10 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
 
-import { validator } from "../../../src/validators/subagent-frontmatter.js";
+import {
+  validator,
+  realpathInside,
+} from "../../../src/validators/subagent-frontmatter.js";
 import {
   mkTmpDir,
   plantSubagentDefinitions,
@@ -54,6 +57,46 @@ describe("subagent-frontmatter: a correct install", () => {
       subagentDefinition("specforge-backend-reviewer", "inherit"),
     );
     expect(await validator.run(tmpDir)).toEqual([]);
+  });
+});
+
+// PRD-006 § 9 row 25 (case-sensitive half). The dev machine's default APFS is
+// case-insensitive, so a genuinely distinct `SpecForge/` inode cannot be
+// created alongside `specforge/` there — the case-sensitive-filesystem
+// behaviour is driven at the containment-predicate level instead, with
+// distinct realpaths, per the security patch. Row 25's other half (the
+// case-INSENSITIVE `SpecForge/` install stays inside → zero findings) lives in
+// partition.test.ts and still runs end-to-end.
+describe("subagent-frontmatter: identity-based namespace containment (realpathInside)", () => {
+  const canonical = "/repo/.claude/agents/specforge";
+
+  it("a candidate at or under the real namespace is inside", () => {
+    expect(realpathInside(canonical, canonical)).toBe(true);
+    expect(realpathInside(canonical, `${canonical}/x.md`)).toBe(true);
+    expect(realpathInside(canonical, `${canonical}/sub/nested.md`)).toBe(true);
+  });
+
+  it("a distinct sibling `SpecForge` (case-sensitive fs) is OUTSIDE", () => {
+    // On a case-sensitive filesystem `.claude/agents/SpecForge` is a different
+    // inode, so its realpath is a sibling of the namespace, not under it. A
+    // lowercased-string test would call it inside and skip the class-2 shadow
+    // check — exactly the hole this predicate closes.
+    expect(
+      realpathInside(canonical, "/repo/.claude/agents/SpecForge/forged.md"),
+    ).toBe(false);
+    expect(realpathInside(canonical, "/repo/.claude/agents/SpecForge")).toBe(
+      false,
+    );
+  });
+
+  it("the namespace parent, siblings, and unrelated paths are outside", () => {
+    expect(realpathInside(canonical, "/repo/.claude/agents")).toBe(false);
+    expect(realpathInside(canonical, "/repo/.claude/agents/team/x.md")).toBe(
+      false,
+    );
+    expect(realpathInside(canonical, "/elsewhere/specforge/x.md")).toBe(false);
+    // A prefix collision that is not a real path child must not slip through.
+    expect(realpathInside(canonical, `${canonical}-evil/x.md`)).toBe(false);
   });
 });
 

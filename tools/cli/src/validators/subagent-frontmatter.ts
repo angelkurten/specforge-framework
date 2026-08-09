@@ -38,14 +38,40 @@ const ACCEPTED_MODELS = new Set(["sonnet", "opus", "haiku", "fable", "inherit"])
 const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---\n/;
 
 /**
- * Containment is case-insensitive. APFS resolves paths case-insensitively, so
- * a `.claude/agents/SpecForge/` tree into which `init` wrote the definitions
- * must count as inside the namespace — a case-sensitive test would fire class
- * 2 twelve times on a correct install, and errors change `doctor`'s exit code.
- * On a case-sensitive filesystem the same rule makes every case-variant of the
- * namespace itself reserved, which is one coherent posture on both families.
+ * Identity-based namespace containment. A definition file is inside the
+ * namespace iff its canonical on-disk location (`candidateReal`, a realpath) IS
+ * the canonical namespace directory (`canonicalReal`, also a realpath) or lives
+ * under it. This closes a case-sensitive-filesystem hole that a pure string
+ * test leaves open: on Linux CI a DISTINCT directory `.claude/agents/SpecForge/`
+ * is a different inode, so its realpath differs from the namespace's and its
+ * forged `specforge-`named definitions fall to the class-2 shadowing check
+ * instead of passing class 1 silently. On case-insensitive APFS the same
+ * directory resolves to the one canonical inode, so a case-variant install
+ * stays inside (§ 9 row 25: zero findings). `partition.classify` cannot make
+ * this distinction — it is a pure string function with no filesystem access —
+ * which is exactly why the two controls disagreed about `SpecForge/` and the
+ * gap between them was the hiding place.
  */
-function insideNamespace(rel: string): boolean {
+export function realpathInside(canonicalReal: string, candidateReal: string): boolean {
+  if (candidateReal === canonicalReal) return true;
+  const rel = path.relative(canonicalReal, candidateReal);
+  return rel !== "" && !rel.startsWith("..") && !path.isAbsolute(rel);
+}
+
+/**
+ * The string fallback, used in two places:
+ *   1. When the canonical namespace directory does not exist on disk (a fresh
+ *      repo, or a shadow planted with no real namespace at all) there is no
+ *      realpath to compare against, so the regular-file branch falls back here.
+ *   2. Symlink ENTRIES are classified by where the LINK sits, not where it
+ *      resolves. A symlink that merely aliases the real namespace under another
+ *      name (`.claude/agents/aaa-mirror → ./specforge`) is a warning by its own
+ *      location; a symlink planted AS the namespace root is an error via the
+ *      root-equality clause below.
+ * Case-insensitive because APFS resolves paths case-insensitively, so a
+ * `.claude/agents/SpecForge/` link counts the same as the canonical spelling.
+ */
+function insideNamespaceString(rel: string): boolean {
   const lower = rel.toLowerCase();
   // The namespace ROOT itself (no trailing slash) counts as inside. Without the
   // equality check, a `startsWith(NAMESPACE)` test with the trailing slash
@@ -153,6 +179,15 @@ export const validator: Validator = {
     // directory.
     const visited = new Set<string>();
 
+    // Identity-based containment: resolve the canonical namespace directory
+    // once, so a definition file's realpath can be compared against it (see
+    // `realpathInside`). `null` when the namespace does not exist on disk — a
+    // fresh repo or a shadow with no real namespace — in which case the
+    // regular-file branch falls back to the string test.
+    const canonicalReal = await fs
+      .realpath(path.join(cwd, NAMESPACE.slice(0, -1)))
+      .catch(() => null);
+
     // Scope is the project tree, and that limit is structural: the validator
     // receives `cwd` and its walk is rooted there, so a shadow at user-scope
     // `~/.claude/agents/` is unreachable by any repo-scoped control (§ 8).
@@ -198,7 +233,15 @@ export const validator: Validator = {
           // codebase branches on isFile()/isDirectory() and silently drops
           // symlink dirents, so a shadow planted as a symlink would be
           // invisible here while Claude Code reads it normally.
-          const inside = insideNamespace(childRel);
+          //
+          // A symlink is classified by where the LINK sits (string test), not
+          // where it resolves: a symlink aliasing the real namespace under
+          // another name is a warning by its own location (keeping
+          // `aaa-mirror → ./specforge` a warning), while one planted AS the
+          // namespace root is an error via the root-equality clause. A shadow
+          // hidden behind a symlinked directory is still caught, because we
+          // descend and its target's real files hit the realpath test below.
+          const inside = insideNamespaceString(childRel);
           let target: string;
           try {
             target = await fs.readlink(abs);
@@ -268,7 +311,14 @@ export const validator: Validator = {
         // deliberate; only the case gap is closed here.
         if (!e.isFile() || !e.name.toLowerCase().endsWith(".md")) continue;
 
-        const inside = insideNamespace(childRel);
+        // Identity-based containment (realpath), reusing the parent directory's
+        // realpath (`real`) so a regular file needs no extra syscall: its
+        // canonical location is `real/<name>`. Falls back to the string test
+        // only when the namespace could not be resolved on disk.
+        const inside =
+          canonicalReal === null
+            ? insideNamespaceString(childRel)
+            : realpathInside(canonicalReal, path.join(real, e.name));
         let text: string;
         try {
           text = await fs.readFile(abs, "utf8");
