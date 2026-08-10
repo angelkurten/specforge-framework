@@ -8,6 +8,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.12.0] - 2026-08-10
+
+Shipped via [PRD-008: Web access for the review subagents](008-web-access-for-review-subagents.md) (`Status: Implemented`; gate filled after a post-implementation re-review plus two fix rounds cleared, zero 🔴 raised at any point). Roadmap: [ROADMAP-006](ROADMAP.md) `Shipped`. No migration script — frontmatter and documentation only, no CLI code changed.
+
+### Added
+
+- The 4 reviewer subagent definitions (`specforge-backend-reviewer`, `specforge-security-reviewer`, `specforge-frontend-reviewer`, `specforge-quality-reviewer`) gain `WebFetch` in their `tools:` frontmatter, so a reviewer can check a dependency's current changelog or a live CVE advisory while forming a finding. `WebSearch` is deliberately **not** granted — its result shape and prompt-injection surface are undocumented as of 2026-08-09, and unlike `WebFetch`'s dereference-a-named-target shape, `WebSearch` selects its own target from an external ranking that is adversarially optimizable.
+- Each reviewer body's existing data-not-instructions clause is extended to name `WebFetch` output, plus a new, separately-stated sentence: content returned by `WebFetch` must never be used to construct or justify a `Bash` invocation. In `post-implementation` mode a reviewer's fetch target can itself derive from the unreviewed diff under review, so this closes the chain where a hostile diff names an attacker-controlled fetch target, the reviewer dereferences it, and the response tries to talk a `Bash`-holding agent into running a command.
+- The three READMEs' "Turning the panels off" / "Apagar los paneles" sections gain a worked `.claude/settings.json` example for scoping `WebFetch` to specific domains (`allow` paired with a blanket `deny`), with an explicit caveat that whether this pairing actually restricts fetches — versus the more specific `allow` merely winning — is unverified against Claude Code's documented precedence rules.
+
+### Process note
+
+This PRD was originally drafted to grant `WebFetch`/`WebSearch` to all 12 subagent definitions (reviewers and the 8-role roadmap panel together). The step-5 review panel found the roadmap panel's half unsafe to ship as drafted — the generators' `Rationale` output field is unfenced, the credential/internal-domain URL screen exists in only one of eight bodies and runs after generators would already have fetched, the four generators have no findings channel to report a detected injection, and the clause pattern didn't cover the `Read`-based channel those bodies already have. The panel split: this PRD covers the 4 reviewers only, and the roadmap panel's grant is tracked as [PRD-009](009-web-access-for-roadmap-subagents.md) (`Status: Draft`), seeded with the four gaps and their exact `file:line` citations for whoever picks it up.
+
 ## [0.11.0] - 2026-08-09
 
 Shipped via [PRD-006: Subagent briefings and review-loop hardening](006-subagent-briefings-and-review-loop-hardening.md) (`Status: Implemented`; gate filled after a post-implementation re-review plus three fix rounds cleared, one via a step-9 user escalation). Roadmap: [ROADMAP-005](ROADMAP.md) `Shipped`. No migration script — the layout change rides on the partition swap, and the old `agents/` tree ages out via a `doctor` warning and the cleanup notes below.

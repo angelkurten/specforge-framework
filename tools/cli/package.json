@@ -1,6 +1,6 @@
 {
   "name": "@angelkurten/specforge",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "CLI for installing, updating, validating, and migrating specforge framework layouts.",
   "license": "MIT",
   "repository": {
