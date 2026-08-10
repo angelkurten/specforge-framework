@@ -1,6 +1,7 @@
 # PRD-008: Web access for the review subagents
 
-**Status**: Draft
+**Status**: Implemented
+**Implemented at**: 2026-08-10
 **Date**: 2026-08-09
 **Author**: AI-assisted
 **Priority**: P2
@@ -318,10 +319,34 @@ alongside the reviewer grant.
 
 ## Gate: Promotion to `Implemented`
 
+The post-implementation panel (security `opus`, quality `sonnet`) ran an
+initial re-review plus two fix rounds against the `1d842fe..663e879`
+range. No 🔴 was raised at any point in post-implementation review — every
+finding was 🟡 or 🟢, all fixed in code and re-verified by mutation
+(reverting each fix reproduces exactly the failure it closes), none
+routed to a follow-up PRD or a waiver.
+
+The one 🟢 not fixed in code — the README caveat's binary framing of
+`allow`+`deny` precedence omits a third, availability-only outcome
+("deny wins, no fetches succeed") — is correctly left as-is: the caveat
+faithfully mirrors frozen §3/§8's own two-outcome framing, and
+post-implementation mode fixes code, never the frozen PRD. No security
+guarantee is overstated by the omission (the missing outcome is
+fail-closed). Not routed as a tracked 🟡 per `gate-block.md` — it never
+carried 🟡 severity, and `workflow.md` step 9 only requires tracking
+🟡 findings, 🟢 is advisory. If ever revisited, PRD-009 is the natural
+home, since it already owns the roadmap panel's unresolved `WebSearch`
+precedence question from a different angle.
+
 ```yaml
-commit_hash: [TBD]
+commit_hash: 663e879
 tests:
-  - [TBD]
-system_artifact_diff:
-  - [TBD]
+  - tools/cli/tests/conformance/framework.test.ts
+  - tools/cli/tests/unit/validators/subagent-frontmatter.test.ts
+system_artifact_diff: []
 ```
+
+`system_artifact_diff` is an empty list because no impacted sibling
+maintains a `SYSTEM_ARTIFACT.md` — `SIBLINGS.md`'s only row declares
+`Read first: CLAUDE.md`. Same shape as PRD-001, PRD-002, PRD-003, PRD-005
+and PRD-006.

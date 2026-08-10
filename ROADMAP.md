@@ -95,4 +95,20 @@
 **Evidence**:
 - [PRD-006] — retroactive meta-reference per `.claude/rules/roadmap.md` § Evidence category 7
 
+### ROADMAP-006: Web access for the review subagents
+
+**Status**: Shipped
+**Last reviewed**: 2026-08-10
+**Theme**: —
+**PRD**: PRD-008
+
+**Problem / outcome**: the 4 reviewer subagents shipped by PRD-006 could only ground in the dispatch prompt and on-disk files, with no way to check a dependency's current changelog or a live CVE advisory while reviewing. The 4 reviewers now carry `WebFetch` (not `WebSearch` — deferred pending documentation of its result shape and injection surface), with a new body clause stating fetched content must never be used to construct or justify a `Bash` invocation — closing the chain where a hostile diff names an attacker-controlled fetch target in post-implementation review. Originally drafted as a single PRD granting all 12 subagents web access; the step-5 security review found the roadmap panel's half unsafe as drafted (unfenced generator output, pre-fetch screening only in one of eight bodies, no findings channel for generators, clause scope gaps) and the panel split — the roadmap panel's grant moved to the PRD-009 stub.
+**User**: specforge maintainers and adopting teams
+**Siblings likely impacted**: specforge
+
+**Evidence**:
+- [PRD-008] — retroactive meta-reference per `.claude/rules/roadmap.md` § Evidence category 7
+
+**Caveats**: `WebSearch` is deferred framework-wide (§3) pending clearer Claude Code documentation of its result shape. The `.claude/settings.json` domain-scoping example's `allow`+`deny` precedence is documented as unverified, not as a proven restriction. The roadmap panel's web access is tracked separately in PRD-009 (`Draft`), seeded with the four structural gaps found in review.
+
 **Caveats**: Two 🟡 follow-ups tracked in PRD-007 (in-namespace forgery detection; an exit code for incomplete erase). The shadowing control is repo-scoped and detective (runs on `doctor`), not dispatch-time; `permissions.deny` is the recommended defence for adopters who do not run the panels.
