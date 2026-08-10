@@ -119,11 +119,42 @@ this PRD's scope:
 - Any change to the reviewer panel's grant (PRD-008, shipped separately).
 - Any change to panel composition, model assignments, or severity scheme.
 
-## 4-11
+## 4. User Flows / Design
 
-*Stub — sections to be written when this PRD is picked up. The four gaps in
-§1 are the seed scope; §2/§3 above are provisional and may change once this
-PRD's own grounding and drafting pass runs.*
+*Deferred — sections 4 through 11 are unwritten. This PRD is a stub: it
+exists only to carry the four structural gaps §1 documents, seeded during
+PRD-008's step-5 review. Its own grounding, design, and review loop run
+when it is picked up; see §1 for the seed scope and §2/§3 for the
+provisional goals and non-goals, which may change once this PRD's own
+drafting pass runs.*
+
+## 5. API
+
+*Deferred — see §4.*
+
+## 6. Data Model
+
+*Deferred — see §4.*
+
+## 7. Architecture
+
+*Deferred — see §4.*
+
+## 8. Security
+
+*Deferred — see §4.*
+
+## 9. Test Plan
+
+*Deferred — see §4.*
+
+## 10. Migration Plan
+
+*Deferred — see §4.*
+
+## 11. Open Questions
+
+- [ ] Everything — this PRD has not yet been drafted past §1-§3.
 
 ---
 

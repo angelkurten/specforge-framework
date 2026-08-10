@@ -778,7 +778,7 @@ touches the briefings or the partition.
 
 ---
 
-## Gate: Promotion to `Implemented`
+## Post-implementation review summary
 
 The post-implementation panel (backend `opus`, security `opus`, quality
 `sonnet`) ran an initial re-review plus three fix rounds against the
@@ -792,7 +792,7 @@ and the re-review found no fresh 🔴.
 
 Four 🟡 were routed to tracked destinations, none left open:
 
-# yellow-tracking: PRD-006 → follow-up PRD-007 (two findings)
+**→ follow-up PRD-007** (two findings):
 - **In-namespace forgery undetected** — a well-formed definition inside
   `.claude/agents/specforge/` under a duplicated framework identity passes
   both validator classes and `doctor` exits 0. Not fixable in
@@ -802,7 +802,8 @@ Four 🟡 were routed to tracked destinations, none left open:
   deletion without a new exit code, which would amend PRD-003 §5.1's frozen
   table. → **PRD-007** §1.
 
-# yellow-tracking: PRD-006 → waived (code honors the contract; the frozen text's literal reading does not, and the PRD is frozen)
+**→ waived** (code honors the contract; the frozen text's literal reading
+does not, and the PRD is frozen):
 - **`.md`-only validator scope** — §5.4 says "a file"; the shipped validator
   checks only `.md` files. Waived: Claude Code registers only `.md`
   definitions, so a non-`.md` file cannot shadow anything, and erroring on
@@ -815,7 +816,10 @@ Four 🟡 were routed to tracked destinations, none left open:
   not swallowed) is met by the landed test via a read-only parent directory;
   only the frozen row's suggested mechanism is wrong, and the PRD is frozen.
 
+## Gate: Promotion to `Implemented`
+
 ```yaml
+# yellow-tracking: PRD-006 → follow-up PRD-007 (in-namespace forgery undetected; erase refusal exits 0)
 commit_hash: 0c05488
 tests:
   - tools/cli/tests/unit/partition.test.ts

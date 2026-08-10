@@ -317,7 +317,7 @@ alongside the reviewer grant.
 
 ---
 
-## Gate: Promotion to `Implemented`
+## Post-implementation review summary
 
 The post-implementation panel (security `opus`, quality `sonnet`) ran an
 initial re-review plus two fix rounds against the `1d842fe..663e879`
@@ -337,6 +337,8 @@ carried 🟡 severity, and `workflow.md` step 9 only requires tracking
 🟡 findings, 🟢 is advisory. If ever revisited, PRD-009 is the natural
 home, since it already owns the roadmap panel's unresolved `WebSearch`
 precedence question from a different angle.
+
+## Gate: Promotion to `Implemented`
 
 ```yaml
 commit_hash: 663e879

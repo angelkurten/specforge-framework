@@ -70,10 +70,41 @@ design act, not a post-implementation fix.
 - Any change to the `subagent-frontmatter` two-class design, which the PRD-006
   panel verified as correct for its stated scope.
 
-## 4-11
+## 4. User Flows / Design
 
-*Stub — sections to be written when this PRD is picked up. The two findings
-above are the seed scope.*
+*Deferred — sections 4 through 11 are unwritten. This PRD is a stub: it
+exists only to carry a tracked destination for the two 🟡 findings in §1.
+Its own grounding, design, and review loop run when it is picked up; see
+§1 for the seed scope and §2/§3 for the provisional goals and non-goals
+already captured.*
+
+## 5. API
+
+*Deferred — see §4.*
+
+## 6. Data Model
+
+*Deferred — see §4.*
+
+## 7. Architecture
+
+*Deferred — see §4.*
+
+## 8. Security
+
+*Deferred — see §4.*
+
+## 9. Test Plan
+
+*Deferred — see §4.*
+
+## 10. Migration Plan
+
+*Deferred — see §4.*
+
+## 11. Open Questions
+
+- [ ] Everything — this PRD has not yet been drafted past §1-§3.
 
 ---
 
