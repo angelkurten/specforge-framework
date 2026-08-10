@@ -840,25 +840,32 @@ describe("PRD-008 § 9 row 3 — the READMEs name the new capability", () => {
   const DENY_MARKER = '"Agent(specforge-backend-reviewer)"';
 
   /**
-   * The prose paragraph immediately preceding the ```json fence that
-   * actually encloses `at`. Walking back to the nearest preceding
-   * "```json" is not enough on its own — if `at` ever moved out of a
-   * fence into prose, the walk-back would silently land on an unrelated
-   * earlier fence (e.g. the deny snippet's, which also mentions
-   * `.claude/settings.json`) and pass while checking the wrong
-   * paragraph. Guard it: there must be no closing "```" between the
-   * candidate fence's open and `at`.
+   * The ```json...``` fence that actually encloses `at`, as [openFenceStart,
+   * closeFenceStart]. Walking back to the nearest preceding "```json" is not
+   * enough on its own — if `at` ever moved out of a fence into prose, the
+   * walk-back would silently land on an unrelated earlier fence (e.g. the
+   * deny snippet's, which also mentions `.claude/settings.json`) and every
+   * caller would check the wrong text. Guard it once, here, for every
+   * caller: there must be no closing "```" between the candidate fence's
+   * open and `at`.
    */
-  const introBefore = (text: string, at: number): string => {
-    const fence = text.lastIndexOf("```json", at);
-    expect(fence, "the snippet is not inside a json fence").toBeGreaterThan(-1);
-    const closeBeforeAt = text.indexOf("```", fence + "```json".length);
+  const enclosingFence = (text: string, at: number): [number, number] => {
+    const open = text.lastIndexOf("```json", at);
+    expect(open, "the snippet is not inside a json fence").toBeGreaterThan(-1);
+    const close = text.indexOf("```", open + "```json".length);
     expect(
-      closeBeforeAt === -1 || closeBeforeAt >= at,
+      close === -1 || close >= at,
       "the nearest preceding ```json fence closes before `at` — `at` is not actually inside it",
     ).toBe(true);
+    expect(close, "the enclosing fence never closes").toBeGreaterThan(-1);
+    return [open, close];
+  };
+
+  /** The prose paragraph immediately preceding the fence that encloses `at`. */
+  const introBefore = (text: string, at: number): string => {
+    const [open] = enclosingFence(text, at);
     return text
-      .slice(0, fence)
+      .slice(0, open)
       .split(/\n\s*\n/)
       .filter((p) => p.trim())
       .pop()!;
@@ -866,15 +873,19 @@ describe("PRD-008 § 9 row 3 — the READMEs name the new capability", () => {
 
   /** The prose paragraph immediately following the fence that encloses `at`. */
   const afterFence = (text: string, at: number): string => {
-    const fence = text.lastIndexOf("```json", at);
-    const close = text.indexOf("```", fence + "```json".length);
-    expect(close, "the enclosing fence never closes").toBeGreaterThan(-1);
+    const [, close] = enclosingFence(text, at);
     return (
       text
         .slice(close + "```".length)
         .split(/\n\s*\n/)
         .filter((p) => p.trim())[0] ?? ""
     );
+  };
+
+  /** The full ```json...``` block (fences included) that encloses `at`. */
+  const fenceBody = (text: string, at: number): string => {
+    const [open, close] = enclosingFence(text, at);
+    return text.slice(open, close + "```".length);
   };
 
   for (const rel of READMES) {
@@ -903,6 +914,22 @@ describe("PRD-008 § 9 row 3 — the READMEs name the new capability", () => {
         introBefore(text, rule!.index),
         "the example does not point at .claude/settings.json",
       ).toContain(".claude/settings.json");
+    });
+
+    it(`${rel}: the domain-scoping example pairs allow with a blanket WebFetch deny`, async () => {
+      // The allow half alone only pre-approves a domain and blocks nothing
+      // else — shipping it without the deny half is the exact adherence gap
+      // PRD-008's post-implementation review caught (the intro prose would
+      // then be lying about a snippet that doesn't back it up). Pin both
+      // halves so dropping either one fails the build, not just the review.
+      const text = await read(rel);
+      const rule = /WebFetch\(domain:[^)]+\)/.exec(text);
+      expect(rule, "no worked domain-scoping example").not.toBeNull();
+      const block = fenceBody(text, rule!.index);
+      expect(block, "example is missing the allow entry").toMatch(/"allow"\s*:/);
+      expect(block, "example is missing a blanket WebFetch deny").toMatch(
+        /"deny"\s*:\s*\[\s*"WebFetch"/,
+      );
     });
 
     it(`${rel}: does not overclaim what the domain rule restricts`, async () => {
