@@ -149,7 +149,7 @@ describe("partition classification", () => {
 // path strings with no case normalisation (`patternToRegex` builds no `i`
 // flag), so a case-variant namespace falls to `unknown` — which fails safe for
 // the erase path. The validator cannot afford the same divergence: a
-// case-sensitive containment test would fire class 2 twelve times on a
+// case-sensitive containment test would fire class 2 fourteen times on a
 // correctly-installed APFS tree, and errors change `doctor`'s exit code.
 describe("case-variant namespace: classify vs subagent-frontmatter", () => {
   it("classify leaves .claude/agents/SpecForge/ unknown (string-level, § 6.1)", () => {

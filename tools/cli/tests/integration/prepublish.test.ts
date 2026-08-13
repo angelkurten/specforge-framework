@@ -81,7 +81,7 @@ describe("prepublish: bundles the reduced framework set plus VERSION", () => {
       "examples/prd-001-login-example.md",
       // PRD-006 § 9 row 7: all fourteen asserted by name. A symlinked
       // definition drops silently from `walkDir`, so a total alone would not
-      // catch an 11-file bundle.
+      // catch a 13-file bundle.
       ...SUBAGENT_DEFINITIONS.map(
         (d) => `.claude/agents/specforge/${d.name}.md`,
       ),
