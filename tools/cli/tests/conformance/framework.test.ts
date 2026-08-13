@@ -1157,9 +1157,10 @@ describe("PRD-010 fix-round finding NEW-1 — the .claude/agents/** write bullet
         writeIdx,
       );
       // "## What you never run" must be the very next `## ` heading after
-      // "## What you never write" — a heading wedged between them (the
-      // shape of the orphaning bug) would fail this even if both sections
-      // below happen to still contain the right substrings.
+      // "## What you never write" — a heading wedged between them (a
+      // different shape than the historical bug, which the containment
+      // checks below catch) would fail this even if both sections below
+      // happen to still contain the right substrings.
       const nextHeading = /^## /m.exec(raw.slice(writeIdx + 1));
       expect(
         writeIdx + 1 + nextHeading!.index,
@@ -1370,6 +1371,16 @@ describe("PRD-010 fix-round finding SEC-2 — both bodies split the Bash constra
       // left unasserted.
       expect(body, "no no-network rule").toContain(
         "**No network.** Never use `Bash` to reach the network",
+      );
+      // PRD-010 fix-round finding BK-R2-1: rules 1-3's own text are each
+      // asserted above, but the rule-1 sanctioned-brief-inputs carve-out —
+      // the sentence that keeps PRD_PATH and SIBLING_CLAUDE_MD_PATH from
+      // tripping the provenance rule at step 1 the way step 8 requires — had
+      // no assertion of its own. Rule 2 binds independently so this is not a
+      // bypass surface, but a silent regression here would reopen the
+      // step-8/rule-1 conflict with a green suite.
+      expect(body, "rule 1 carve-out missing or untethered from rule 2").toContain(
+        "**The two sanctioned brief inputs are the exception**",
       );
     });
   }
