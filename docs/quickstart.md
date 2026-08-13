@@ -98,14 +98,14 @@ Every finding carries severity: 🔴 blocker, 🟡 should-fix, 🟢 nit. Finding
 
 **Step 8**: merge the PRD at `Status: Draft`. The gate block stays with `[TBD]` placeholders. Ask the user (AskUserQuestion with 3 bounded options): implement now, defer, or resume a different Draft.
 
-**Step 9**: spawn an implementation team from the main session. You stay in the specforge directory throughout — you do not `cd` to code repos. Each sub-agent in the team receives an explicit brief with the PRD, absolute paths, and Read instructions for the sibling's `CLAUDE.md`.
+**Step 9**: spawn an implementation team from the main session, dispatched by name (`specforge-backend-implementer` / `specforge-frontend-implementer`). You stay in the specforge directory throughout — you do not `cd` to code repos. Each sub-agent receives a six-field brief: `PRD_PATH`, `IMPL_MODE: initial`, `SIBLING_CLAUDE_MD_PATH`, `SIBLING_ROOT`, `SCOPE`, `SYSTEM_ARTIFACT_PATH` — including Read instructions for the sibling's `CLAUDE.md`.
 
 After code lands, **before** filling the gate block, re-dispatch the step 5 reviewer panel with:
 
 - `{{CODE_REFERENCES}}` = `git diff --name-only <commit_hash>`, scoped per sibling
 - `{{REVIEW_MODE}}: post-implementation`
 
-The reviewers now verify that the shipped code honors the frozen PRD. 🔴 blocks the gate — fixes go back to the implementation team, never into the PRD. 🟡 must be routed to one of three tracked destinations (fix-in-code / follow-up PRD with `Supersedes:` / `SYSTEM_ARTIFACT.md` note).
+The reviewers now verify that the shipped code honors the frozen PRD. 🔴 blocks the gate — fixes go back to the implementer(s) whose `SCOPE` covers the finding, re-dispatched with `IMPL_MODE: fix-round` and a `PRIOR_FINDINGS` ledger, never into the PRD. 🟡 must be routed to one of three tracked destinations (fix-in-code, on the same `IMPL_MODE: fix-round` ledger / follow-up PRD with `Supersedes:` / `SYSTEM_ARTIFACT.md` note).
 
 Only once the re-review clears do you fill the gate block and move `Status` to `Implemented`:
 

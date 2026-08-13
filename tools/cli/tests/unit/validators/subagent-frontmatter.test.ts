@@ -41,10 +41,10 @@ afterEach(async () => {
 });
 
 describe("subagent-frontmatter: a correct install", () => {
-  it("reports nothing for the 12 definitions", async () => {
+  it("reports nothing for the 14 definitions", async () => {
     await plantSubagentDefinitions(agentsPath("specforge"));
     expect(await validator.run(tmpDir)).toEqual([]);
-    expect(SUBAGENT_DEFINITIONS).toHaveLength(12);
+    expect(SUBAGENT_DEFINITIONS).toHaveLength(14);
   });
 
   it("reports nothing when .claude/agents/ is absent", async () => {

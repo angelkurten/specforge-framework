@@ -47,7 +47,7 @@ Never retrofit PRDs for features already shipped. The SYSTEM_ARTIFACT is the gro
 
 Post-implementation re-review catches this in step 9. Severity determines routing:
 
-- **🔴 blocker**: the fix goes back to the implementation team, never into the frozen PRD. Re-dispatch after each fix round. After 2 persistent rounds, escalate to the user with three options — another fix round, revert the PRD to `Draft` (the single escape hatch), or waive with a written reason.
+- **🔴 blocker**: the fix goes back to the implementer(s) whose `SCOPE` covers it, re-dispatched with `IMPL_MODE: fix-round` and a `PRIOR_FINDINGS` ledger, never into the frozen PRD. Re-dispatch after each fix round. After 2 persistent rounds, escalate to the user with three options — another fix round, revert the PRD to `Draft` (the single escape hatch), or waive with a written reason.
 - **🟡 should-fix**: must be routed to exactly one of three tracked destinations — fix in code, a follow-up PRD with `Supersedes:`, or a note in the sibling's `SYSTEM_ARTIFACT.md` describing the drift. Untracked 🟡s block promotion the same way a 🔴 does.
 - **🟢 nit**: advisory, not blocking.
 

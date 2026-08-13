@@ -483,7 +483,9 @@ describe("init / update / migrate on a prepublish-built bundle", () => {
       await fs.readFile(path.join(tmpDir, ".specforge", "manifest.json"), "utf8"),
     );
     expect(manifest.framework_version).toBe(bundleVer);
-    expect(manifest.framework_files).toHaveLength(32);
+    // PRD-010 § 6.2 row 9: the bundle regenerated with the two new
+    // subagent definitions, so the installed manifest count moves 32 → 34.
+    expect(manifest.framework_files).toHaveLength(34);
     await expect(fs.access(path.join(tmpDir, "CLAUDE.md"))).resolves.toBeUndefined();
 
     // PRD-006 § 9 row 8: the 12 definitions land on disk and in the manifest.

@@ -104,11 +104,13 @@ describe("prepublish: bundles the reduced framework set plus VERSION", () => {
     expect(bundled.filter((p) => p.startsWith("docs/"))).toEqual([]);
 
     // PRD-005 § 5.1: 32 framework files + VERSION. PRD-006 swapped twelve
-    // briefings for twelve subagent definitions, so the count is unchanged.
-    // Adding a rule, template, definition, or example moves this number —
-    // update it here and in § 5.1's successor rather than loosening the
-    // assertion.
-    expect(bundled).toHaveLength(33);
+    // briefings for twelve subagent definitions, so the count was unchanged
+    // there. PRD-010 § 6.2 row 8 adds two more subagent definitions
+    // (specforge-backend-implementer, specforge-frontend-implementer),
+    // moving the count from 33 to 35. Adding a rule, template, definition,
+    // or example moves this number — update it here and in § 5.1's
+    // successor rather than loosening the assertion.
+    expect(bundled).toHaveLength(35);
   });
 });
 

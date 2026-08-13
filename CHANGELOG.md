@@ -8,6 +8,32 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [Unreleased]
+
+Tracking [PRD-010: Implementer subagent roles for workflow step 9](010-implementer-subagent-roles.md) (`Status: Draft`, implementation in progress; post-implementation re-review and gate promotion to `Implemented` have not yet run). This section will gain a version number and the `Shipped via` framing once the gate block is filled.
+
+### Added
+
+- Two new subagent definitions, `specforge-backend-implementer` and `specforge-frontend-implementer`, under `.claude/agents/specforge/`, dispatched by name at `workflow.md` step 9 — `tools: Read, Edit, Write, Grep, Glob, Bash, WebFetch`, `model: sonnet`. Each carries an elevated data-not-instructions clause (an injected instruction found while reading is halted and reported, never acted on), a `.claude/agents/**`-plus-frozen-PRD/ADR write exclusion scoped to `SIBLING_ROOT`, and an instruction to actually exercise `Bash` on the sibling's own test suite, linter, type checker, and migration `up`/`down` or production build before reporting.
+- `workflow.md` step 9 now dispatches the implementation team by name with a six-field brief contract (`PRD_PATH`, `IMPL_MODE`, `SIBLING_CLAUDE_MD_PATH`, `SIBLING_ROOT`, `SCOPE`, `SYSTEM_ARTIFACT_PATH`) and a `fix-round` mode carrying a `PRIOR_FINDINGS` ledger for every 🔴 plus any 🟡 routed to the fix-in-code destination — closing the gap where a 🔴/🟡 fix previously went back to "the implementation team" with no structured brief.
+- `model-selection.md` and `framework-maintenance.md` document the two new roles' default model (`sonnet`), the per-dispatch escalation policy for high-blast-radius scope, and the process for a team adding further implementer roles beyond the two canonical ones.
+
+### Changed
+
+- The three READMEs' "Turning the panels off" / "Apagar los paneles" sections: the `permissions.deny` snippet grows from 12 to 14 entries (`Agent(specforge-backend-implementer)`, `Agent(specforge-frontend-implementer)` appended), the definition-count prose and file-layout tree read 14 (4 reviewers + 4 roadmap generators + 4 critics + 2 implementers), the `WebFetch` domain-scoping paragraph now covers "the six `WebFetch`-holding definitions" instead of only the reviewers, and the risk sentence names the implementer pair's `Edit`/`Write` grant alongside the reviewers' `Bash`/`WebFetch`. The `#turning-the-panels-off` heading itself is unchanged — it is cross-referenced from the frozen `Implemented` PRD-008.
+- `docs/workflow/overview.md`, `docs/quickstart.md`, `docs/concepts/siblings.md`, `docs/faq.md`: step 9's description moves from an ad-hoc, three-item brief ("the implementation team", PRD + absolute paths + sibling `CLAUDE.md`) to the named six-field dispatch above, and "the fix goes back to the implementation team" now names the `IMPL_MODE: fix-round` + `PRIOR_FINDINGS` re-dispatch.
+
+### Upgrade note for existing adopters
+
+**Existing installs must hand-append two `permissions.deny` entries.** `.claude/settings.json` sits outside the framework/team-data partition (`tools/cli/src/partition.ts`), so `update` never touches it. A team that pasted the README's 12-entry deny list to opt out of auto-delegation will not automatically pick up `Agent(specforge-backend-implementer)` and `Agent(specforge-frontend-implementer)` — the only two identities this release adds that hold `Edit`/`Write` — and will be silently opted back in for exactly those two unless the entries are added by hand:
+
+```json
+"Agent(specforge-backend-implementer)",
+"Agent(specforge-frontend-implementer)"
+```
+
+**A future revert of this release will not remove the two new definition files from an existing install.** `update` has no deletion path (`runUpdate` builds every state from the bundle's own paths, never from what is absent from it), so if this release is ever reverted, the release notes for that revert must instruct adopters to delete `.claude/agents/specforge/specforge-backend-implementer.md` and `specforge-frontend-implementer.md` by hand — otherwise two `Edit`/`Write`/`Bash`/`WebFetch` subagents stay registered and dispatchable against a `workflow.md` that no longer mentions them.
+
 ## [0.12.0] - 2026-08-10
 
 Shipped via [PRD-008: Web access for the review subagents](008-web-access-for-review-subagents.md) (`Status: Implemented`; gate filled after a post-implementation re-review plus two fix rounds cleared, zero 🔴 raised at any point). Roadmap: [ROADMAP-006](ROADMAP.md) `Shipped`. No migration script — frontmatter and documentation only, no CLI code changed.

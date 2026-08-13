@@ -89,11 +89,23 @@ export async function synthBundleAt(
 }
 
 /**
- * The 12 subagent definitions of PRD-006 § 6.2, as name/model/tools triples.
- * Tests plant these rather than reading the repo's real
- * `.claude/agents/specforge/` tree: a unit test that asserts against shipped
- * content is a conformance test wearing the wrong hat, and it would couple
- * every validator assertion to whatever the framework currently ships.
+ * The 14 subagent definitions of PRD-006 § 6.2 + the two `-implementer` rows
+ * PRD-010 § 6.1 appends, as name/model/tools triples. Tests plant these
+ * rather than reading the repo's real `.claude/agents/specforge/` tree: a
+ * unit test that asserts against shipped content is a conformance test
+ * wearing the wrong hat, and it would couple every validator assertion to
+ * whatever the framework currently ships.
+ *
+ * The two new rows mirror the shipped `tools` string (`Read, Edit, Write,
+ * Grep, Glob, Bash, WebFetch`) rather than the fixture's existing — already
+ * stale — reviewer convention (`Read, Grep, Glob, Bash`, missing PRD-008's
+ * `WebFetch`). Nothing here asserts on `.tools` content today
+ * (`subagent-frontmatter.ts` never inspects the field, and the two
+ * integration suites that consume this fixture read only `.name`), so the
+ * choice is inert for the current suite either way; it is made in favor of
+ * the shipped truth rather than perpetuating a divergence already flagged
+ * as stale, since a future test that does start asserting on `.tools`
+ * should not inherit a second, deliberately-introduced staleness.
  */
 export const SUBAGENT_DEFINITIONS: ReadonlyArray<{
   name: string;
@@ -112,6 +124,16 @@ export const SUBAGENT_DEFINITIONS: ReadonlyArray<{
   { name: "specforge-roadmap-risk-critic", model: "opus", tools: "Read, Grep, Glob" },
   { name: "specforge-roadmap-devils-advocate-critic", model: "sonnet", tools: "Read, Grep, Glob" },
   { name: "specforge-roadmap-opportunity-cost-critic", model: "sonnet", tools: "Read, Grep, Glob" },
+  {
+    name: "specforge-backend-implementer",
+    model: "sonnet",
+    tools: "Read, Edit, Write, Grep, Glob, Bash, WebFetch",
+  },
+  {
+    name: "specforge-frontend-implementer",
+    model: "sonnet",
+    tools: "Read, Edit, Write, Grep, Glob, Bash, WebFetch",
+  },
 ];
 
 /** One definition file's bytes, shaped like the shipped ones. */
@@ -131,7 +153,7 @@ export function subagentDefinition(
 }
 
 /**
- * Plant the 12 definitions into `dir` (an absolute path). Returns the
+ * Plant the 14 definitions into `dir` (an absolute path). Returns the
  * absolute paths written.
  */
 export async function plantSubagentDefinitions(dir: string): Promise<string[]> {

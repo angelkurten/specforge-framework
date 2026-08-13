@@ -20,7 +20,7 @@ flowchart TB
     ship --> userGate{User: implement now,<br/>defer, or resume<br/>a different Draft?}
     userGate -->|defer| pause([Draft waits in queue])
     userGate -->|now / resume| impl[9. Implement]
-    impl -->|per impacted sibling| implTeam[[Implementation team<br/>spawned with PRD + paths +<br/>sibling CLAUDE.md]]
+    impl -->|per impacted sibling| implTeam[[Implementation team<br/>named dispatch, six-field brief<br/>(PRD_PATH + IMPL_MODE + SCOPE + paths)]]
     implTeam --> postReview[Re-dispatch step 5 panel<br/>post-impl mode, per-sibling diff]
     postReview --> postDecide{Any 🔴 or<br/>untracked 🟡?}
     postDecide -->|yes| roundCheck{Fix-round budget<br/>exhausted?}
@@ -100,7 +100,7 @@ After the merge, ask the user via `AskUserQuestion` with three bounded options:
 
 | Option | What happens |
 |---|---|
-| **(a) Spawn the implementation team now for this PRD** | Proceed directly to step 9 with the PRD just merged. |
+| **(a) Spawn the implementation team (named dispatch) now for this PRD** | Proceed directly to step 9 with the PRD just merged. |
 | **(b) Defer and end the session here** | The Draft waits in the queue. |
 | **(c) Resume a different Draft** | Follow-up prose question to pick which Draft (grep `Status: Draft` across PRDs), then **re-ground with reuse**: for siblings already grounded in the current session, reuse that grounding; only launch Explore for siblings not yet grounded. |
 
@@ -108,7 +108,7 @@ The purpose of (c) is to amortize an already-paid grounding cost, not to require
 
 ### 9. Implement, then gate to `Implemented`
 
-Spawn an implementation team from the main session. You stay in specforge cwd throughout — you do not `cd` to code repos. Each sub-agent receives an explicit brief containing the PRD, absolute paths to the sibling's code that must change, and instructions to Read the sibling's `CLAUDE.md` before touching any code.
+Spawn an implementation team from the main session, dispatched via the `Agent` tool by name — `subagent_type: specforge-backend-implementer` and/or `specforge-frontend-implementer`, one instance per sibling per scope. You stay in specforge cwd throughout — you do not `cd` to code repos. Each sub-agent receives a six-field brief as labelled lines: `PRD_PATH`, `IMPL_MODE: initial`, `SIBLING_CLAUDE_MD_PATH`, `SIBLING_ROOT`, `SCOPE`, `SYSTEM_ARTIFACT_PATH` — including an instruction to Read the sibling's `CLAUDE.md` before touching any code.
 
 After code lands, **before** filling the gate block, re-dispatch the step 5 reviewer panel with:
 
@@ -120,7 +120,7 @@ In post-implementation mode the PRD is frozen, the question flips from "is the P
 
 #### 🔴 handling
 
-A 🔴 finding blocks gate promotion. The fix goes back to the implementation team, never into the frozen PRD. Re-dispatch the re-review after each fix round.
+A 🔴 finding blocks gate promotion. The fix goes back to the implementer(s) whose `SCOPE` covers the finding, re-dispatched with `IMPL_MODE: fix-round` and a `PRIOR_FINDINGS` ledger, never into the frozen PRD. Re-dispatch the re-review after each fix round.
 
 Count rounds explicitly: `initial re-review + fix-round-1 + fix-round-2 = escalation`. If the same 🔴 persists after fix-round-2, or if rounds produce contradictory 🔴s, halt and escalate to the user via `AskUserQuestion` with three options:
 
@@ -132,7 +132,7 @@ Count rounds explicitly: `initial re-review + fix-round-1 + fix-round-2 = escala
 
 Every 🟡 finding must be routed to exactly one of three **tracked** destinations before the gate block is filled:
 
-1. **Fix in code** — the code is wrong, apply the fix, treat as closed.
+1. **Fix in code** — the code is wrong. Dispatch it to the implementer whose `SCOPE` covers it, on the same `IMPL_MODE: fix-round` ledger as the round's 🔴s, then treat as closed once the re-verification clears. Not a silent lead patch: an untracked 🟡 blocks promotion exactly as a 🔴 does.
 2. **Follow-up PRD** — the PRD was wrong and the code diverged deliberately; create a new PRD file with `Supersedes: PRD-N` in its header and reference it by number in a comment above the gate block.
 3. **`SYSTEM_ARTIFACT.md` note** — the divergence is acceptable and worth remembering; add a line to the impacted sibling's `SYSTEM_ARTIFACT.md` describing the drift with a back-reference to this re-review round.
 
