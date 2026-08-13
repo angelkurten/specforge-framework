@@ -5,8 +5,9 @@ description: Per-role model assignment when dispatching sub-agents for review, g
 
 # Model selection
 
-The 12 panel roles are Claude Code subagent definitions under
-`.claude/agents/specforge/`. **Each definition's `model:` frontmatter field is
+The 14 role definitions — 12 panel roles plus 2 implementer roles — are
+Claude Code subagent definitions under `.claude/agents/specforge/`. **Each
+definition's `model:` frontmatter field is
 the canonical per-role assignment** — the lead agent dispatches by name
 (`subagent_type: specforge-<role>`) and the model resolves from the definition.
 There is no per-dispatch step to remember and nothing for the lead to
@@ -35,9 +36,13 @@ wins and this table is the bug.
 | `specforge-roadmap-risk-critic` | `opus` |
 | `specforge-roadmap-devils-advocate-critic` | `sonnet` |
 | `specforge-roadmap-opportunity-cost-critic` | `sonnet` |
+| `specforge-backend-implementer` | `sonnet` |
+| `specforge-frontend-implementer` | `sonnet` |
 
 The reviewer panel runs at `workflow.md` steps 5, 7 and 9; the generator and
-critic panels run in the `roadmap.md` generative flow (PRD-001 §4.1).
+critic panels run in the `roadmap.md` generative flow (PRD-001 §4.1); the
+implementer roles run at `workflow.md` step 9, dispatched once per sibling
+per scope, initial pass and any fix rounds.
 
 ## Rationale
 
@@ -46,6 +51,9 @@ Adversarial or high-blast-radius roles get `opus`, everything else gets
 
 - **`opus`** for roles where a missed finding has lasting blast radius (security vulnerability, PII leak in public repo, risk or compliance gap) or where the reasoning is adversarial or cross-cutting architectural.
 - **`sonnet`** for standard multi-source synthesis, well-structured review, or moderate creativity (connecting friction patterns to evidence).
+- The two implementer roles default to **`sonnet`** for the same reason as the review-panel `sonnet` roles: writing code against a frozen, already-reviewed PRD is bounded synthesis, not adversarial reasoning — the PRD did the hard design thinking and the reviewer panel already stress-tested it twice (draft and, after this pass, post-implementation). This is a default, not a ceiling: escalate a specific dispatch to `opus` via the per-call override below when the scope is a high-blast-radius migration (foreign-key changes, backfills, an irreversible schema shape) rather than routine CRUD or component work.
+
+  **This assignment is argued on task difficulty, and the rule's stated axis is blast radius — the two do not agree here, deliberately.** The implementers are the only roles holding `Edit`+`Write`+`Bash`, so a missed *action* has larger blast radius than a missed *finding* anywhere else in the roster, and read literally the axis above would put them on `opus`. They stay on `sonnet` because the blast radius is bounded by controls the reviewer roles do not have: the work is specified by a frozen PRD rather than open-ended, the whole diff is re-read by the post-implementation panel before anything gates, and nothing an implementer writes reaches a sibling's main branch without the lead's commit. The escalation clause above covers the case where those controls are thinnest. A team that disagrees has a one-word override and no framework change to make.
 - **`haiku`** has no default role. The two generator roles it once held read `ROADMAP.md` in full plus the `GROUNDING_CONTEXT` brief field, and Haiku's 200k context is a ceiling that work can exceed — a structural limit, not a quality judgement. Haiku also supports neither adaptive thinking nor `effort`, so it cannot participate in any future effort tuning. It stays available as a user override for a trivially-scoped dispatch.
 - **`fable`** has no default role either. Its advantage grows with task length and horizon; every role here is a bounded single-pass review returning one report, which is where the premium buys least. It is also the wrong escalation for `specforge-security-reviewer` specifically: Claude Code routes offensive-security workloads off Fable to an Opus model, "often on the first request", so a security panel dispatched to `fable` may not run on the model you asked for.
 
@@ -85,7 +93,7 @@ templates with no frontmatter, there was no place to set it and adding an
 frontmatter, so **`effort:` is settable per role today** by editing the
 definition.
 
-**The framework deliberately sets none.** All 12 definitions omit `effort:`
+**The framework deliberately sets none.** All 14 definitions omit `effort:`
 and inherit the session level (PRD-006 §3). Choosing framework-level defaults
 is deferred until there is evidence that a specific role under- or overspends;
 a team that has that evidence for its own repo may add the field locally, and
@@ -104,4 +112,24 @@ current.
 
 ## Implementers
 
-The implementation team dispatched at `workflow.md` step 9 is not covered here. Those sub-agents are selected ad-hoc per sibling stack (e.g. `python-expert`, `backend-architect`) rather than from the 12 framework definitions, and the model choice depends on scope — a config bump is not an opus task, but a migration with foreign-key changes probably is. The lead agent uses judgment.
+The implementation team dispatched at `workflow.md` step 9 is covered by
+two of the 14 definitions: `specforge-backend-implementer` and
+`specforge-frontend-implementer`, dispatched by name exactly like the
+reviewer panel — `subagent_type: specforge-backend-implementer`, etc. Both
+default to `sonnet`; see the rationale note above for when to escalate a
+specific dispatch to `opus`.
+
+The two canonical roles split by domain (backend vs. frontend), the same
+axis the reviewer panel already uses, and rely on `SIBLING_CLAUDE_MD_PATH`
+for stack-specific conventions rather than one definition per language —
+so a Python backend and a Go backend both dispatch to
+`specforge-backend-implementer`.
+
+**Scope that fits neither role** — mobile, infra/ops, a data pipeline, or
+any sibling stack specialized enough to need its own persona — is not
+forced into `specforge-backend-implementer` or `-frontend-implementer`.
+The lead either adds a team-owned implementer definition following
+`framework-maintenance.md` § Adding a new implementer role, or falls back
+to an ad-hoc sub-agent (e.g. a stack-specific agent type available in the
+session) chosen by judgment, the same escape hatch the framework has
+always used for implementation work outside the two canonical roles.
