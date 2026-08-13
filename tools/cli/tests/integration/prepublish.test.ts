@@ -79,7 +79,7 @@ describe("prepublish: bundles the reduced framework set plus VERSION", () => {
       ".claude/rules/workflow.md",
       "templates/prd.md",
       "examples/prd-001-login-example.md",
-      // PRD-006 § 9 row 7: all twelve asserted by name. A symlinked
+      // PRD-006 § 9 row 7: all fourteen asserted by name. A symlinked
       // definition drops silently from `walkDir`, so a total alone would not
       // catch an 11-file bundle.
       ...SUBAGENT_DEFINITIONS.map(

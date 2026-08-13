@@ -156,7 +156,7 @@ describe("case-variant namespace: classify vs subagent-frontmatter", () => {
     expect(classify(".claude/agents/SpecForge/x.md")).toBe("unknown");
   });
 
-  it("subagent-frontmatter reports nothing for the 12 definitions under SpecForge/ (§ 5.4)", async () => {
+  it("subagent-frontmatter reports nothing for the 14 definitions under SpecForge/ (§ 5.4)", async () => {
     const dir = await mkTmpDir();
     try {
       await plantSubagentDefinitions(

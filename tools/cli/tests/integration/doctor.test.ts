@@ -634,7 +634,7 @@ describe("doctor validator: subagent-frontmatter reserved-prefix shadow", () => 
   it("a mirror sorting ahead of the real namespace does not preempt its class-1 coverage", async () => {
     if (process.platform === "win32") return;
     const importMetaUrl = await doInit(tmpDir);
-    // A correct install (12 valid defs) plus one schema-invalid def inside the
+    // A correct install (14 valid defs) plus one schema-invalid def inside the
     // real namespace: a concrete model ID is rejected by class 1.
     await plantSubagentDefinitions(
       path.join(tmpDir, ".claude", "agents", "specforge"),
@@ -666,7 +666,7 @@ describe("doctor validator: subagent-frontmatter reserved-prefix shadow", () => 
       "class-1 must fire against the real namespace path",
     ).toBeDefined();
     // ...and nowhere else: no spurious duplication against the mirror, and the
-    // 12 valid defs stay clean.
+    // 14 valid defs stay clean.
     expect(
       errors.filter((f: any) =>
         f.file.startsWith(".claude/agents/aaa-mirror"),

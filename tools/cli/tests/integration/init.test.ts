@@ -488,7 +488,7 @@ describe("init / update / migrate on a prepublish-built bundle", () => {
     expect(manifest.framework_files).toHaveLength(34);
     await expect(fs.access(path.join(tmpDir, "CLAUDE.md"))).resolves.toBeUndefined();
 
-    // PRD-006 § 9 row 8: the 12 definitions land on disk and in the manifest.
+    // PRD-006 § 9 row 8: the 14 definitions land on disk and in the manifest.
     const tracked = manifest.framework_files.map((f: { path: string }) => f.path);
     for (const d of SUBAGENT_DEFINITIONS) {
       const rel = `.claude/agents/specforge/${d.name}.md`;

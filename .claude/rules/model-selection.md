@@ -1,6 +1,6 @@
 ---
 name: model-selection
-description: Per-role model assignment when dispatching sub-agents for review, generation, and critique panels.
+description: Per-role model assignment when dispatching sub-agents for review, generation, critique, and implementation dispatch.
 ---
 
 # Model selection
