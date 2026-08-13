@@ -1,6 +1,7 @@
 # PRD-010: Implementer subagent roles for workflow step 9
 
-**Status**: Draft
+**Status**: Implemented
+**Implemented at**: 2026-08-13
 **Date**: 2026-08-09
 **Author**: AI-assisted
 **Priority**: P2
@@ -730,12 +731,76 @@ the document**, which is the outcome the bounce exists to produce:
 | `PRIOR_FINDINGS` widened to cover 🟡 routed to fix-in-code | **survives** | Landed with the required narrowing (ledger membership, not severity, determines the obligation) and the companion `workflow.md` edit naming the dispatch at destination 1. Propagated to all 8 sites the bounce enumerated. |
 | Write exclusion binds `Bash`, not only `Edit`/`Write` (fix-round-2) | **survives, narrowed three ways** | The first draft forbade "any codemod, formatter, or generator whose output lands in them" — undecidable, since an agent cannot know a tool's write-set before invoking it, and overbroad against this repo's own tooling: it forbade `npm run prepublish`, which §10 orders and which rewrites `tools/cli/framework/.claude/agents/**`. `tools/cli/.gitignore:9-19` records that the e2e suite has already written `.claude/` into `tools/cli/` once. Narrowed to (1) paths resolve relative to `SIBLING_ROOT`, (2) only commands the implementer *composes* are forbidden, a transitive write by a tool run for another purpose is a recorded deviation, and (3) build-artifact copies are outside it. §8's framing was also re-based: the `Bash` half is a confused-deputy correctness rule, not a defence against a compromised agent. |
 
+## Post-implementation review summary
+
+The post-implementation panel (backend `opus`, security `opus`, frontend
+`sonnet`, quality `sonnet`) ran an initial review plus three fix rounds
+against `c928d1e^..b96d47a`. **No 🔴 was raised at the initial pass**; one
+appeared at re-verification round 1 and was closed in round 2. Every
+other finding was 🟡 or 🟢.
+
+The 🔴 is worth recording because of how it was found. Fix-round 1 added a
+`## What you never run` section to both definition bodies and inserted it
+mid-section, leaving `## What you never write` announcing "two path
+classes are off-limits" and enumerating neither — the write exclusion,
+the control §8 treats as load-bearing, had its content orphaned under the
+wrong heading. All 380 tests passed against it, because §9 rows 13 and 19
+assert over the whole flattened body with no heading scope. Both the
+backend and security reviewers found it independently. The fix restored
+the sections and added a heading-scoped assertion; the backend reviewer
+then replayed that assertion against the real broken bodies and reported
+that its two *ordering* checks pass on the bug and only its two
+*containment* checks catch it — so the pin is real, but earns its keep on
+a different half than its own comment claimed. That comment was corrected
+in the next round.
+
+**Every 🟡 is routed.** Ten went to destination 1 (fix in code) across
+three fix rounds and are closed by re-verification. Three could not be
+dispatched to an implementer at all: they were edits to
+`.claude/agents/**`, which the write exclusion this PRD ships forbids
+implementers from touching, so a dispatch would have been correctly
+refused and the lead implemented them — the supply-chain control routing
+its own self-modification back to the lead on its first real occasion.
+Four went to destination 2, the PRD-011 stub: §8 describes the
+*superseded, circular* version of the `Bash` scope rule at `:493-496` and
+a *stricter-than-shipped* version at `:516-517`, the provenance clause is
+qualified by a carve-out added later, and §8's write-boundary wording does
+not reach specforge's own `.claude/agents/**` when `SIBLING_ROOT` is some
+other repo. None is fixable in place — hard rule 7 freezes this document —
+and destination 3 is unavailable, since no impacted sibling maintains a
+`SYSTEM_ARTIFACT.md`.
+
+Two 🟢s the panel asked to be carried rather than dropped are recorded in
+PRD-011 §11: whether the write exclusion should also be absolute-path
+anchored on the specforge root, and that run-rule 2's enumeration
+literally excludes the read-only inspection (`ls`, `git status`) every
+implementer dispatched during these rounds actually ran.
+
+`workflow.md` step 9's escalation counter did not fire: its trigger is a
+🔴 persisting across three sightings, and none survived past the round
+after it was raised.
+
 ## Gate: Promotion to `Implemented`
 
 ```yaml
-commit_hash: [TBD]
+# yellow-tracking: PRD-010 → follow-up PRD-011 (§8 describes the superseded circular Bash scope rule at :493-496 and a stricter-than-shipped one at :516-517; the provenance clause is qualified by a later carve-out; the write boundary does not name specforge's own .claude/agents/** for a non-specforge SIBLING_ROOT)
+commit_hash: b96d47a
 tests:
-  - [TBD]
-system_artifact_diff:
-  - [TBD]
+  - tools/cli/tests/conformance/framework.test.ts
+  - tools/cli/tests/unit/validators/subagent-frontmatter.test.ts
+  - tools/cli/tests/integration/prepublish.test.ts
+  - tools/cli/tests/integration/init.test.ts
+system_artifact_diff: []
 ```
+
+`system_artifact_diff` is an empty list because no impacted sibling
+maintains a `SYSTEM_ARTIFACT.md` — `SIBLINGS.md`'s only row declares
+`Read first: CLAUDE.md`. Same shape as PRD-001, PRD-002, PRD-003,
+PRD-005, PRD-006 and PRD-008.
+
+The `tests` list is the deduplicated §9 `Path` column: rows 1-6 and 10-22
+name `framework.test.ts`, rows 7, 8 and 9 name one file each.
+`tools/cli/tests/helpers.ts` is modified by this PRD but is **not** a
+`tests` entry — it is shared fixture infrastructure consumed by the three
+integration files, contains no `describe`/`it` block, and appears in no
+§9 `Path` cell.

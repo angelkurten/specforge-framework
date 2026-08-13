@@ -112,3 +112,19 @@
 **Caveats**: `WebSearch` is deferred framework-wide (§3) pending clearer Claude Code documentation of its result shape. The `.claude/settings.json` domain-scoping example's `allow`+`deny` precedence is documented as unverified, not as a proven restriction. The roadmap panel's web access is tracked separately in PRD-009 (`Draft`), seeded with the four structural gaps found in review.
 
 **Caveats**: Two 🟡 follow-ups tracked in PRD-007 (in-namespace forgery detection; an exit code for incomplete erase). The shadowing control is repo-scoped and detective (runs on `doctor`), not dispatch-time; `permissions.deny` is the recommended defence for adopters who do not run the panels.
+
+### ROADMAP-007: Implementer subagent roles for the implementation step
+
+**Status**: Shipped
+**Last reviewed**: 2026-08-13
+**Theme**: —
+**PRD**: PRD-010
+
+**Problem / outcome**: the review step dispatched four named subagent definitions with an enforced brief, a mode-halt contract and a prompt-injection clause, while the implementation step selected sub-agents ad-hoc per sibling stack with no fixed contract at all — so nothing stopped a dispatch omitting the "read the sibling's `CLAUDE.md` first" step every reviewer makes mandatory, an ad-hoc agent's system prompt carried no guaranteed data-not-instructions clause despite holding `Edit`/`Write`/`Bash`, and no persona-level checklist existed on the implementer side. Two definitions now ship — `specforge-backend-implementer` and `specforge-frontend-implementer` — with a six-field brief, an `IMPL_MODE` halt clause, a `fix-round` mode carrying a findings ledger, a write exclusion covering `.claude/agents/**` and frozen PRDs/ADRs, and an instruction to actually exercise `Bash` on the sibling's own runners before reporting, with each command's real result. The last of those closed a gap where a granted tool that no step told the agent to use would simply go unused: the implementer would have written the Test Plan's tests and never executed them.
+**User**: specforge maintainers and adopting teams
+**Siblings likely impacted**: specforge
+
+**Evidence**:
+- [PRD-010] — retroactive meta-reference per `.claude/rules/roadmap.md` § Evidence category 7
+
+**Caveats**: four 🟡 follow-ups tracked in PRD-011 (`Draft`) — PRD-010 §8 describes the superseded circular version of the `Bash` scope rule at one site and a stricter-than-shipped version at another, its provenance clause is qualified by a carve-out added later, and its write boundary does not name specforge's own `.claude/agents/**` when `SIBLING_ROOT` is another repo. All are divergences between the frozen PRD's account and the shipped artifacts, not defects in the artifacts. The write exclusion is instruction-level prose, not a capability-level control; there is no per-subagent path enforcement. Adopters maintaining a `permissions.deny` list must hand-append both new identities, since `.claude/settings.json` is outside the partition and `update` never touches it.
