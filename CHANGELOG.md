@@ -8,7 +8,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
-## [0.15.1] - 2026-08-14
+## [0.15.2] - 2026-08-14
+
+Packaging fix for 0.15.1, which also failed to publish. No framework artifact changed.
+
+### Fixed
+
+- **v0.15.1's `.npmrc` fix for the hardlink publish failure did not take effect** — same `npm error E415` on CI, unchanged. `package-import-method` (`.npmrc`, kebab-case) is not read for this setting on pnpm 9+: it moved to `packageImportMethod` (`pnpm-workspace.yaml`, camelCase). `tools/cli/pnpm-workspace.yaml` now carries it instead; `.npmrc` removed. **Verified in a Linux container running the exact pnpm version (11.21.0) and Node version (22) the CI runner uses** — not just locally on macOS, where the default import method already masked the bug once (v0.15.0) and would have masked an incomplete fix again: `pnpm install` now logs "Packages are copied from the content-addressable store", the packed tarball's `node_modules/yaml/package.json` has a link count of 1, and `tar tv` on the full archive shows zero hard-link-type entries. Neither v0.15.0 nor v0.15.1 ever actually published.
 
 Packaging fix for 0.15.0. No framework artifact changed.
 

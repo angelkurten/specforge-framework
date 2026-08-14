@@ -1,2 +1,11 @@
 allowBuilds:
   esbuild: true
+
+# node_modules/<dep> is hardlinked from pnpm's content-addressable store by
+# default (`auto`, which resolves to `hardlink` on this Linux CI runner). npm
+# turns a hardlinked node_modules entry into a tar hard-link entry when it
+# packs this package for publish, and the npm registry rejects that outright
+# (E415 "Hard link is not allowed") -- found when v0.15.0's and v0.15.1's CI
+# publishes both failed on exactly this. `.npmrc`'s `package-import-method`
+# key is NOT read for this setting on pnpm 9+; it moved here.
+packageImportMethod: copy
