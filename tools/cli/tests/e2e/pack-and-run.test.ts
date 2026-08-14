@@ -360,6 +360,27 @@ describe("e2e: init --headless produces the corpus the sandbox seed expects", ()
     return dir;
   }
 
+  // PRD-006 § 6.2's fourteen definitions, name only — kept as a flat literal
+  // here rather than imported from conformance/framework.test.ts so this e2e
+  // suite exercises the packed tarball's own file list independent of that
+  // file's DEFINITIONS constant.
+  const ALL_14_DEFINITIONS = [
+    "specforge-backend-reviewer",
+    "specforge-security-reviewer",
+    "specforge-frontend-reviewer",
+    "specforge-quality-reviewer",
+    "specforge-roadmap-market-generator",
+    "specforge-roadmap-ux-generator",
+    "specforge-roadmap-product-generator",
+    "specforge-roadmap-support-generator",
+    "specforge-roadmap-evidence-critic",
+    "specforge-roadmap-risk-critic",
+    "specforge-roadmap-devils-advocate-critic",
+    "specforge-roadmap-opportunity-cost-critic",
+    "specforge-backend-implementer",
+    "specforge-frontend-implementer",
+  ];
+
   it("writes CLAUDE.md, the headless rule, the reviewer definitions and templates/", async () => {
     if (!tgzPath) {
       console.warn("DEVIATION: npm pack failed; PRD-012 headless e2e skipped");
@@ -380,6 +401,21 @@ describe("e2e: init --headless produces the corpus the sandbox seed expects", ()
           fs.access(path.join(dir, rel)),
           `${rel} must be installed by init --headless`,
         ).resolves.toBeUndefined();
+      }
+
+      // § 9 row 27: all 14 definitions, from the packed artifact, each
+      // carrying a `tools:` line — not just the 4 reviewers spot-checked
+      // above. This is the packed-tarball counterpart to the source-tree
+      // check at conformance/framework.test.ts's PRD-006 § 9 row 15; the two
+      // don't collapse into one because packaging can drop or truncate a
+      // file the source tree still has intact (PRD-012 phase 3's own
+      // bundleDependencies fix was exactly this class of bug).
+      for (const name of ALL_14_DEFINITIONS) {
+        const defPath = path.join(dir, ".claude/agents/specforge", `${name}.md`);
+        const body = await fs.readFile(defPath, "utf8").catch((err) => {
+          throw new Error(`${name}.md missing from packed headless corpus: ${err}`);
+        });
+        expect(body, `${name}.md has no tools: frontmatter line`).toMatch(/^tools:\s*\S/m);
       }
 
       // kubbo's seed predicate reads both `CLAUDE.md` and `.claude/rules/`,
