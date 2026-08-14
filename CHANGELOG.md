@@ -8,6 +8,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.15.1] - 2026-08-14
+
+Packaging fix for 0.15.0. No framework artifact changed.
+
+### Fixed
+
+- **v0.15.0's CI publish failed before anything reached the registry**: `npm error code E415` / `415 Unsupported Media Type … Hard link is not allowed`. pnpm's default `package-import-method` is platform-dependent — `clone` on macOS APFS, `hardlink` on the Linux runners `cli-release.yml` actually runs on — and a hardlinked `node_modules/<dep>` becomes a tar hard-link entry when `npm pack` builds the tarball, which the npm registry rejects outright regardless of the entry's content. A local pack on macOS looked identical either way, which is why this was not caught before tagging v0.15.0. `tools/cli/.npmrc` now pins `package-import-method=copy`, the one import method with no platform-dependent tar representation. **v0.15.0 was never actually published — the registry PUT failed before creating the version** — so this is not a yanked release, just the same content under a new tag.
+
 ## [0.15.0] - 2026-08-14
 
 For kubbo's PRD-012 phase 3: specforge now runs headless, inside a session, seeded from a corpus baked into a sandbox image rather than adopted interactively into a human's own repository.
