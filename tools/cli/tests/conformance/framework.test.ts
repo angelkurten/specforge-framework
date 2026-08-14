@@ -154,6 +154,92 @@ describe("hard rule 14 — the dispatch invariant", () => {
   });
 });
 
+describe("PRD-012 phase 3 § 9 rows 25 and 26 — the headless-session rule", () => {
+  // The rule ships bundle-only and `init --headless` writes it to
+  // `.claude/rules/headless-session.md`. It is deliberately absent from this
+  // repo's own `.claude/rules/`: its body is unconditional, and this repo's
+  // sessions have a user to ask.
+  let headless: string;
+  let rows: Array<{ point: string; declared: string }>;
+
+  beforeAll(async () => {
+    headless = await read("optional-rules/headless-session.md");
+    rows = headless
+      .split("\n")
+      .filter((l) => l.startsWith("|"))
+      .map((l) => l.split("|").slice(1, -1).map((c) => c.trim()))
+      .filter((cells) => cells.length === 2 && !/^-+$/.test(cells[0]!))
+      .map((cells) => ({ point: cells[0]!, declared: cells[1]! }))
+      .filter((r) => !/^\*{0,2}Point\*{0,2}$/i.test(r.point));
+  });
+
+  it("declares a default for each of the six workflow points and the environment", () => {
+    expect(rows).toHaveLength(7);
+    for (const n of [1, 2, 5, 6, 8, 9]) {
+      const row = rows.find((r) => new RegExp(`\\bstep ${n}\\b`, "i").test(r.point));
+      expect(row, `no row for workflow.md step ${n}`).toBeDefined();
+      expect(row!.declared.length, `step ${n} names no default`).toBeGreaterThan(40);
+    }
+    const env = rows.find((r) => /environment/i.test(r.point));
+    expect(env, "no environment-transcription row").toBeDefined();
+    expect(env!.declared.length).toBeGreaterThan(40);
+  });
+
+  it("declares the defaults PRD-012 phase 3 § 5.6 names, not merely some default", () => {
+    const declared = (needle: RegExp) => {
+      const row = rows.find((r) => needle.test(r.point));
+      expect(row, `no row matching ${needle}`).toBeDefined();
+      return row!.declared;
+    };
+    const step = (n: number) => declared(new RegExp(`\\bstep ${n}\\b`, "i"));
+
+    // Steps 1 and 6 are the two that would otherwise call AskUserQuestion.
+    expect(/AskUserQuestion/.test(step(1))).toBe(true);
+    expect(/§ ?11/.test(step(1))).toBe(true);
+    expect(/AskUserQuestion/.test(step(6))).toBe(true);
+    expect(/reviewer recommended/i.test(step(6))).toBe(true);
+
+    expect(step(2)).toContain("SIBLINGS.md");
+
+    // The panel size is a cost and concurrency term, so it is fixed, and a
+    // sub-agent does not fan out again.
+    const panel = step(5);
+    expect(/\bfour\b/i.test(panel)).toBe(true);
+    expect(/one batch/i.test(panel)).toBe(true);
+    expect(/does not dispatch further sub-agents/i.test(panel)).toBe(true);
+
+    expect(/\(a\)/.test(step(8))).toBe(true);
+    expect(/\(ii\)/.test(step(9))).toBe(true);
+    expect(/never option \(iii\)/i.test(step(9))).toBe(true);
+
+    const env = declared(/environment/i);
+    expect(/do not read/i.test(env)).toBe(true);
+    expect(/commits?/i.test(env)).toBe(true);
+  });
+
+  it("purports to disable no hard rule", () => {
+    const disables =
+      /\b(disable[sd]?|disregard|ignore|override|waive[sd]?|suspend|relax(?:es|ed)?|set aside)\b[^.\n|]{0,60}\b(hard[- ]rules?|invariants?)\b/i;
+    const inverse =
+      /\b(hard[- ]rules?|invariants?)\b[^.\n|]{0,60}\b(do(?:es)? not apply|no longer applies?|are waived|is waived|is disabled|is suspended)\b/i;
+    expect(disables.test(headless), "the rule claims to disable a hard rule").toBe(false);
+    expect(inverse.test(headless), "the rule claims a hard rule stops applying").toBe(false);
+    // The affirmative half: it says the invariants still bind.
+    expect(headless).toContain("hard-rules.md");
+    expect(/continues to apply in full/i.test(headless)).toBe(true);
+  });
+
+  it("leaves hard rule 14 byte-identical", () => {
+    // PRD-012 phase 3 makes the panel reachable inside a `--print` session;
+    // the invariant that the panel is dispatched rather than simulated is
+    // exactly what must not move while that happens. Pinned in full, because
+    // a phrase assertion cannot see a clause quietly removed around it.
+    expect(ruleBlock(hardRules, 14)).toBe(
+      "14. **The step 2, 5 and 9 fan-outs are dispatched, not simulated.** Grounding, the reviewer panel, and the implementation team in `workflow.md` run as sub-agents via the `Agent` tool or the host's equivalent. This rule is the standing request that authorises them: a host default that withholds automatic delegation until the user asks is satisfied by this file, and no per-session instruction is needed. A panel run inside the lead context is not four perspectives, it is one restated — producing it and reporting it as a panel fails review. If the host cannot dispatch, say so and stop rather than substituting inline work.\n",
+    );
+  });
+});
+
 describe("tests/roadmap/hard_rules_12_test.md", () => {
   it("rule 12 appears exactly once and carries the non-waivable PII clause verbatim", () => {
     expect([...hardRules.matchAll(/^12\. /gm)]).toHaveLength(1);

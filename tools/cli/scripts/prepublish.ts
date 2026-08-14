@@ -160,12 +160,23 @@ export async function runPrepublish(
   }
   const version = (await fs.readFile(versionPath, "utf8")).trim();
 
-  // Step 2: bump package.json version.
+  // Step 2: bump package.json version, and npm-shrinkwrap.json's copy of it.
+  // The shrinkwrap carries the version twice and is published from the same
+  // tree, so without this a release ships a shrinkwrap still naming the
+  // previous version — and `npm ci` refuses a tree whose two disagree.
   const pkgPath = path.join(cliRoot, "package.json");
   const pkgRaw = await fs.readFile(pkgPath, "utf8");
   const pkg = JSON.parse(pkgRaw);
   pkg.version = version;
   await fs.writeFile(pkgPath, JSON.stringify(pkg, null, 2) + "\n", "utf8");
+
+  const shrinkwrapPath = path.join(cliRoot, "npm-shrinkwrap.json");
+  if (await exists(shrinkwrapPath)) {
+    const sw = JSON.parse(await fs.readFile(shrinkwrapPath, "utf8"));
+    sw.version = version;
+    if (sw.packages?.[""]) sw.packages[""].version = version;
+    await fs.writeFile(shrinkwrapPath, JSON.stringify(sw, null, 2) + "\n", "utf8");
+  }
 
   // Step 3: clear and recreate the bundle directory.
   await fs.rm(bundleRoot, { recursive: true, force: true });

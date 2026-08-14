@@ -26,13 +26,29 @@ export const FRAMEWORK_FILES: ReadonlyArray<string> = [
 ];
 
 /**
- * Files copied into the npm tarball but never written into an adopter's
- * directory. `prepublish` resolves these alongside FRAMEWORK_FILES;
- * `listBundledFrameworkFiles` excludes them because they do not classify
- * as "framework". Entries must be relative, `..`-free, and must NOT
- * classify as "framework" — see § 9 row 3.
+ * The headless rule's bundle path, and the layout path `init --headless`
+ * writes it to.
+ *
+ * The source is not under `.claude/rules/` because a path under
+ * `.claude/rules/**` classifies as "framework", and every framework file is
+ * written by every `init`. The rule declares defaults for a session with no
+ * user to ask, and its body is unconditional by design, so installing it into
+ * an interactive layout would suppress questions that layout can answer.
  */
-export const BUNDLE_ONLY_FILES: ReadonlyArray<string> = ["VERSION"];
+export const HEADLESS_RULE_SOURCE = "optional-rules/headless-session.md";
+export const HEADLESS_RULE_TARGET = ".claude/rules/headless-session.md";
+
+/**
+ * Files copied into the npm tarball but never written into an adopter's
+ * directory by a plain `init`. `prepublish` resolves these alongside
+ * FRAMEWORK_FILES; `listBundledFrameworkFiles` excludes them because they do
+ * not classify as "framework". Entries must be relative, `..`-free, and must
+ * NOT classify as "framework" — see § 9 row 3.
+ */
+export const BUNDLE_ONLY_FILES: ReadonlyArray<string> = [
+  "VERSION",
+  HEADLESS_RULE_SOURCE,
+];
 
 /**
  * Team-data patterns. Never overwritten by `update`. Deleted by

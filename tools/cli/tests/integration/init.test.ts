@@ -57,6 +57,7 @@ async function eraseDryRunTargets(dir: string): Promise<string[]> {
       noGitSafety: false,
       dryRun: true,
       quiet: false,
+      headless: false,
       importMetaUrl: synthBundleImportMetaUrl(),
     });
   } finally {
@@ -80,6 +81,7 @@ describe("init: empty cwd", () => {
       noGitSafety: false,
       dryRun: false,
       quiet: true,
+      headless: false,
       importMetaUrl,
     });
     expect(exitCode).toBe(0);
@@ -120,6 +122,7 @@ describe("init: refuses non-empty cwd", () => {
       noGitSafety: false,
       dryRun: false,
       quiet: true,
+      headless: false,
       importMetaUrl,
     });
     expect(exitCode).toBe(2);
@@ -147,6 +150,7 @@ describe("init: --force --erase clean", () => {
         noGitSafety: true,
         dryRun: false,
         quiet: true,
+        headless: false,
         importMetaUrl,
       });
     } finally {
@@ -178,6 +182,7 @@ describe("init: --erase refuses dirty git", () => {
       noGitSafety: false,
       dryRun: false,
       quiet: true,
+      headless: false,
       importMetaUrl,
     });
     expect(exitCode).toBe(3);
@@ -194,6 +199,7 @@ describe("init: --dry-run writes zero files", () => {
       noGitSafety: false,
       dryRun: true,
       quiet: true,
+      headless: false,
       importMetaUrl,
     });
     expect(exitCode).toBe(0);
@@ -222,6 +228,7 @@ describe("init: --erase --no-git-safety with env var proceeds", () => {
         noGitSafety: true,
         dryRun: false,
         quiet: true,
+        headless: false,
         importMetaUrl,
       });
     } finally {
@@ -246,6 +253,7 @@ describe("init: --erase --no-git-safety with env var proceeds", () => {
       noGitSafety: true, // flag set, but no env var
       dryRun: false,
       quiet: true,
+      headless: false,
       importMetaUrl,
     });
     expect(exitCode).toBe(3);
@@ -307,6 +315,7 @@ describe("init --force --erase: a team's own reviewer outside the namespace", ()
         noGitSafety: true,
         dryRun: false,
         quiet: true,
+        headless: false,
         importMetaUrl: synthBundleImportMetaUrl(),
       });
     } finally {
@@ -333,6 +342,7 @@ describe("init/update: the specforge namespace is framework-owned", () => {
         noGitSafety: false,
         dryRun: false,
         quiet: true,
+        headless: false,
         importMetaUrl,
       }),
     ).toBe(0);
@@ -403,6 +413,7 @@ describe("init --force --erase: a failed deletion is printed and the erase conti
         noGitSafety: true,
         dryRun: false,
         quiet: true,
+        headless: false,
         importMetaUrl: synthBundleImportMetaUrl(),
       });
     } finally {
@@ -475,6 +486,7 @@ describe("init / update / migrate on a prepublish-built bundle", () => {
         noGitSafety: false,
         dryRun: false,
         quiet: true,
+        headless: false,
         importMetaUrl,
       }),
     ).toBe(0);
@@ -564,6 +576,7 @@ describe("git status timeout: fails closed", () => {
           noGitSafety: true,
           dryRun: false,
           quiet: true,
+          headless: false,
           importMetaUrl,
         });
       } finally {

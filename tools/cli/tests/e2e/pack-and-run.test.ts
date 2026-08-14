@@ -280,6 +280,144 @@ describe("e2e: a fresh install carries no specforge project metadata", () => {
   }, 120000);
 });
 
+// PRD-012 phase 3 § 9 row 17, local half. The published half — the same
+// assertion against the version the sandbox recipe pins — needs a published
+// tarball to run against.
+//
+// **The assertion is on bundled bytes, not on a shrinkwrap file.** An earlier
+// version of this row asserted the tarball contained `npm-shrinkwrap.json`,
+// which is green while guarding nothing: npm honours a shrinkwrap only when
+// the package is the project root, and `npm install -g <tarball>` — what the
+// image build runs, as root — treats it as a dependency and resolves `yaml`'s
+// caret range live, with the tarball's sha512 verifying the whole time.
+// `bundleDependencies` is the mechanism that install actually consumes.
+describe("e2e: the packed tarball pins its runtime closure", () => {
+  it("carries every runtime dependency's bytes at the version the shrinkwrap records", async () => {
+    if (!tgzPath) {
+      console.warn("DEVIATION: npm pack failed; closure-pinning e2e skipped");
+      return;
+    }
+    const extractDir = await fs.mkdtemp(path.join(os.tmpdir(), "specforge-closure-"));
+    try {
+      spawnSync("tar", ["xzf", tgzPath, "-C", extractDir, "--strip-components=1"], {
+        encoding: "utf8",
+        timeout: 30000,
+      });
+      const pkg = JSON.parse(
+        await fs.readFile(path.join(extractDir, "package.json"), "utf8"),
+      );
+      const sw = JSON.parse(
+        await fs.readFile(path.join(extractDir, "npm-shrinkwrap.json"), "utf8"),
+      );
+
+      for (const name of Object.keys(pkg.dependencies)) {
+        // The bytes `npm install -g <tarball>` will use verbatim.
+        const bundled = JSON.parse(
+          await fs.readFile(
+            path.join(extractDir, "node_modules", name, "package.json"),
+            "utf8",
+          ),
+        );
+        const recorded = sw.packages[`node_modules/${name}`].version;
+        expect(
+          bundled.version,
+          `${name} is bundled at ${bundled.version} but recorded as ${recorded}`,
+        ).toBe(recorded);
+      }
+    } finally {
+      await fs.rm(extractDir, { recursive: true, force: true });
+    }
+  }, 120000);
+});
+
+// PRD-012 phase 3 § 9 row 27. The corpus kubbo's sandbox image builds and
+// seeds into a run comes from `specforge init --headless --quiet` against the
+// published tarball, so the assertion has to run against the packed artifact:
+// the source tree carries files the tarball does not.
+describe("e2e: init --headless produces the corpus the sandbox seed expects", () => {
+  let extractDir: string | null = null;
+  let cliEntry = "";
+
+  beforeAll(async () => {
+    if (!tgzPath) return;
+    const prepared = await extractAndPrepare(tgzPath);
+    extractDir = prepared.extractDir;
+    cliEntry = prepared.cliEntry;
+  }, 180000);
+
+  afterAll(async () => {
+    if (extractDir) await fs.rm(extractDir, { recursive: true, force: true });
+  });
+
+  async function initHeadless(label: string, ...flags: string[]): Promise<string> {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), `specforge-prd012-${label}-`));
+    const r = spawnSync(process.execPath, [cliEntry, "init", "--quiet", ...flags], {
+      cwd: dir,
+      encoding: "utf8",
+      timeout: 30000,
+    });
+    expect(r.status, r.stderr).toBe(0);
+    return dir;
+  }
+
+  it("writes CLAUDE.md, the headless rule, the reviewer definitions and templates/", async () => {
+    if (!tgzPath) {
+      console.warn("DEVIATION: npm pack failed; PRD-012 headless e2e skipped");
+      return;
+    }
+    const dir = await initHeadless("headless", "--headless");
+    try {
+      for (const rel of [
+        "CLAUDE.md",
+        ".claude/rules/headless-session.md",
+        ".claude/agents/specforge/specforge-backend-reviewer.md",
+        ".claude/agents/specforge/specforge-frontend-reviewer.md",
+        ".claude/agents/specforge/specforge-security-reviewer.md",
+        ".claude/agents/specforge/specforge-quality-reviewer.md",
+        "templates/prd.md",
+      ]) {
+        await expect(
+          fs.access(path.join(dir, rel)),
+          `${rel} must be installed by init --headless`,
+        ).resolves.toBeUndefined();
+      }
+
+      // kubbo's seed predicate reads both `CLAUDE.md` and `.claude/rules/`,
+      // so a rules directory holding only the headless rule would still be a
+      // seeded corpus, but an empty one would read as unseeded forever.
+      const rules = await fs.readdir(path.join(dir, ".claude", "rules"));
+      expect(rules).toContain("headless-session.md");
+      expect(rules.length).toBeGreaterThan(1);
+
+      // `doctor` runs the rule-frontmatter validator over the installed rule.
+      const doctor = spawnSync(process.execPath, [cliEntry, "doctor", "--quiet"], {
+        cwd: dir,
+        encoding: "utf8",
+        timeout: 30000,
+      });
+      expect(doctor.status, doctor.stderr).toBe(0);
+    } finally {
+      await fs.rm(dir, { recursive: true, force: true });
+    }
+  }, 120000);
+
+  it("plain init leaves the headless rule out", async () => {
+    if (!tgzPath) {
+      console.warn("DEVIATION: npm pack failed; PRD-012 headless e2e skipped");
+      return;
+    }
+    const dir = await initHeadless("interactive");
+    try {
+      await expect(
+        fs.access(path.join(dir, ".claude", "rules", "headless-session.md")),
+      ).rejects.toThrow();
+      await expect(fs.access(path.join(dir, "CLAUDE.md"))).resolves.toBeUndefined();
+    } finally {
+      await fs.rm(dir, { recursive: true, force: true });
+    }
+  }, 120000);
+});
+
 describe("e2e: pack + npx produces doctor-clean layout", () => {
   it("npm pack; npx init in tmpdir; verify manifest exists, framework files present, AND doctor exits 0 on the resulting layout", async () => {
     if (!tgzPath) {

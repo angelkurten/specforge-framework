@@ -23,7 +23,7 @@ afterEach(async () => {
 
 async function initTmpDir(dir: string) {
   const importMetaUrl = synthBundleImportMetaUrl();
-  await runInit({ cwd: dir, force: false, erase: false, noGitSafety: false, dryRun: false, quiet: true, importMetaUrl });
+  await runInit({ cwd: dir, force: false, erase: false, noGitSafety: false, dryRun: false, quiet: true, headless: false, importMetaUrl });
   return importMetaUrl;
 }
 
@@ -189,6 +189,7 @@ describe("update: a team-edited subagent definition drift-halts", () => {
           noGitSafety: false,
           dryRun: false,
           quiet: true,
+          headless: false,
           importMetaUrl,
         }),
       ).toBe(0);

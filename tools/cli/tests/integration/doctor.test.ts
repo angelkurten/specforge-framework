@@ -30,7 +30,7 @@ afterEach(async () => {
 
 async function doInit(dir: string) {
   const importMetaUrl = synthBundleImportMetaUrl();
-  await runInit({ cwd: dir, force: false, erase: false, noGitSafety: false, dryRun: false, quiet: true, importMetaUrl });
+  await runInit({ cwd: dir, force: false, erase: false, noGitSafety: false, dryRun: false, quiet: true, headless: false, importMetaUrl });
   return importMetaUrl;
 }
 
@@ -289,6 +289,7 @@ describe("doctor: a pre-0.10.0 install carrying the vacated paths stays clean", 
         noGitSafety: false,
         dryRun: false,
         quiet: true,
+        headless: false,
         importMetaUrl,
       }),
     ).toBe(0);

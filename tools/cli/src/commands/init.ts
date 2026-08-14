@@ -16,7 +16,11 @@ import {
   manifestExists,
   writeManifest,
 } from "../manifest.js";
-import { classify } from "../partition.js";
+import {
+  classify,
+  HEADLESS_RULE_SOURCE,
+  HEADLESS_RULE_TARGET,
+} from "../partition.js";
 import { safeUnlink, safeWriteFile } from "../safe-fs.js";
 import { sha256OfFile } from "../sha.js";
 import { info, printError, summary } from "../output.js";
@@ -28,6 +32,7 @@ export interface InitOptions {
   noGitSafety: boolean;
   dryRun: boolean;
   quiet: boolean;
+  headless: boolean;
   importMetaUrl: string;
 }
 
@@ -143,10 +148,14 @@ export async function runInit(opts: InitOptions): Promise<number> {
       for (const t of targets) info(opts, `  delete  ${t}`);
     }
     for (const f of bundledFiles) info(opts, `  write   ${f}`);
+    if (opts.headless) info(opts, `  write   ${HEADLESS_RULE_TARGET}`);
     info(opts, `  write   SIBLINGS.md (team-data placeholder)`);
     info(opts, `  write   ROADMAP.md (team-data placeholder)`);
     info(opts, `  write   .specforge/manifest.json`);
-    summary(opts, `dry-run: ${bundledFiles.length + 3} files would be written`);
+    summary(
+      opts,
+      `dry-run: ${bundledFiles.length + 3 + (opts.headless ? 1 : 0)} files would be written`,
+    );
     return 0;
   }
 
@@ -215,6 +224,17 @@ export async function runInit(opts: InitOptions): Promise<number> {
       const sha = await sha256OfFile(path.join(opts.cwd, rel));
       frameworkEntries.push({ path: rel, sha256_at_install: sha });
       info(opts, `write   ${rel}`);
+    }
+
+    // Step 6b: the headless rule. It is bundle-only, so it is absent from
+    // `bundledFiles` and lands only on an explicit `--headless`. It is
+    // deliberately not a manifest entry: `update` rebuilds `framework_files`
+    // from the bundle's framework set, which this path is not in, so a
+    // manifest entry would survive exactly one command.
+    if (opts.headless) {
+      const src = bundleFileAbs(opts.importMetaUrl, HEADLESS_RULE_SOURCE);
+      await safeWriteFile(opts.cwd, HEADLESS_RULE_TARGET, await fs.readFile(src));
+      info(opts, `write   ${HEADLESS_RULE_TARGET}`);
     }
 
     // Step 7: team-data placeholders. Only write SIBLINGS.md / ROADMAP.md

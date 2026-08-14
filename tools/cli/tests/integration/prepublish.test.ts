@@ -103,14 +103,77 @@ describe("prepublish: bundles the reduced framework set plus VERSION", () => {
     }
     expect(bundled.filter((p) => p.startsWith("docs/"))).toEqual([]);
 
+    // PRD-012 phase 3: bundled, but never written by a plain `init` — it is
+    // absent from the framework list above and lands only on `--headless`.
+    expect(bundled).toContain("optional-rules/headless-session.md");
+
     // PRD-005 § 5.1: 32 framework files + VERSION. PRD-006 swapped twelve
     // briefings for twelve subagent definitions, so the count was unchanged
     // there. PRD-010 § 6.2 row 8 adds two more subagent definitions
     // (specforge-backend-implementer, specforge-frontend-implementer),
-    // moving the count from 33 to 35. Adding a rule, template, definition,
-    // or example moves this number — update it here and in § 5.1's
-    // successor rather than loosening the assertion.
-    expect(bundled).toHaveLength(35);
+    // moving the count from 33 to 35. PRD-012 phase 3 adds the bundle-only
+    // headless rule, 35 to 36. Adding a rule, template, definition, or
+    // example moves this number — update it here and in § 5.1's successor
+    // rather than loosening the assertion.
+    expect(bundled).toHaveLength(36);
+  });
+});
+
+// PRD-012 phase 3 § 5.3: `npm install -g --ignore-scripts <tarball>` runs as
+// root during the sandbox image build. A bundled `npm-shrinkwrap.json` does
+// NOT govern that install — measured: npm honours a shrinkwrap only when the
+// package is the project root, and resolves ranges live when it is a
+// dependency. `bundleDependencies` is what actually pins the closure; the
+// shrinkwrap remains the record of which versions were bundled.
+describe("prepublish: the runtime closure is pinned", () => {
+  it("every runtime dependency is bundled and pinned to one exact version", async () => {
+    const pkg = JSON.parse(
+      await fs.readFile(path.join(REPO_ROOT, "tools/cli/package.json"), "utf8"),
+    );
+    const sw = JSON.parse(
+      await fs.readFile(path.join(REPO_ROOT, "tools/cli/npm-shrinkwrap.json"), "utf8"),
+    );
+
+    const deps = Object.keys(pkg.dependencies).sort();
+    expect(
+      [...(pkg.bundleDependencies ?? [])].sort(),
+      "every runtime dependency must be bundled, or it resolves live as root at image-build time",
+    ).toEqual(deps);
+
+    for (const name of deps) {
+      const meta = sw.packages[`node_modules/${name}`];
+      expect(meta, `${name} missing from the shrinkwrap`).toBeDefined();
+      expect(meta.version, `${name} carries no resolved version`).toMatch(/^\d+\.\d+\.\d+/);
+      expect(meta.integrity, `${name} carries no integrity hash`).toMatch(/^sha\d+-/);
+      expect(meta.dev, `${name} must not be a dev entry`).toBeUndefined();
+    }
+    // `yaml` is the one on a caret range, so it is the one that would
+    // otherwise resolve live.
+    expect(pkg.dependencies.yaml).toMatch(/^\^/);
+  });
+
+  it("stamps the repo VERSION into the shrinkwrap as well as package.json", async () => {
+    const stale = {
+      name: "@angelkurten/specforge",
+      version: "0.0.0-stale",
+      lockfileVersion: 3,
+      requires: true,
+      packages: { "": { name: "@angelkurten/specforge", version: "0.0.0-stale" } },
+    };
+    await fs.writeFile(
+      path.join(cliRoot, "npm-shrinkwrap.json"),
+      JSON.stringify(stale, null, 2) + "\n",
+    );
+
+    const code = await runPrepublish({ repoRoot: REPO_ROOT, cliRoot });
+    expect(code).toBe(0);
+
+    const version = (await fs.readFile(path.join(REPO_ROOT, "VERSION"), "utf8")).trim();
+    const pkg = JSON.parse(await fs.readFile(path.join(cliRoot, "package.json"), "utf8"));
+    const sw = JSON.parse(await fs.readFile(path.join(cliRoot, "npm-shrinkwrap.json"), "utf8"));
+    expect(pkg.version).toBe(version);
+    expect(sw.version).toBe(version);
+    expect(sw.packages[""].version).toBe(version);
   });
 });
 
@@ -259,6 +322,9 @@ describe("prepublish: a symlinked invocation is not silently skipped", () => {
         ".claude/agents/specforge/specforge-backend-reviewer.md",
         "templates/prd.md",
         "examples/prd-001-login-example.md",
+        // A bundle-only entry is never excused when missing, so the fixture
+        // tree has to carry every one of them or the run fails at step 4.
+        "optional-rules/headless-session.md",
       ]) {
         const abs = path.join(repo, rel);
         await fs.mkdir(path.dirname(abs), { recursive: true });
