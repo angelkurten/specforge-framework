@@ -8,6 +8,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.15.4] - 2026-08-14
+
+### Fixed
+
+- **`optional-rules/headless-session.md`'s step-8 reinforcement (0.15.3) fixed the wrong half by itself.** Verified against a real headless run ("a clock app"): the session implemented working code and skipped `workflow.md` entirely to get there — no grounding, no PRD, no panel. A new section states the file's whole point is "do both steps 1-9 and step 9's code, always, in order," not "prefer code over a PRD" — there is no request-shape exception that lets a session judge a request too small for the nine steps. Found during PRD-012 phase 3's post-gate verification, the same run that confirmed 0.15.3's fix.
+
 ## [0.15.3] - 2026-08-14
 
 ### Fixed

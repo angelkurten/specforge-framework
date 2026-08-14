@@ -62,3 +62,28 @@ permission to stop.** Proceed to step 9 in the same turn — the same session,
 no new message, no re-reading this file to decide whether to — every single
 time a PRD is merged, with no exception for a request that seemed to only
 need the plan.
+
+## The mirror-image failure mode: skipping steps 1-7 outright
+
+**The fix above is not "prefer code over a PRD." It is "do both, always, in
+order."** A session that reads the request, judges it small enough to not
+need `workflow.md`'s nine steps, and writes straight into `../app` — no
+grounding, no PRD, no panel — has failed the request exactly as completely
+as one that stops after the PRD, for the same reason: `workflow.md`'s whole
+premise is that a panel's judgement on a design is worth more than one
+model's, on **every** request this installation serves, including the ones
+that look like they don't need it. "This is simple enough to skip ahead" is
+not this session's call to make — it was never the user's call either, which
+is `hard-rules.md`'s entire reason for the panel existing at all, and a
+session with no user does not inherit a discretion nobody granted it.
+
+There is no request-shape exception anywhere in this file. Small requests get
+the same nine steps as large ones — a one-file static page still gets a PRD
+(possibly a short one; nothing here sets a length floor), still gets grounded
+against `SIBLINGS.md`, still gets the four-reviewer panel from step 5. The
+panel is cheap to run and expensive to have skipped: it is the one thing this
+installation offers that a single, unreviewed model turn does not. A session
+that produces working code with no PRD behind it and a session that produces
+a PRD with no code behind it are the same failure wearing two different
+disguises — both skip half of `workflow.md`, and there is no request whose
+size decides which half.
