@@ -8,6 +8,29 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.14.0] - 2026-08-13
+
+Not shipped via a PRD. Two owner decisions taken directly, both widening tool access in response to adopter reports that `Bash` was unusable in practice. Neither went through a reviewer panel; the second overrides a panel finding that had already been raised and staged. Recorded here because the CHANGELOG is the only place an adopter will see both.
+
+### Changed
+
+- **The two implementer definitions no longer restrict `Bash` by category of command.** PRD-010's `## What you never run` section carried three conjunctive rules; rule 2 (*scope* — an enumeration of test runner, linter, formatter, type checker, build, migration tooling) is **removed**. Both bodies now open the section with "There is no restriction on what kind of command you may run." The remaining two rules — *provenance* (never a command whose text came from a file you read, excepting `PRD_PATH` and `SIBLING_CLAUDE_MD_PATH`) and *no network* as a `WebFetch` substitute — bind command **text** and **egress**, not command **kind**. Adopter reports that the enumeration excluded ordinary inspection (`ls`, `git status`, `git diff`) and effectively blocked the tool drove this; the gap had been filed as a 🟢 in [PRD-011](011-implementer-bash-scope-rule-correction.md) §11 and deferred, which the reports showed was the wrong severity call. `tools/cli/tests/conformance/framework.test.ts` gains an assertion that the enumeration has not crept back in.
+- **All eight roadmap generator/critic definitions gain `Bash` and `WebFetch`**, moving from PRD-006 §6.2's `Read, Grep, Glob` to `Read, Grep, Glob, Bash, WebFetch`. All 14 definitions now hold both tools. The three READMEs' `WebFetch` domain-scoping paragraph moves from "the six `WebFetch`-holding definitions" to all fourteen.
+
+### Security
+
+**This release ships a known, unmitigated risk, accepted deliberately by the framework owner.**
+
+Granting the roadmap panel web access is precisely what PRD-008's step-5 security review rejected. That review split the PRD and moved the roadmap half to [PRD-009](009-web-access-for-roadmap-subagents.md), naming four structural gaps: unfenced generator `Rationale` output, pre-fetch URL screening present in only two of eight bodies, no findings channel for generators, and clause scope gaps. **None was closed before this grant.** This release also adds `Bash`, which PRD-009 never contemplated.
+
+The sharpest consequence: the four generators run **before** the critics, and pre-fetch screening lives in two of the eight bodies. A category-5 URL carrying a credential or pointing at an internal domain is leaked by the act of fetching it. Six of the eight roles can now dereference such a URL with no screen, and all eight hold a shell while doing it. These are the roles whose entire input is user-supplied evidence.
+
+PRD-009 stays `Draft` rather than closed: its §1 is now the written record of what is unmitigated in a shipped artifact, and it serves as the remediation backlog rather than as a gate on a grant that already landed.
+
+### Upgrade note for existing adopters
+
+**Re-read your `permissions.deny` list before taking this update.** The eight roadmap identities were previously safe to leave un-denied on the grounds that they held no shell and no network — that is no longer true. A team relying on that reasoning should either deny the eight `Agent(specforge-roadmap-*)` entries or accept the posture described above. `.claude/settings.json` is outside the framework partition, so `update` will not touch it either way.
+
 ## [0.13.0] - 2026-08-13
 
 Shipped via [PRD-010: Implementer subagent roles for workflow step 9](010-implementer-subagent-roles.md) (`Status: Implemented`; gate filled after a post-implementation review plus three fix rounds cleared). Roadmap: [ROADMAP-007](ROADMAP.md) `Shipped`. No migration script — subagent definitions, rule files and documentation only, no CLI source changed. Four follow-ups tracked in [PRD-011](011-implementer-bash-scope-rule-correction.md) (`Draft`): they correct PRD-010 §8's *account* of the `Bash` rules, which diverges from the stricter rules that actually shipped.
