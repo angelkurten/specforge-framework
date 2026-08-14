@@ -8,6 +8,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.14.1] - 2026-08-13
+
+Packaging fix for 0.14.0. No framework artifact changed — the definitions, rules and tests are byte-identical to 0.14.0.
+
+### Fixed
+
+- **0.14.0's upgrade note did not reach the people it was written for.** This file is not installed into an adopter's specforge directory and is not in `tools/cli/package.json`'s `files` list — it is a **vacated path**, and `framework.test.ts`'s PRD-005 § 9 row 14 assertion actively forbids a shipped README from citing it, precisely because an adopter has no such file. So the npm tarball ships `dist/`, `framework/` and the CLI `README.md` and nothing else. An adopter running `npx @angelkurten/specforge update` received 0.14.0's widened tool grants without ever seeing the `Security` section or the instruction to re-read their `permissions.deny` list. The whole mitigation for 0.14.0's accepted risk was *telling adopters*, and the telling did not ship.
+- The CLI `README.md` — which does ship, and is the npm package page — gains a self-contained **Upgrading to 0.14.0** subsection under `## Upgrading`: it states the grant, names the roadmap panel's contributor-supplied input surface, spells out all four unclosed gaps and the generators-run-before-critics ordering **inline** rather than by reference, and repeats the `permissions.deny` instruction. Links go to the GitHub release notes by URL, never to a vacated path — the first draft of this fix cited `CHANGELOG.md` and was caught by the row-14 assertion.
+
+**0.14.0 is tagged in git but was never published to npm.** Install 0.14.1 instead; there is no 0.14.0 on the registry to upgrade from.
+
 ## [0.14.0] - 2026-08-13
 
 Not shipped via a PRD. Two owner decisions taken directly, both widening tool access in response to adopter reports that `Bash` was unusable in practice. Neither went through a reviewer panel; the second overrides a panel finding that had already been raised and staged. Recorded here because the CHANGELOG is the only place an adopter will see both.

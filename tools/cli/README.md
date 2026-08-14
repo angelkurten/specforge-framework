@@ -247,6 +247,18 @@ npx @angelkurten/specforge update
 
 `update` refreshes framework files in place. **Team data files** (`SIBLINGS.md`, `ROADMAP.md`, your PRDs, your ADRs) are never touched — they only change when you edit them. If you have edited a framework file yourself, `update` halts and reports the drift; pass `--strategy=ours`, `--strategy=theirs`, or `--strategy=merge` to resolve it.
 
+### Upgrading to 0.14.0 — read before you run `update`
+
+**All 14 subagent definitions now hold `Bash` and `WebFetch`.** The eight roadmap generator and critic roles previously held neither, and their entire input is user-supplied evidence — quotes, hypotheses, and competitor URLs a contributor wrote. They can now dereference such a URL and hold a shell while doing it.
+
+Granting the roadmap panel web access is what an earlier security review of this framework rejected. That review deferred the grant and named four structural gaps, none of which was closed before this release: generator output is unfenced, pre-fetch URL screening exists in two of the eight roles, generators have no findings channel, and the injection clause written for the reviewer roles does not cover the roadmap shape. The generators run *before* the critics, so six of the eight can dereference a contributor-supplied URL with no screen at all. `Bash` was granted on top, which the deferred design never contemplated.
+
+This was accepted deliberately as known, unmitigated risk. The full statement and the gap analysis live in the [release notes](https://github.com/angelkurten/specforge-framework/releases) and the repository's own design records.
+
+**If your `permissions.deny` list left the eight `Agent(specforge-roadmap-*)` identities un-denied on the grounds that they held no shell and no network, that reasoning no longer holds.** Re-read it. `.claude/settings.json` sits outside the framework partition, so `update` will not touch it either way — see [Turning the panels off](#turning-the-panels-off).
+
+The two implementer definitions also stop restricting `Bash` by category of command in this release; provenance and no-network still bind.
+
 ## Language
 
 - specforge itself is written in English so that it is adoptable by any team.
