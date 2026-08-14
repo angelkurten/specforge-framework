@@ -8,6 +8,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.15.0] - 2026-08-14
+
+For kubbo's PRD-012 phase 3: specforge now runs headless, inside a session, seeded from a corpus baked into a sandbox image rather than adopted interactively into a human's own repository.
+
+### Added
+
+- **`specforge init --headless`**: writes `CLAUDE.md`, the fourteen `.claude/agents/specforge/*.md` definitions, `templates/`, and a new `.claude/rules/headless-session.md` — the rule an unattended session reads in place of the four interactive decision points `workflow.md` otherwise resolves by asking a user (step 1's scoping, step 6's ambiguous-tradeoff resolution, step 7's escalation choices, step 9's implementer dispatch) plus step 2's fan-out default. `specforge init` (no flag) is unchanged.
+
+### Fixed
+
+- **The published tarball did not actually bundle its runtime dependencies.** `npm-shrinkwrap.json`'s presence proved to guard nothing: it pins a package's dependencies only when installed as a project root, and `npm install -g --ignore-scripts <tarball>` — the path a sandbox image build runs, as root — installs it as a dependency, the one path where a shrinkwrap is silently ignored. Measured directly: a tarball pinning `yaml` to a fixed version via shrinkwrap still resolved a different version live, on both a global and a local install. `yaml` and `diff3` now ship via `bundleDependencies`, shipping the resolved `node_modules` bytes inside the tarball itself, so nothing resolves at install time regardless of range or registry state.
+
+---
+
 ## [0.14.1] - 2026-08-13
 
 Packaging fix for 0.14.0. No framework artifact changed — the definitions, rules and tests are byte-identical to 0.14.0.
