@@ -2,7 +2,7 @@
 name: specforge-roadmap-evidence-critic
 description: Evidence-rigor critic for the specforge roadmap generative cycle — disputes candidate ROADMAP.md items on evidence strength, categorisation, and integrity. Dispatched explicitly by the specforge roadmap generative cycle with a structured brief — not intended for automatic delegation.
 model: opus
-tools: Read, Grep, Glob
+tools: Read, Grep, Glob, Bash, WebFetch
 ---
 
 # Roadmap Evidence Critic Briefing

@@ -97,9 +97,18 @@ conclude the exclusion is absolute-path-anchored when it is not.
 
 ## 3. Non-Goals
 
-- **Changing either implementer definition's behaviour.** The shipped
-  rules are correct and stronger than PRD-010 §8's description of them.
-  This PRD corrects the description, not the code.
+- **Changing either implementer definition's remaining `Bash` rules.**
+  Provenance and no-network stand as shipped; this PRD corrects PRD-010
+  §8's *description* of them, not their text.
+
+  **Amended 2026-08-13.** This non-goal originally read "changing either
+  implementer definition's behaviour", on the premise that the shipped
+  rules were correct and only §8's account of them was wrong. Run-rule 2
+  (the functional scope enumeration) has since been **removed** from both
+  definitions — see §11's resolved open question. §1(a)'s analysis is
+  unaffected and still describes a real divergence in frozen PRD-010,
+  which is what this PRD corrects; it now documents a rule that no longer
+  ships, which is the more useful record, not less.
 
 ## 4. User Flows / Design
 
@@ -139,13 +148,28 @@ root in addition to root-relative on `SIBLING_ROOT`.]
       Not reachable by `Edit`/`Write` today; the composed-`Bash` path is
       named by no prohibition (§1(b)). The question is whether to close
       the wording gap or record it as deliberately out of scope.
-- [ ] Run-rule 2's enumeration (test runner, linter, formatter, type
+- [x] ~~Run-rule 2's enumeration (test runner, linter, formatter, type
       checker, build, migration tooling) literally excludes read-only
       inspection — `ls`, `git status`, `git diff` — which every
-      implementer dispatched during PRD-010's own rounds ran in practice.
-      Carried from a PRD-010 post-implementation 🟢; the reviewer's
-      suggested home was this section rather than a code change, since
-      `Read`/`Grep`/`Glob` cover navigation without `Bash`.
+      implementer dispatched during PRD-010's own rounds ran in
+      practice.~~ **Resolved 2026-08-13, ahead of this PRD, by removing
+      run-rule 2 outright.** Adopter reports that the enumeration made
+      `Bash` unusable escalated this well past the 🟢 it was filed as.
+      Widening the enumeration to admit read-only inspection was tried
+      first and rejected as still-too-narrow: the defect is the closed
+      list itself, not its contents. Both definitions now state that the
+      *kind* of command is unrestricted, and bind only provenance and
+      no-network — neither of which is a category restriction.
+
+      **Security note.** This reopens the SEC-2 surface §1(a) describes:
+      the functional criterion was what denied a hostile sibling
+      `CLAUDE.md` the ability to name an arbitrary command as "our test
+      runner". Provenance is now the sole injection control. It still
+      blocks the higher-value path — a command lifted verbatim out of
+      source, a comment, a fixture, or a fetched page — but a sanctioned
+      `CLAUDE.md` naming a hostile runner is no longer filtered. Accepted
+      deliberately, as an ergonomics-over-defence-in-depth call by the
+      framework owner, and recorded here rather than left implicit.
 
 ---
 

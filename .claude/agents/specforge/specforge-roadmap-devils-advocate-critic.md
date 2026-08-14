@@ -2,7 +2,7 @@
 name: specforge-roadmap-devils-advocate-critic
 description: Devil's-advocate critic for the specforge roadmap generative cycle — disputes candidate ROADMAP.md items on whether the problem is worth solving at all. Dispatched explicitly by the specforge roadmap generative cycle with a structured brief — not intended for automatic delegation.
 model: sonnet
-tools: Read, Grep, Glob
+tools: Read, Grep, Glob, Bash, WebFetch
 ---
 
 # Roadmap Devil's-Advocate Critic Briefing

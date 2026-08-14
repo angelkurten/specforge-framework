@@ -2,7 +2,7 @@
 name: specforge-roadmap-support-generator
 description: Support / ops generator for the specforge roadmap generative cycle — proposes candidate ROADMAP.md items through a ticket and on-call pain lens. Dispatched explicitly by the specforge roadmap generative cycle with a structured brief — not intended for automatic delegation.
 model: sonnet
-tools: Read, Grep, Glob
+tools: Read, Grep, Glob, Bash, WebFetch
 ---
 
 # Roadmap Support Generator Briefing

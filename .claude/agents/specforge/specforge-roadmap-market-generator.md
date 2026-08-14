@@ -2,7 +2,7 @@
 name: specforge-roadmap-market-generator
 description: Market / competitive generator for the specforge roadmap generative cycle — proposes candidate ROADMAP.md items through a market lens. Dispatched explicitly by the specforge roadmap generative cycle with a structured brief — not intended for automatic delegation.
 model: sonnet
-tools: Read, Grep, Glob
+tools: Read, Grep, Glob, Bash, WebFetch
 ---
 
 # Roadmap Market Generator Briefing

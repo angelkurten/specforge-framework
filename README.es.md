@@ -167,7 +167,7 @@ Las 14 definiciones son subagentes registrados a los que el modelo host puede de
 
 `permissions.deny` es también el único control que alcanza una definición instalada a nivel usuario (`~/.claude/agents/`), que ningún chequeo scopeado al repo puede ver.
 
-Para intentar acotar desde dónde pueden fetchear las seis definiciones que tienen `WebFetch`, combiná una entrada `allow` para los dominios en los que confiás con un deny general de `WebFetch` en el mismo `.claude/settings.json` — el `allow` solo, por sí mismo, únicamente pre-aprueba un dominio y no bloquea ningún otro:
+Para intentar acotar desde dónde pueden fetchear las catorce definiciones que tienen `WebFetch`, combiná una entrada `allow` para los dominios en los que confiás con un deny general de `WebFetch` en el mismo `.claude/settings.json` — el `allow` solo, por sí mismo, únicamente pre-aprueba un dominio y no bloquea ningún otro:
 
 ```json
 {
@@ -182,7 +182,7 @@ Para intentar acotar desde dónde pueden fetchear las seis definiciones que tien
 }
 ```
 
-Dos caveats. La regla es session-wide, no por subagente — seis definiciones (cuatro revisores, dos implementadores) comparten una sola lista, y la sesión principal también. Y si esta combinación de `allow`+`deny` realmente *restringe* los fetches al dominio permitido, o si el `allow` más específico simplemente toma precedencia para ese caso sin que el deny general haga nada útil en el resto, está **sin verificar**: la precedencia de Claude Code para esta combinación no quedó establecida al momento de escribir esto. Tratala como scoping que conviene confirmar contra tu propia versión de Claude Code, no como un sandbox que ya tenés.
+Dos caveats. La regla es session-wide, no por subagente — las catorce definiciones (cuatro revisores, dos implementadores, ocho roles de roadmap) comparten una sola lista, y la sesión principal también. Y si esta combinación de `allow`+`deny` realmente *restringe* los fetches al dominio permitido, o si el `allow` más específico simplemente toma precedencia para ese caso sin que el deny general haga nada útil en el resto, está **sin verificar**: la precedencia de Claude Code para esta combinación no quedó establecida al momento de escribir esto. Tratala como scoping que conviene confirmar contra tu propia versión de Claude Code, no como un sandbox que ya tenés.
 
 ## Quickstart
 

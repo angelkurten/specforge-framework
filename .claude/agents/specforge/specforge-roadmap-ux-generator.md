@@ -2,7 +2,7 @@
 name: specforge-roadmap-ux-generator
 description: UX generator for the specforge roadmap generative cycle — proposes candidate ROADMAP.md items through a UX friction lens. Dispatched explicitly by the specforge roadmap generative cycle with a structured brief — not intended for automatic delegation.
 model: sonnet
-tools: Read, Grep, Glob
+tools: Read, Grep, Glob, Bash, WebFetch
 ---
 
 # Roadmap UX Generator Briefing

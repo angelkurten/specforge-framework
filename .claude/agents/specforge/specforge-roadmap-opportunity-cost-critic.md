@@ -2,7 +2,7 @@
 name: specforge-roadmap-opportunity-cost-critic
 description: Opportunity-cost critic for the specforge roadmap generative cycle — disputes candidate ROADMAP.md items on slot competition and alternative uses of the same development capacity. Dispatched explicitly by the specforge roadmap generative cycle with a structured brief — not intended for automatic delegation.
 model: sonnet
-tools: Read, Grep, Glob
+tools: Read, Grep, Glob, Bash, WebFetch
 ---
 
 # Roadmap Opportunity-Cost Critic Briefing

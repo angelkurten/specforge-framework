@@ -15,6 +15,31 @@
 > reviewer panel's shape does not close the gaps named below, which is why
 > this PRD exists separately rather than as a same-commit extension of
 > PRD-008.
+>
+> ---
+>
+> ⚠️ **The grant landed on 2026-08-13 without this PRD's design, by owner
+> decision.** All eight roadmap definitions now carry
+> `tools: Read, Grep, Glob, Bash, WebFetch` — `Bash` as well as `WebFetch`,
+> which is wider than even this PRD contemplated. The four gaps in §1 were
+> presented to the owner and **accepted as known, unmitigated risk**; none
+> was closed first. The paragraph above is therefore a description of what
+> was *not* done, retained deliberately.
+>
+> **This PRD stays `Draft` rather than being closed.** Its §1 is now the
+> written record of what is unmitigated in the shipped artifact — the
+> highest-value document in the repo for whoever next asks why a roadmap
+> critic holds a shell and a fetch tool. Closing it would delete that
+> record. What changes is its purpose: it is no longer a gate on the grant
+> (the grant shipped), it is the remediation backlog for a grant already
+> live. §§2-11 stay `[TBD]` until that work is scheduled.
+>
+> **Sharpest consequence, stated plainly:** the four generators run *before*
+> the critics, and pre-fetch URL screening exists in two of eight bodies.
+> A category-5 URL carrying a credential or pointing at an internal domain
+> is leaked by the act of fetching it. Six of the eight roles can now
+> dereference such a URL with no screen at all, and all eight hold `Bash`
+> while doing it.
 
 ## Impacted Projects
 

@@ -2,7 +2,7 @@
 name: specforge-roadmap-product-generator
 description: Product generator for the specforge roadmap generative cycle — proposes candidate ROADMAP.md items through an existing-user outcome-gap lens. Dispatched explicitly by the specforge roadmap generative cycle with a structured brief — not intended for automatic delegation.
 model: sonnet
-tools: Read, Grep, Glob
+tools: Read, Grep, Glob, Bash, WebFetch
 ---
 
 # Roadmap Product Generator Briefing
