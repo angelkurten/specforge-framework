@@ -8,6 +8,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.15.3] - 2026-08-14
+
+### Fixed
+
+- **`optional-rules/headless-session.md`'s step-8 default ("proceed to step 9 with the merged PRD") did not reliably fire.** A real headless run given a plain request with no hint that a workflow exists to follow ("a todo app") produced a grounded, panel-reviewed PRD, merged it, and ended — `../app` was never opened, holding only its `auto_init` README when the session finished. The row is now explicit that step 8 is not a resting point ("in the same turn, without ending the session first"), and a new section names the failure mode directly: reaching step 8 is the middle of the request, not the end of it. Found and fixed during PRD-012 phase 3's post-gate verification (kubbo).
+
 ## [0.15.2] - 2026-08-14
 
 Packaging fix for 0.15.1, which also failed to publish. No framework artifact changed.
