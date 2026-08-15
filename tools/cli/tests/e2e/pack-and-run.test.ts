@@ -6,44 +6,21 @@ import { promises as fs } from "node:fs";
 import { spawnSync } from "node:child_process";
 import * as path from "node:path";
 import * as os from "node:os";
+import { findPackedTarball } from "../global-setup.js";
 
 const CLI_DIR = path.resolve(
   path.dirname(new URL(import.meta.url).pathname),
   "../..",
 );
 
-let packDir: string;
 let tgzPath: string | null = null;
 
+// The tarball is packed once per run by tests/global-setup.ts — packing here
+// too would race the other e2e file, since `prepack` rewrites the shared build
+// artifacts this tree packs from.
 beforeAll(async () => {
-  packDir = await fs.mkdtemp(path.join(os.tmpdir(), "specforge-e2e-"));
-
-  // Run npm pack from CLI_DIR to produce the tarball
-  const packResult = spawnSync("npm", ["pack", "--pack-destination", packDir], {
-    cwd: CLI_DIR,
-    encoding: "utf8",
-    timeout: 60000,
-  });
-
-  if (packResult.status !== 0) {
-    console.error("npm pack failed:", packResult.stderr);
-    tgzPath = null;
-    return;
-  }
-
-  // Find the produced tarball
-  const files = await fs.readdir(packDir);
-  const tgz = files.find((f) => f.endsWith(".tgz"));
-  if (tgz) {
-    tgzPath = path.join(packDir, tgz);
-  }
+  tgzPath = await findPackedTarball();
 }, 120000);
-
-afterAll(async () => {
-  if (packDir) {
-    await fs.rm(packDir, { recursive: true, force: true });
-  }
-});
 
 /**
  * Extract the tarball, install dependencies, and create a dist/framework

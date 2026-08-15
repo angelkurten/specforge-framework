@@ -1,6 +1,6 @@
 {
   "name": "@angelkurten/specforge",
-  "version": "0.15.4",
+  "version": "0.16.0",
   "description": "CLI for installing, updating, validating, and migrating specforge framework layouts.",
   "license": "MIT",
   "repository": {
@@ -24,6 +24,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.scripts.json",
+    "prepack": "npm run build && npm run prepublish",
     "prepublish": "node dist-scripts/scripts/prepublish.js",
     "prepublishOnly": "npm run build && npm run prepublish",
     "test": "vitest run"

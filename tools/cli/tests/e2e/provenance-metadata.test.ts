@@ -7,42 +7,20 @@ import { promises as fs } from "node:fs";
 import { spawnSync } from "node:child_process";
 import * as path from "node:path";
 import * as os from "node:os";
+import { findPackedTarball } from "../global-setup.js";
 
 const CLI_DIR = path.resolve(
   path.dirname(new URL(import.meta.url).pathname),
   "../..",
 );
 
-let packDir: string;
 let tgzPath: string | null = null;
 
+// Packed once per run by tests/global-setup.ts — see the note there on why
+// this file no longer packs its own.
 beforeAll(async () => {
-  packDir = await fs.mkdtemp(path.join(os.tmpdir(), "specforge-prov-e2e-"));
-
-  const packResult = spawnSync("npm", ["pack", "--pack-destination", packDir], {
-    cwd: CLI_DIR,
-    encoding: "utf8",
-    timeout: 60000,
-  });
-
-  if (packResult.status !== 0) {
-    console.error("npm pack failed:", packResult.stderr);
-    tgzPath = null;
-    return;
-  }
-
-  const files = await fs.readdir(packDir);
-  const tgz = files.find((f) => f.endsWith(".tgz"));
-  if (tgz) {
-    tgzPath = path.join(packDir, tgz);
-  }
+  tgzPath = await findPackedTarball();
 }, 120000);
-
-afterAll(async () => {
-  if (packDir) {
-    await fs.rm(packDir, { recursive: true, force: true });
-  }
-});
 
 describe("end-to-end: provenance metadata present", () => {
   it("After npm pack, the package manifest carries the fields expected by npm audit signatures (offline check of metadata shape only)", async () => {

@@ -3,6 +3,7 @@ node_modules/
 /dist-scripts/
 /framework/
 *.tgz
+/.e2e-pack/
 .vitest/
 coverage/
 

@@ -9,6 +9,10 @@ export default defineConfig({
       // Assertions ported from the markdown corpus in <repo>/tests/*.
       "tests/conformance/**/*.test.ts",
     ],
+    // Packs the npm tarball once for the whole run. Both e2e files consume
+    // that single artifact: `prepack` refreshes the shared build outputs, so
+    // two files packing in parallel raced on the same tree.
+    globalSetup: ["./tests/global-setup.ts"],
     // Disable concurrent file execution for integration/e2e tests that use
     // shared filesystem resources. Fine for unit tests but safest to keep
     // single-threaded overall given the lock-file and tmpdir patterns.
