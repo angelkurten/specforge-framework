@@ -28,9 +28,9 @@ file.
 
 | Point | Default |
 |---|---|
-| **Step 1 — scoping** | Proceed with the request as given. Do not call `AskUserQuestion`. Record every scoping assumption in the PRD's § 11 Open Questions, so the assumption is visible to the human who reads the document rather than lost in the session. |
+| **Step 1 — scoping** | Proceed with the request as given. Do not call `AskUserQuestion`. Record every scoping assumption in the PRD's § 11 Open Questions, so the assumption is visible to the human who reads the document rather than lost in the session. **The step-1 triage gate does not fire here**: `workflow.md` routes a request landing on a **No PRD** row straight to the work with no grounding and no panel, and that routing is a judgement about request shape — § *The mirror-image failure mode* below is this file's standing refusal to grant a session with no user that judgement. Headless writes a PRD for every request it serves, a one-file static page included. Step 1's exception for a sibling's first change is redundant here rather than contradictory, since headless already writes a PRD in every case that exception covers. |
 | **Step 2 — grounding fan-out** | One grounding agent per sibling row in `SIBLINGS.md`. The registry is read exactly as it is read anywhere else; there is no headless special case, and a registry with one row means one agent. |
-| **Step 5 — panel size** | Exactly four reviewers — backend, frontend, security, quality — dispatched as one batch. `workflow.md` says "a typical panel of 4 … adapted to the domain"; headless fixes the number, because without a user to weigh it the panel's width is a cost and concurrency term rather than a judgement call. A dispatched sub-agent does not dispatch further sub-agents. |
+| **Step 5 — panel size** | Apply `workflow.md`'s step-5 trigger table unchanged: dispatch the roles whose surface the PRD carries, as one batch, and skip the roles whose trigger does not fire. A static page with no API, no data model and no trust boundary draws `specforge-quality-reviewer` and `specforge-frontend-reviewer` — not four. **This file withholds judgement from the session, not rules**, and the table is mechanical: "does § 5 name an endpoint?" is read off the document, not weighed. `specforge-quality-reviewer` fires unconditionally, so the panel is never empty, and step 9's re-selection against the diff still catches surface the draft did not promise. Report the skipped roles and their triggers in the session's own output, since no user is present to ask. A dispatched sub-agent does not dispatch further sub-agents. |
 | **Step 6 — trade-offs** | Take the fix the reviewer recommended. Do not call `AskUserQuestion`. Record the discarded alternative in § 11, so the trade-off the session resolved on its own is on the record. |
 | **Step 8 — post-merge** | Option (a): proceed to step 9 with the PRD just merged, **in the same turn, without ending the session first.** `workflow.md` asks this on every ship, not only on an ambiguity, so it is the one decision point a headless session reaches every time, and it is not a resting point. A merged PRD with `../app` still holding only its `README.md` is not a partial answer to the request — it is not an answer at all. |
 | **Step 9 — escalation** | Option (ii): move the PRD back to `Draft`, strip the gate fields, explain why at the top, and stop. Never option (iii) — waiving a finding is a human act, and a session with no human cannot perform it on one's behalf. |
@@ -80,9 +80,13 @@ session with no user does not inherit a discretion nobody granted it.
 There is no request-shape exception anywhere in this file. Small requests get
 the same nine steps as large ones — a one-file static page still gets a PRD
 (possibly a short one; nothing here sets a length floor), still gets grounded
-against `SIBLINGS.md`, still gets the four-reviewer panel from step 5. The
-panel is cheap to run and expensive to have skipped: it is the one thing this
-installation offers that a single, unreviewed model turn does not. A session
+against `SIBLINGS.md`, still gets step 5's panel. **Selecting that panel by
+surface is not a request-shape exception**: the step-5 row above narrows *which
+roles* review a document, and every step still runs. What this section forbids
+is skipping a step, not dispatching a reviewer whose domain the document has no
+surface in — a backend reviewer reading a static page produces nits, and paying
+for it is not rigour. The panel is expensive to have skipped: it is the one
+thing this installation offers that a single, unreviewed model turn does not. A session
 that produces working code with no PRD behind it and a session that produces
 a PRD with no code behind it are the same failure wearing two different
 disguises — both skip half of `workflow.md`, and there is no request whose

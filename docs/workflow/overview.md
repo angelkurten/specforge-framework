@@ -74,7 +74,7 @@ Write the PRD/ADR using `templates/prd.md` or `templates/adr.md`. Every required
 
 ### 5. Multi-reviewer critique
 
-Launch reviewers **in parallel** — a typical panel of 4 (backend, frontend, security, quality), adapted to the domain. Each reviewer is briefed with:
+Launch reviewers **in parallel**, selecting roles by the surface the PRD actually carries rather than by default — backend on an API or data-model change, frontend on a user-visible one, security on a trust boundary, quality always. Four roles is the common case for a feature PRD, not a quota. Each reviewer is briefed with:
 
 - The PRD under review
 - Links to real code paths to verify against

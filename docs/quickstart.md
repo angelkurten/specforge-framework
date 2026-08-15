@@ -80,7 +80,7 @@ The bootstrap itself is a one-off Explore pass: point your AI coding assistant a
 
 ## Day 3 — Run the review loop
 
-**Step 5**: launch four reviewer agents **in parallel**, one per role (backend, frontend, security, quality), adapted to your domain. Each reviewer is briefed with:
+**Step 5**: launch the reviewer agents **in parallel**, choosing roles by the surface your PRD carries (backend, frontend, security, quality) rather than launching all four by default. Each reviewer is briefed with:
 
 - The PRD under review
 - `{{REVIEW_MODE}}: draft`

@@ -201,10 +201,13 @@ describe("PRD-012 phase 3 § 9 rows 25 and 26 — the headless-session rule", ()
 
     expect(step(2)).toContain("SIBLINGS.md");
 
-    // The panel size is a cost and concurrency term, so it is fixed, and a
-    // sub-agent does not fan out again.
+    // The panel follows workflow.md's step-5 trigger table rather than a fixed
+    // width: the table is mechanical, and this file withholds judgement from a
+    // headless session, not rules. Quality fires unconditionally so the panel
+    // is never empty. Batching and the no-further-fan-out floor are unchanged.
     const panel = step(5);
-    expect(/\bfour\b/i.test(panel)).toBe(true);
+    expect(/trigger table/i.test(panel)).toBe(true);
+    expect(/quality-reviewer/i.test(panel)).toBe(true);
     expect(/one batch/i.test(panel)).toBe(true);
     expect(/does not dispatch further sub-agents/i.test(panel)).toBe(true);
 
