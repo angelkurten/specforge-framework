@@ -8,6 +8,32 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.16.0] - 2026-08-14
+
+### Changed
+
+- **`workflow.md` step 5 selects reviewer roles by the surface the PRD carries, instead of dispatching a default panel of four.** The old text ("a typical panel of 4 … adapted to the domain") stated a number concretely and the adaptation vaguely, so the number won: a PRD for a one-file static page drew a backend reviewer and a security reviewer that had nothing in their domain to read. Step 5 now carries a trigger table — backend fires on an added endpoint/table/migration/server-side logic, frontend on user-visible behaviour, security on an added trust boundary, quality always — and the lead records which roles it skipped and why.
+
+  **Read the section's claim, not its keywords.** Every numbered section is mandatory (hard rule 10), so §5 and §6 exist in every PRD whether or not the change has surface there. A §5 reading "this change adds no API" still contains the word `API`, still writes `GET /index.html` while explaining that a static host resolves it, still names `localStorage` while ruling it out. This was measured, not assumed: a first cut of the table guarded only the §8/security row, and in a headless run the backend reviewer fired anyway against a §5 that asserts "adds no API". Generalising the guard to every row dropped the panel to two on a PRD whose §5 and §6 were *more* keyword-dense than the one that had fired it.
+
+- **`optional-rules/headless-session.md` step 5 follows that trigger table rather than fixing the panel at four.** **This breaks the contract kubbo's PRD-012 § 5.6 assumed**, and the conformance row that pinned the word `four` changed with it — a headless installation that depends on a fixed-width panel must re-pin it locally. The reasoning the file already uses is what permits this: it withholds *judgement* from a session with no user, not *rules*, and "does § 5 name an endpoint?" is read off the document rather than weighed. `specforge-quality-reviewer` fires unconditionally, so the panel is never empty.
+
+  **The triage gate below does not fire headless.** That dial stays welded shut deliberately: § *The mirror-image failure mode* exists because real headless runs skipped `workflow.md` entirely and wrote code with no PRD behind it, and a request-shape judgement is exactly what those runs got wrong.
+
+- **`workflow.md` step 1 triages before the step-2 fan-out.** A request landing on a **No PRD** row of `prd-authoring.md`'s decision table is done directly, with no grounding agents and no panel — the flow's cost is justified by the artifact it produces. **The size floor does not apply to a sibling's first change**: a project with no PRD in the corpus yet gets one regardless of size, because the No-PRD row would otherwise route the rationale into a `SYSTEM_ARTIFACT.md` that does not exist yet.
+
+- **`workflow.md` step 9 re-runs role selection against the diff, not the PRD.** Shipped code carries surface a spec did not promise, so the post-implementation panel may legitimately be a superset of the roles step 5 selected.
+
+Measured on paired headless runs of the same request ("an `index.html` with a name and a link"), same model, same sandbox, rules the only variable: the draft panel went from 4 roles to 2, the post-implementation panel from 4 to 2, step-6 adversarial bounces from 3 to 1, and re-verification from 3 dispatches to 1. The patched run completed the whole cycle — PRD, review, fixes, implementation, tests, `SYSTEM_ARTIFACT.md`, post-implementation panel — in 8 sub-agent dispatches; the baseline was at 11 and still in the draft loop with no code written. In an interactive (non-headless) session neither the old rules nor the new ones reproduced the over-dispatch: both went straight to the file. This change is a headless-path fix.
+
+### Fixed
+
+- **`npm pack` shipped stale build artifacts, so the published tarball's `--headless` flag did not work.** Neither `dist/` nor `framework/` is tracked in git, and `npm pack` runs `prepack` — which did not exist — rather than `prepublishOnly`. The packed CLI predated the `--headless` flag entirely (zero occurrences of `headless` in `dist/src/cli.js`) and the bundle was missing `optional-rules/headless-session.md`, so `init --headless` exited 10 on a missing bundle file. `prepack` now runs `build && prepublish`, which is idempotent — `prepublish` syncs the version from the `VERSION` file rather than incrementing it — so a hand-run `npm pack` produces what `npm publish` would.
+
+- **The committed `npm-shrinkwrap.json` still declared `0.14.1` while `package.json` declared `0.15.4`.** `prepublish.ts`'s own comment names this failure: "`npm ci` refuses a tree whose two disagree." Wiring `prepack` surfaced and corrected it.
+
+- **Two e2e files each ran their own `npm pack`, racing on the shared build tree.** With `prepack` refreshing `framework/` via a recursive delete, two parallel packs produced intermittently partial tarballs. A vitest `globalSetup` now packs once per run and both files consume that artifact — which also removes a duplicated full build.
+
 ## [0.15.4] - 2026-08-14
 
 ### Fixed
