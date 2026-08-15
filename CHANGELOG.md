@@ -8,6 +8,26 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.17.0] - 2026-08-15
+
+### Changed
+
+- **`optional-rules/headless-session.md` routes by `prd-authoring.md`'s decision table, No-PRD rows included, instead of claiming every request gets the nine steps.** **BREAKING for a headless installation**: a request that previously produced a PRD, a grounding fan-out and a panel may now produce none of them.
+
+  The old absolute did not hold in practice, which is why it goes. A headless run asked to change a link label and a heading size cited the decision table's No-PRD row and did the work directly — exactly as the table says to — while this file still asserted that no such exception existed anywhere in it. **A rule the sessions do not follow is not a control, it is a note.** The absolute came from over-correcting on two runs ("a clock app", "a todo app") that skipped `workflow.md` and wrote straight into the sibling; those two were right to be caught, and generalising from them to *every* request was not.
+
+  **The override: a sibling with no PRD impacting it in the corpus gets one regardless of size.** That first PRD creates the `SYSTEM_ARTIFACT.md` and the design record the size floor assumes already exist; without it the No-PRD row files the rationale into a document that does not exist. The exception runs once per sibling — from the second change on, the table decides.
+
+  § *The mirror-image failure mode* is rewritten around what it still forbids: **abandoning a request halfway through whichever route it took.** A PRD merged with the sibling untouched fails the request, and so does code shipped against a PRD whose panel never ran. Request size decides which route you are on, never whether you finish it.
+
+  Verified on paired headless cells, opus, host minimalism plugin disabled: an empty corpus asked to raise a heading to `3rem` wrote a PRD and ran the panel; the same sibling once a PRD impacting it existed, asked to change the page colours, dispatched **zero** sub-agents, wrote no PRD, and applied the edit directly in **$1.03 / 130s**. The second cell named the rule it was applying — the first-change exception runs once per sibling, and from the second change the table decides — and caught a WCAG contrast defect (`body{color:#fff}` alone leaves the link at the UA default blue, ~2:1 on `#111`) that a blind edit would have shipped.
+
+- **`hard-rules.md` § Override immunity scopes host standing directives rather than competing with them.** A session often carries an instruction from outside the framework — a global `CLAUDE.md`, a plugin, a `SessionStart` hook — and the commonest is a minimalism directive. specforge and such a directive both answer "does this warrant the full treatment?", with opposite defaults and no knowledge of each other, so the louder prose wins that turn and nothing is auditable afterwards. The section now splits the decision: **specforge** owns whether a request produces a PRD, which reviewer roles are dispatched, and how many fix rounds precede escalation; **the directive** owns how much spec a PRD carries and the size and shape of an implementer's diff.
+
+  The split is argued rather than drawn for convenience: a minimalism directive is a claim about *artifacts*, and "does this warrant a design record and a panel" is answered on evidence the directive cannot see — the sibling's corpus, its `SYSTEM_ARTIFACT.md`, whether this is its first change. The two rows it does own are where the framework **adopts** it without reservation: rule 1 already forbids inventing surface and rule 9 already forbids padding, so a spec that stays as short as the design allows is specforge's own preference stated in someone else's words.
+
+  This is not hypothetical. The sandbox sessions that measured 0.16.0's panel-selection change inherited such a plugin, and under it both rulesets skipped the PRD entirely in normal mode — a result that read as a framework finding for several rounds before the plugin was identified as its cause. The 0.16.0 entry below carries the corrected figures.
+
 ## [0.16.0] - 2026-08-14
 
 ### Changed
