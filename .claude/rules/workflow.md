@@ -11,6 +11,8 @@ Follow these steps in order. Never skip investigation. Never draft before ground
 
 **Triage before fan-out.** Run the decision table in `prd-authoring.md` § Decision *first*, before step 2 launches anything. If the request lands on a **No PRD** row — a bug fix, an internal refactor, or a change with observable behavior below the size floor — do the work directly and stop here. No grounding agents, no reviewer panel. The flow's cost is justified by the artifact it produces; a request that produces no PRD produces no panel either. The steps below run for requests that produce a PRD or an ADR.
 
+This routing is specforge's and is not settled by a standing minimalism preference the session happens to carry — see `hard-rules.md` § Override immunity, which scopes such directives to spec depth and diff size rather than to this decision.
+
 **The size floor does not apply to a sibling's first change.** If the impacted project has no PRD in the corpus yet — a newly added `SIBLINGS.md` row, or a sibling that has never been shipped against — write a PRD regardless of how small the change looks. The floor is calibrated on a sibling that already carries a `SYSTEM_ARTIFACT.md` and a PRD history; with an empty corpus the No-PRD row would route the rationale into a commit message and a `SYSTEM_ARTIFACT.md` that does not exist yet. The first PRD is what creates both. This exception fires once per sibling, not once per project-shaped request.
 
 For bounded decisions (2-4 mutually exclusive options you can confidently enumerate), use `AskUserQuestion` — one question per call. For exploration, clarifications, or unbounded spaces, ask in prose. If the user asks to answer in prose or explain first, comply immediately.
