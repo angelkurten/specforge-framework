@@ -28,7 +28,7 @@ file.
 
 | Point | Default |
 |---|---|
-| **Step 1 — scoping** | Proceed with the request as given. Do not call `AskUserQuestion`. Record every scoping assumption in the PRD's § 11 Open Questions, so the assumption is visible to the human who reads the document rather than lost in the session. **The step-1 triage gate does not fire here**: `workflow.md` routes a request landing on a **No PRD** row straight to the work with no grounding and no panel, and that routing is a judgement about request shape — § *The mirror-image failure mode* below is this file's standing refusal to grant a session with no user that judgement. Headless writes a PRD for every request it serves, a one-file static page included. Step 1's exception for a sibling's first change is redundant here rather than contradictory, since headless already writes a PRD in every case that exception covers. |
+| **Step 1 — scoping** | Proceed with the request as given. Do not call `AskUserQuestion`. Record every scoping assumption in the PRD's § 11 Open Questions, so the assumption is visible to the human who reads the document rather than lost in the session. **The step-1 triage gate fires here, with one override.** Headless applies `prd-authoring.md`'s decision table as written, the **No PRD** rows included: a bug fix, an internal refactor, or a change with observable behaviour below the size floor is done directly, with no grounding fan-out and no panel. A row read off a table is a rule, and this file withholds judgement from a session with no user, not rules. **The override: a sibling with no PRD in the corpus gets one regardless of size** — `workflow.md` step 1's first-change exception, which outranks every No-PRD row. That first PRD is what creates the `SYSTEM_ARTIFACT.md` and the design record the floor assumes already exist; without it the No-PRD row files the rationale into a document that does not exist. From the second change on, the table decides. |
 | **Step 2 — grounding fan-out** | One grounding agent per sibling row in `SIBLINGS.md`. The registry is read exactly as it is read anywhere else; there is no headless special case, and a registry with one row means one agent. |
 | **Step 5 — panel size** | Apply `workflow.md`'s step-5 trigger table unchanged: dispatch the roles whose surface the PRD carries, as one batch, and skip the roles whose trigger does not fire. A static page with no API, no data model and no trust boundary draws `specforge-quality-reviewer` and `specforge-frontend-reviewer` — not four. **This file withholds judgement from the session, not rules**, and the table is mechanical: "does § 5 name an endpoint?" is read off the document, not weighed. `specforge-quality-reviewer` fires unconditionally, so the panel is never empty, and step 9's re-selection against the diff still catches surface the draft did not promise. Report the skipped roles and their triggers in the session's own output, since no user is present to ask. A dispatched sub-agent does not dispatch further sub-agents. |
 | **Step 6 — trade-offs** | Take the fix the reviewer recommended. Do not call `AskUserQuestion`. Record the discarded alternative in § 11, so the trade-off the session resolved on its own is on the record. |
@@ -63,31 +63,37 @@ no new message, no re-reading this file to decide whether to — every single
 time a PRD is merged, with no exception for a request that seemed to only
 need the plan.
 
-## The mirror-image failure mode: skipping steps 1-7 outright
+## The mirror-image failure mode: stopping after the PRD is not fixed by skipping it
 
-**The fix above is not "prefer code over a PRD." It is "do both, always, in
-order."** A session that reads the request, judges it small enough to not
-need `workflow.md`'s nine steps, and writes straight into `../app` — no
-grounding, no PRD, no panel — has failed the request exactly as completely
-as one that stops after the PRD, for the same reason: `workflow.md`'s whole
-premise is that a panel's judgement on a design is worth more than one
-model's, on **every** request this installation serves, including the ones
-that look like they don't need it. "This is simple enough to skip ahead" is
-not this session's call to make — it was never the user's call either, which
-is `hard-rules.md`'s entire reason for the panel existing at all, and a
-session with no user does not inherit a discretion nobody granted it.
+**The fix above is not "always write a PRD." It is "whatever `workflow.md`
+routes this request to, finish it."** The failure that section describes is a
+session that produces a design and no product. Its mirror is a session that
+produces a product and no design *for a request that warranted one* — and the
+routing decision between them belongs to `prd-authoring.md`'s decision table,
+not to this file and not to a size judgement improvised mid-session.
 
-There is no request-shape exception anywhere in this file. Small requests get
-the same nine steps as large ones — a one-file static page still gets a PRD
-(possibly a short one; nothing here sets a length floor), still gets grounded
-against `SIBLINGS.md`, still gets step 5's panel. **Selecting that panel by
-surface is not a request-shape exception**: the step-5 row above narrows *which
-roles* review a document, and every step still runs. What this section forbids
-is skipping a step, not dispatching a reviewer whose domain the document has no
-surface in — a backend reviewer reading a static page produces nits, and paying
-for it is not rigour. The panel is expensive to have skipped: it is the one
-thing this installation offers that a single, unreviewed model turn does not. A session
-that produces working code with no PRD behind it and a session that produces
-a PRD with no code behind it are the same failure wearing two different
-disguises — both skip half of `workflow.md`, and there is no request whose
-size decides which half.
+**Earlier versions of this file said every request gets the nine steps, and
+that was wrong.** It was written after two runs ("a clock app", "a todo app")
+skipped `workflow.md` and wrote straight into `../app`, and it over-corrected
+from those two into an absolute. The absolute did not hold in practice either:
+a headless run asked to change a link label and a heading size cited the
+decision table's No-PRD row and did the work directly, exactly as the table
+says to — with this file still claiming no such exception existed. A rule the
+sessions do not follow is not a control, it is a note.
+
+So the routing is the table's, and the table's floor is calibrated on a
+sibling that already carries a `SYSTEM_ARTIFACT.md` and a PRD history. **That
+calibration is the whole content of the step-1 override**: an empty corpus has
+neither, so the first change writes a PRD however small it looks, and every
+change after it is routed by the table like anywhere else.
+
+What this section still forbids, unchanged: **abandoning a request halfway
+through whichever route it took.** A PRD merged with `../app` untouched fails
+the request. So does code shipped against a PRD whose panel never ran. Both
+skip half of `workflow.md` — and the half you skip is not something request
+size gets to decide, even though request size decides which route you are on.
+
+**Selecting the panel by surface is not a route change**: the step-5 row
+narrows *which roles* review a document that is being reviewed, and every step
+of that route still runs. A backend reviewer reading a static page produces
+nits, and paying for it is not rigour.
