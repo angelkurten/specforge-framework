@@ -221,12 +221,12 @@ flowchart TB
     implTeam --> postReview[Re-dispatch step 5 panel<br/>post-impl mode, per-sibling diff]
     postReview --> postDecide{Any 🔴 or<br/>untracked 🟡?}
     postDecide -->|yes| roundCheck{Fix-round budget<br/>exhausted?}
-    roundCheck -->|no| implFix[Fix in code,<br/>not in the frozen PRD]
+    roundCheck -->|no| implFix[Fix in code, or amend<br/>the PRD via the bounce]
     implFix --> postReview
-    roundCheck -->|yes| escalate{User escalation:<br/>one more round,<br/>revert to Draft,<br/>or waive?}
+    roundCheck -->|yes| escalate{User escalation:<br/>one more round,<br/>stop ungated,<br/>or waive?}
     escalate -->|one more once| implFix
-    escalate -->|revert| thaw[PRD → Draft<br/>escape hatch,<br/>rule 7 intact]
-    escalate -->|waive + comment above gate| siblingsImpl
+    escalate -->|stop| thaw[Stop: PRD stays Draft<br/>and ungated,<br/>reason at the top]
+    escalate -->|waive + HTML comment above fence| siblingsImpl
     postDecide -->|no| siblingsImpl[[Update sibling's<br/>SYSTEM_ARTIFACT.md +<br/>fill gate block entry]]
     siblingsImpl --> done([Status: Implemented])
 ```

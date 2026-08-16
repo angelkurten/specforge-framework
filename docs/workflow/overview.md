@@ -24,12 +24,12 @@ flowchart TB
     implTeam --> postReview[Re-dispatch step 5 panel<br/>post-impl mode, per-sibling diff]
     postReview --> postDecide{Any 🔴 or<br/>untracked 🟡?}
     postDecide -->|yes| roundCheck{Fix-round budget<br/>exhausted?}
-    roundCheck -->|no| implFix[Fix in code,<br/>not in the frozen PRD]
+    roundCheck -->|no| implFix[Fix in code, or amend<br/>the PRD via the bounce]
     implFix --> postReview
-    roundCheck -->|yes| escalate{User escalation:<br/>one more round,<br/>revert to Draft,<br/>or waive?}
+    roundCheck -->|yes| escalate{User escalation:<br/>one more round,<br/>stop ungated,<br/>or waive?}
     escalate -->|one more once| implFix
-    escalate -->|revert| thaw[PRD → Draft<br/>escape hatch,<br/>rule 7 intact]
-    escalate -->|waive + comment above gate| siblingsImpl
+    escalate -->|stop| thaw[Stop: PRD stays Draft<br/>and ungated,<br/>reason at the top]
+    escalate -->|waive + HTML comment above fence| siblingsImpl
     postDecide -->|no| siblingsImpl[[Update sibling's<br/>SYSTEM_ARTIFACT.md +<br/>fill gate block entry]]
     siblingsImpl --> done([Status: Implemented])
 ```
@@ -116,17 +116,21 @@ After code lands, **before** filling the gate block, re-dispatch the step 5 revi
 - `{{SIBLING_CLAUDE_MD_PATH}}` = same as before
 - `{{REVIEW_MODE}}: post-implementation` (explicit, not a default)
 
-In post-implementation mode the PRD is frozen, the question flips from "is the PRD sound?" to "does the shipped code honor the PRD?", and reviewers must read both the new/modified source files **and** the new/modified test files from the diff, verifying §9 Test Plan row-for-row against the tests that actually landed.
+In post-implementation mode the question flips from "is the PRD sound?" to "does the shipped code honor the reviewed PRD?", and reviewers must read both the new/modified source files **and** the new/modified test files from the diff, verifying §9 Test Plan row-for-row against the tests that actually landed.
+
+Before that panel is dispatched, the lead runs the **validation phase**: exercise the shipped behaviour and record a `VALIDATION:` block (one line per exercised path, with the exact command) and a mandatory `VALIDATION INJECTION:` block. `not run` is not a pass — it blocks promotion until the user waives it. A validation finding whose cause is the *document* rather than the code routes to the amendment bounce described below.
 
 #### 🔴 handling
 
-A 🔴 finding blocks gate promotion. The fix goes back to the implementer(s) whose `SCOPE` covers the finding, re-dispatched with `IMPL_MODE: fix-round` and a `PRIOR_FINDINGS` ledger, never into the frozen PRD. Re-dispatch the re-review after each fix round.
+A 🔴 finding blocks gate promotion. The fix goes back to the implementer(s) whose `SCOPE` covers the finding, re-dispatched with `IMPL_MODE: fix-round` and a `PRIOR_FINDINGS` ledger, never into the PRD — a panel finding never motivates an amendment. Re-dispatch the re-review after each fix round.
+
+The one route into the document is the lead's own: when validation shows a `Draft` PRD misdescribes the design that was always intended, the lead proposes an amendment, bounces it off one reviewer pinned by the amended section (`REVIEW_MODE: draft`, the full prior-findings ledger in `DOMAIN_CONTEXT`), and — if the bounce does not refute it — commits the amendment on its own with an `# amendment:` line inside the gate fence, then re-runs validation against the amended text before the panel is dispatched. A refutation is fatal however it is filed.
 
 Count rounds explicitly: `initial re-review + fix-round-1 + fix-round-2 = escalation`. If the same 🔴 persists after fix-round-2, or if rounds produce contradictory 🔴s, halt and escalate to the user via `AskUserQuestion` with three options:
 
 - **(i) One more fix round** — buys exactly one additional round; if that round still fails, escalation returns with option (i) removed. The counter does not reset.
-- **(ii) Move the PRD back to `Draft`** — the single escape hatch for hard rule 7. Strip gate fields, explain why at the top. The PRD is no longer `Implemented` and is free to be edited on its way to a later ship.
-- **(iii) Waive the finding** — with a written reason recorded as a comment above the gate block.
+- **(ii) Leave the PRD at `Draft` and ungated** — the gate block keeps its `[TBD]` placeholders, nothing is promoted, and you record why at the top. Not an un-freeze: the freeze begins at `Implemented` (hard rule 7) and this PRD never got there.
+- **(iii) Waive the finding** — with a written reason recorded as an HTML comment between the `## Gate:` heading and the fence.
 
 #### 🟡 handling
 

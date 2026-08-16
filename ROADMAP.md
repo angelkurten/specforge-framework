@@ -128,3 +128,19 @@
 - [PRD-010] — retroactive meta-reference per `.claude/rules/roadmap.md` § Evidence category 7
 
 **Caveats**: four 🟡 follow-ups tracked in PRD-011 (`Draft`) — PRD-010 §8 describes the superseded circular version of the `Bash` scope rule at one site and a stricter-than-shipped version at another, its provenance clause is qualified by a carve-out added later, and its write boundary does not name specforge's own `.claude/agents/**` when `SIBLING_ROOT` is another repo. All are divergences between the frozen PRD's account and the shipped artifacts, not defects in the artifacts. The write exclusion is instruction-level prose, not a capability-level control; there is no per-subagent path enforcement. Adopters maintaining a `permissions.deny` list must hand-append both new identities, since `.claude/settings.json` is outside the partition and `update` never touches it.
+
+### ROADMAP-008: A validation phase, and a route for what it finds in the spec
+
+**Status**: Shipped
+**Last reviewed**: 2026-08-16
+**Theme**: —
+**PRD**: PRD-012
+
+**Problem / outcome**: nothing in the nine steps ever ran the software. The implementers' `VERIFICATION RUN` was a closed list of non-interactive runners — test suite, linter, type checker, migration up/down — and the four reviewers read the diff, so a defect visible only to someone exercising the shipped behaviour reached the gate unseen. The phase existed anyway, outside the framework: two workflow defects in the CHANGELOG are recorded as found during an adopting team's "post-gate verification", an activity `workflow.md` did not define and which ran after the gate rather than before it. And when such a phase found the **PRD** wrong rather than the code, step 9 had no route — all three 🟡 destinations presume the code is at fault, 🔴 remediation was "always fix the code, never fix the PRD", and the documented escape hatch was a no-op that moved a PRD "back to `Draft`" it had already been merged at. Step 9 now carries a validation phase whose findings route by cause, and a document-defect branch that amends the PRD in place through an adversarial bounce, with the amendment recorded in the gate block and committed separately. Three pre-existing defects were corrected alongside: the no-op escape hatch, a `commit_hash` rule demanding a merge commit that all seven populated values in the corpus violated, and two steps stating incompatible moving-target rules.
+**User**: specforge maintainers and adopting teams
+**Siblings likely impacted**: specforge
+
+**Evidence**:
+- [PRD-012] — retroactive meta-reference per `.claude/rules/roadmap.md` § Evidence category 7
+
+**Caveats**: one 🟡 tracked in PRD-013 (`Draft`) — PRD-012 §6.2's propagation table claims an exhaustiveness it drifted from four times, and two amendment attempts were refuted by the bounce, the second on the diagnosis that the table pins absolute line numbers into a `Draft` document while the tree beneath it moves. The shipped code is correct and all three post-implementation reviewers verified so; the document is what drifted. Separately, none of the controls this PRD adds is host-enforced — the destination rule, the fence obligation and the injection gate are all advisory rule text, audited through the mandatory `<exact command>` record rather than blocked by the host. The framework's first amendment route was exercised on its own PRD and refused both proposals, which is the mechanism working rather than failing.

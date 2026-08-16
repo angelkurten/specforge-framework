@@ -30,13 +30,17 @@ When a PRD is marked `Implemented`, three things happen:
 
 Design evolution happens in a **new** PRD that declares `Supersedes: PRD-N` against the old one. The old PRD stays as a frozen record of the original decision.
 
-### The single escape hatch
+### Before `Implemented`: the lead-only amendment window
 
-Hard rule 7 ("PRDs are frozen snapshots") has exactly one exception, documented in `prd-authoring.md` and `workflow.md` step 9:
+Hard rule 7 ("PRDs freeze at `Implemented`") states the freeze point in exactly one place, and every other file defers to it. A `Draft` PRD has not reached that point — but past `workflow.md` step 8's merge it is not open to everyone either:
 
-> If post-implementation re-review surfaces an unresolvable 🔴, move the PRD back to `Draft` and strip the gate fields. At that point the PRD is no longer `Implemented`, no longer frozen, and is free to be edited on its way to a later ship.
+- **Before step 8's merge** — freely editable. This is the draft loop (steps 4 → 7).
+- **Between step 8's merge and the gate** — `Draft`, merged, and **amendable by the lead only**, through step 9's validation-and-bounce route. An implementer or a reviewer that finds a document defect reports it as a finding and never writes it. The lead amends only off a `VALIDATION:` finding it reproduced in its own validation run, only after an adversarial bounce (`REVIEW_MODE: draft`, target pinned by the amended section) fails to refute the amendment, and records the result as an `# amendment:` line inside the gate fence.
+- **At `Implemented`** — frozen. Edit only to correct factual errors or to mark it `Superseded by PRD-N`.
 
-The rule applies to the `Implemented` state, not to the file. Once you un-implement, the file is editable again.
+The rule applies to the `Implemented` **state**, not to the file.
+
+Two things amendment is not. It is not a route for a *changed design* — a different approach, a dropped capability, a new dependency is a new PRD with `Supersedes: PRD-N`; amendment covers only the case where the design did not change and the document misdescribes it. And step 9's escalation option (ii) is not an escape hatch from the freeze: it stops with the PRD at `Draft` and ungated, gate block still `[TBD]`, reason recorded at the top. Nothing was promoted, so nothing is un-frozen.
 
 ## Why SYSTEM_ARTIFACT.md is the only living doc
 
@@ -61,6 +65,7 @@ See the decision table in [PRD authoring rules](https://github.com/angelkurten/s
 | A pure architectural decision (library, pattern, build vs buy) with trade-offs and discarded alternatives. | **ADR** |
 | A refinement of a shipped feature that changes observable behavior. | **New PRD** with `Supersedes: PRD-N` in its header. Do not edit PRD-N. |
 | A bug fix or internal refactor without observable behavior change. | **No PRD.** Update the relevant sibling's `SYSTEM_ARTIFACT.md` only if system state changed. |
+| Validation at `workflow.md` step 9 shows a `Draft` PRD **misdescribes the design that was always intended** — a wrong identifier, a §5 field the implementation proved impossible as specified, a §9 row naming a test the stack cannot express. The design did not change; the document is wrong about it. | **Amend the PRD in place**, lead only, through step 9's adversarial bounce, recorded with an `# amendment:` line inside the gate fence. Not a follow-up PRD: the `Supersedes:` row above covers a changed *design*, not a document that misdescribes an unchanged one. |
 | A factual correction (typo, wrong path) to an existing PRD. | **Edit in place**, note the correction at the top. Do not bump status. |
 | A discovery that a shipped PRD was never fully implemented. | **Move it back to `Draft`**, strip the gate fields, explain why at the top. |
 
@@ -71,7 +76,7 @@ Both are living docs, but they answer different questions at different granulari
 - `SYSTEM_ARTIFACT.md` lives **inside each sibling** and describes **current system state** at HEAD.
 - `ROADMAP.md` lives at the **specforge root**, is **global**, and describes **product-level intent** (what to build and why, for whom, with what evidence) — not what currently runs.
 
-The roadmap is upstream of PRDs: it feeds them with framed problems and evidence. PRDs remain frozen snapshots; `ROADMAP.md` is where direction evolves.
+The roadmap is upstream of PRDs: it feeds them with framed problems and evidence. A PRD freezes once `Implemented`; `ROADMAP.md` is where direction evolves.
 
 See [Roadmap](roadmap.md) for the full cycle, evidence categories, and PII carve-out.
 

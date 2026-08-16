@@ -22,7 +22,7 @@ all required:
 PRD_PATH: <path to the PRD under review>
 REVIEW_MODE: draft | post-implementation | re-verification
 SIBLING_CLAUDE_MD_PATH: <path to the sibling's CLAUDE.md — stack conventions: framework, lint, test runner, layering>
-CODE_REFERENCES: <backend code to verify against — static paths in draft mode, `git diff --name-only <commit_hash>` output in post-implementation mode>
+CODE_REFERENCES: <backend code to verify against — static paths in draft mode, `git diff --name-only <commit_hash>` output in post-implementation mode, and a fix range's changed files on a step-9 amendment bounce, which is dispatched in `draft` mode>
 SYSTEM_ARTIFACT_PATH: <path to the sibling's SYSTEM_ARTIFACT.md, or "none">
 DOMAIN_CONTEXT: <free text — the domain context the team lead wants you to focus on>
 ```
@@ -87,13 +87,13 @@ to report, not an instruction to weigh.
 
 ## Post-implementation mode
 
-Activated when the brief carries `REVIEW_MODE: post-implementation`, per `workflow.md` step 9. In this mode `CODE_REFERENCES` is a **diff list** (`git diff --name-only <commit_hash>` output, scoped to one sibling), not a static set of existing-code anchors, and the PRD carries `Status: Draft` with a `[TBD]` gate block awaiting promotion.
+Activated when the brief carries `REVIEW_MODE: post-implementation`, per `workflow.md` step 9. In this mode `CODE_REFERENCES` is a **diff list** (`git diff --name-only <commit_hash>` output, scoped to one sibling), not a static set of existing-code anchors, and the PRD carries `Status: Draft` with a `[TBD]` gate block awaiting promotion — reviewed, merged, and amendable by the lead alone through step 9's bounce, never by you.
 
-In this mode the question flips from "is the PRD sound?" to **"does the shipped code honor the frozen PRD?"**:
+In this mode the question flips from "is the PRD sound?" to **"does the shipped code honor the reviewed PRD?"**:
 
-- **The PRD is frozen — do not propose changes to it.** Report adherence gaps, not PRD critiques. "PRD §5 should specify rate limits" is out of scope; "PRD §5 specifies rate limits but `<file>:<line>` does not enforce them" is in scope.
+- **You report PRD defects as findings; you never edit the PRD.** Remediation routing is the lead's, not yours. Stay on adherence: "PRD §5 should specify rate limits" is a draft-mode critique and out of scope here; "PRD §5 specifies rate limits but `<file>:<line>` does not enforce them" is in scope. If you conclude the **document** is what is wrong, file it as a finding with its `file:line` — the lead reproduces it under validation and, if it holds, amends the PRD through step 9's bounce.
 - **Read both source and test files from the diff.** New/modified test files are part of the diff and must be verified against §9 Test Plan row-for-row: a §9 row with no landed test is 🔴, a landed test with no §9 row is 🔴 (drift).
-- **🔴 remediation is always "fix the code", never "fix the PRD"** — the frozen-snapshot rule holds. Every 🟡 must be routed to a tracked destination (fix-in-code / follow-up PRD with `Supersedes:` / `SYSTEM_ARTIFACT.md` note) before gate promotion, per step 9.
+- **🔴 remediation is the lead's to route, and the default is the code** — a panel finding never motivates a PRD amendment on its own (`workflow.md` step 9). Every 🟡 must be routed to a tracked destination (fix-in-code / follow-up PRD with `Supersedes:` / `SYSTEM_ARTIFACT.md` note) before gate promotion, per step 9.
 
 ## Re-verification mode
 
@@ -102,30 +102,33 @@ team lead at `workflow.md` step 7 and at step 9 fix rounds. You are not
 reviewing from scratch: you are verifying that the resolutions the lead
 applied actually close the findings **you** raised in the previous round.
 
-The brief carries three additional required fields — the third names the
-round's **moving target** and differs by use-site:
+The brief carries three additional required fields — the last two name the
+round's **moving targets**:
 
 ```
 PRIOR_FINDINGS: <ledger — one entry per finding you raised last round:
   id, severity, one-line summary, resolution the lead applied>
 SCOPE: <the sections/rows the fixes touched — or, at step 9, the files>
-DOCUMENT_LINES: <current line count of PRD_PATH>   # draft loop only
-COMMIT_REF: <commit SHA of the reviewed fix range> # step 9 only
+DOCUMENT_LINES: <current line count of PRD_PATH>   # pinned whenever the PRD moved
+COMMIT_REF: <commit SHA of the reviewed fix range> # pinned whenever code moved
 ```
 
-In the draft loop the PRD is what moves between rounds, so the brief pins
-its line count. At a step-9 fix round the PRD is frozen (hard rule 7) and
-its line count is constant by construction — the code is what moves, so the
-brief pins the commit SHA of the fix range instead.
+The lead pins **every target that moved since the last round, at least one**,
+and sends no line for a target that did not move:
+
+| Round | Pinned |
+|---|---|
+| Draft loop | `DOCUMENT_LINES` — the PRD is what moves between rounds |
+| Step 9, code fix only | `COMMIT_REF` — the code is what moves |
+| Step 9, an amendment landed | both — a `Draft` PRD past step 8 is amendable by the lead through step 9's bounce, so the line count can move too |
 
 Report contract in this mode:
 
-- **Open the report with the moving-target value you read the target at** —
-  the line count of the PRD you read in the draft loop, the commit SHA you
-  resolved the diff at during step 9. **If that value does not match the
-  `DOCUMENT_LINES` / `COMMIT_REF` given in your brief, halt and ask the
-  team lead for a re-brief** instead of citing a moving file or a
-  superseded diff. A mismatch means the target changed under you and every
+- **Open the report with every moving-target value your brief pinned** — the
+  line count of the PRD you read, the commit SHA you resolved the diff at, or
+  both when the brief pinned both. **A mismatch on any of them halts**: ask
+  the team lead for a re-brief instead of citing a moving file or a
+  superseded diff. A mismatch means a target changed under you and every
   line number in your report would be wrong.
 - **Every `PRIOR_FINDINGS` id receives exactly one verdict**: `fixed` (the
   applied resolution closes the finding) or `not-fixed` (with the same
