@@ -8,6 +8,44 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.18.0] - 2026-08-16
+
+### Added
+
+- **`workflow.md` step 9 gains a validation phase: the lead exercises the shipped behaviour before the post-implementation panel is dispatched.** Nothing in the nine steps ever ran the software. The implementers' `VERIFICATION RUN` is a closed list of non-interactive runners — test suite, linter, type checker, migration up/down — and the four reviewers read the diff, so a defect visible only to someone using the thing reached the gate unseen. A grep for `staging`, `dev environment`, `smoke`, `exploratory` and `manual test` across the rules, the definitions and the templates returned nothing before this release; the single occurrence of "acceptance" forbade the section.
+
+  The phase existed anyway, outside the framework. Two workflow defects in the 0.15.x entries below are recorded as *"found during PRD-012 phase 3's post-gate verification"* — an activity `workflow.md` did not define, running *after* the gate rather than before it. It now runs before, emits two mandatory blocks (`VALIDATION:` and `VALIDATION INJECTION:`), and its findings carry the panel's severity scheme. A validation finding without a **reproduction** — the command, the observed result, and the result the PRD specifies — is rejected the same way a reviewer finding without a `file:line` anchor is.
+
+  This was not theoretical on its own release. The phase found a defect in the text that shipped it: step 9's `not run` bullet said *"takes option (ii) below"* when two enumerations downstream each have a `(ii)`, and the nearer one is the wrong one — a headless session would have routed a finding to code instead of stopping. Nineteen conformance rows, a green suite and a clean `doctor` did not see it; reading the shipped text as instructions did.
+
+- **A route for what that phase finds in the spec rather than the code.** When validation shows the design the team built is the design that was always intended and the PRD's *text* is what fails to describe it, the lead amends the PRD in place through an adversarial bounce — one reviewer whose target is pinned by the amended section, carrying the full prior-findings ledger, with a refutation fatal however it is filed. A surviving amendment lands in its own commit and is recorded as an `# amendment:` line inside the gate fence. Previously the only routes were a follow-up PRD, a `SYSTEM_ARTIFACT.md` note, or the no-op below.
+
+  **The route refused both proposals made to it, on its own PRD.** The first added a sentence telling an implementer to widen scope, which lands as a live directive on the one role holding `Edit`/`Write`/`Bash` and contradicts its own definition's *"report it, don't silently fix it."* The second cited six `workflow.md` lines past the end of that file, because they were post-change numbers in a table whose convention is pre-change. Both are recorded; neither entered the document. **Refusing is the mechanism working, not failing.**
+
+### Changed
+
+- **The freeze point is stated once, in hard rule 7, and it is `Implemented`.** **BREAKING**: a `Draft` PRD past step 8 is now amendable by the lead through the bounce above. It was never frozen by rule 7's own words — *"the rule applies to the `Implemented` state, not to the file"* — but `workflow.md`, six subagent definitions, six README diagram labels and five `docs/` pages carried the opposite reading, all introduced by a single unreviewed commit in April 2026 that added both halves at once. `workflow.md` now contains the word "frozen" zero times.
+
+  A team with a PRD mid-flight at step 9 when this lands gains the amendment route and a relaxed moving-target rule. Nothing in flight breaks — pinning both brief fields is legal under the new rule and pinning one still is — but a session that read the old text and a reviewer running the new definition will disagree about whether *"never both"* holds. Finish an in-flight step 9 before updating, or re-read step 7 after.
+
+- **`gate-block.md`'s `commit_hash` no longer demands a merge commit.** It demanded one while `CONVENTIONS.md` permitted any commit, and **all seven populated values in the corpus are single-parent commits** — four of them pointing at a fix round rather than a ship. A rule violated by 100% of its own corpus is not a rule.
+
+- **The `untrusted-evidence` fence binds outside the roadmap cycle.** Its scope clause covered "all 8 roadmap briefings and any future generator/critic briefing", which excluded the one new untrusted-input channel this release opens. It now reaches any briefing or outbound channel carrying verbatim third-party or running-system output — additively, so the 8 briefings keep their unconditional obligation over user-supplied fields.
+
+### Fixed
+
+- **Step 9's escalation option (ii) was a no-op.** It moved the PRD *"back to `Draft`"* and stripped gate fields — but step 8 merged it at `Draft` with a `[TBD]` gate block, and promotion happens only after the loop option (ii) escapes from. `hard-rules.md` called it *"the single escape hatch"*; `optional-rules/headless-session.md` made it the only step-9 escalation a headless session may take. It now means what it always tried to: stop, leave the PRD `Draft` and ungated, record why at the top.
+
+- **Steps 7 and 9 stated incompatible moving-target rules** once an amendment can move the PRD between rounds. Both now pin every target that moved, and the four reviewers' report contract opens with every pinned value rather than "that value", singular.
+
+- **A headless session had no route for a non-`none` `VALIDATION INJECTION:`.** The gate requires adjudication *with a user*; the headless row enumerated a closed set of two dead ends that excluded it, and the file's own "decide it yourself and record it" pattern yielded the exact resolution the gate exists to prevent — the lead adjudicating its own report.
+
+### Notes for adopters
+
+- **`docs/` is not bundled.** The FAQ, overview, quickstart, index and mental-model corrections reach you only through the repository, not through `update`.
+- **None of the new controls is host-enforced.** The write-destination rule, the fence obligation and the injection gate are advisory rule text, audited through the mandatory `<exact command>` record rather than blocked. An earlier draft used a `permissions.deny` entry instead and it was withdrawn on evidence: a prefix deny closes one command spelling per pattern, and `.claude/settings.json` is outside the partition so `update` never touches it — every adopter would have had to hand-append it.
+- **One 🟡 is tracked in PRD-013 (`Draft`)**, not fixed here: PRD-012 §6.2's propagation table claims an exhaustiveness it drifted from four times. The shipped code is correct and all three post-implementation reviewers verified so; the document is what drifted.
+
 ## [0.17.0] - 2026-08-15
 
 ### Changed
