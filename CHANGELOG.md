@@ -8,6 +8,38 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.19.0] - 2026-08-16
+
+### Added
+
+- **`prd-authoring.md` prescribes the propagation table's shape**, beside the §9 Test Plan shape it already prescribed. A propagation table is a PRD's work list — one row per file and site a change must touch. PRD-010 invented the form and PRD-012 copied it, both anchoring rows with a `Line` column of absolute line numbers under the heading "This table is exhaustive". Neither property held.
+
+  Rows now anchor by a **greppable span** — verbatim source text carrying no line break, no emphasis marker, no quote character, no backtick and no pipe — confirmed unique with `grep -o -F '<span>' <file> | wc -l` returning exactly `1`. Or by a named structural unit (`rule 7`, `step 9`, a heading title). Or by the literal `new`. Never a line number.
+
+  Each of those four defeaters was hit by a draft of the PRD that introduced them, which is why they are enumerated rather than left to judgement. So was the counting rule: `grep -c` counts *lines containing a match*, so a span occurring twice on one line reads as unique, and an earlier draft published exactly such a span as its worked example of a successful repair.
+
+- **The table is a work list, not a completeness claim, and may not say otherwise.** Completeness is established by the diff-reconcile `workflow.md` step 9 already performs — mechanically, after the fact, against `git diff --name-only`, on evidence the author did not have. The hand-written table adds only the prediction, and the prediction is what fails.
+
+### Changed
+
+- **PRD-012 §6.2 is corrected in place** — the first use at scale of hard rule 7's clause permitting an edit to an `Implemented` PRD to correct a factual error, routed by `prd-authoring.md`'s decision table to `Edit in place`. Removed: the exhaustive claim, the clause vouching for its line numbers, and the `Line` column from the header and every data row. Corrected: §6's opening count, §10's edit list and the `Impacted Projects` cell, all of which under-counted the files that PRD amends.
+
+  `Status`, the gate fence, `commit_hash`, the `tests:` list, `system_artifact_diff` and the `# yellow-tracking:` comment are byte-identical to their state at that PRD's own promotion. The security panel verified it across two rounds, the second time by executing mutations in a detached worktree rather than reading the diff — and found the boundary jointly guarded, with the conformance suite pinning the gate's values and `doctor` pinning its structure.
+
+### Notes for adopters
+
+- **Nothing errors on upgrade.** There is no validator; an existing `Line`-column table is unaffected until you choose to convert it, and converting is mechanical — the `Current` column usually already holds the span the `Site` column needs, minus its emphasis and backticks.
+- **`docs/` is not bundled**, so the `mental-model.md` mirror of the decision-table clause reaches you only through the repository.
+- **Two findings are tracked in PRD-014 (`Draft`), not fixed here**: the in-place correction route states no boundary on its own reach — `Do not bump status` constrains one field while the gate block is unconstrained by anything but convention — and a lead edit to a frozen PRD has no mandatory review surface, since no validator holds a baseline for a PRD's prior content and the reviewer definitions oblige no record-integrity read.
+
+### The finding the release did not plan
+
+The measurement behind this change: `file:line` citations across the corpus resolve at 70.6% — 40% rot once same-day citations are excluded — and churn in the target file predicts it rather than age. Citations into frozen PRDs resolve at 100%; into the conformance suite, at 19%.
+
+The PRD written to fix that then failed the same class a dozen times across four drafts and five review rounds, with the author's whole attention on that failure mode: omitted sites, an invented quote, spans defeated by wrapping and by emphasis and by a backtick, and restated counts going stale between one section and another. One round swept four restatements of a single count and missed a fifth two lines below one it had swept. Another introduced a fresh miscount into the correction note itself, which all three reviewers then caught independently, each by a different arithmetic.
+
+So that measurement describes citations rotting **over months, as the tree moves**. This release's own history describes something sharper: restated facts going stale **inside single editing sessions, under active review**. The conclusion written into the PRD is that a document's defect density scales with the number of facts it restates, and care does not close that gap. The scope cut that followed — dropping a `doctor` validator and the assertions that checked the PRD's own table against itself — is that conclusion applied rather than a retreat from it. The last two blockers in the corpus were both defects in those self-checks, not in the convention they were checking.
+
 ## [0.18.0] - 2026-08-16
 
 ### Added
