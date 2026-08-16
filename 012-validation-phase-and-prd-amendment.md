@@ -1,5 +1,14 @@
 # PRD-012: A validation phase and a PRD-amendment route for step 9
 
+> **Correction, 2026-08-16 (PRD-013).** §6.2's table claimed to be exhaustive
+> and was not; its `Line` column anchored mostly on absolute line
+> numbers that had already drifted, and elsewhere on a structural label the
+> column was never shaped to carry; the clause vouching for those numbers went with the column;
+> and §6's opening count and the `Impacted Projects` cell both under-counted
+> the files this PRD amends. Corrected in place under hard rule 7's
+> factual-error clause, per `prd-authoring.md`'s decision table. `Status`,
+> the gate block and every other section are unchanged.
+
 **Status**: Implemented
 **Implemented at**: 2026-08-16
 **Date**: 2026-08-16
@@ -35,7 +44,7 @@ The rest of both PRDs stands frozen and correct.
 
 | Project | Impact |
 |---------|--------|
-| **specforge** | Rewords `.claude/rules/hard-rules.md`'s rule 7 so the freeze point is stated in one place and the rule count stays at 14; adds a validation sub-phase and a PRD-amendment route inside `.claude/rules/workflow.md` step 9 as bold-lead paragraphs, never a `### ` heading (which would truncate `stepBlock(workflow, 9)` and silently drop four pinned assertion sets, since step 9 is the last step and its block runs to EOF); redefines step 9's escalation option (ii), today a no-op because the PRD it moves "back to `Draft`" is already `Draft` with a `[TBD]` gate block; relaxes the moving-target rule in **both** step 7 (`:91`, "never both") and step 9 (`:129`, "not `DOCUMENT_LINES`"), which currently disagree with each other under this change; corrects `.claude/rules/gate-block.md:34`'s `commit_hash` definition, which demands a merge commit while `CONVENTIONS.md:134` permits any commit and all seven populated values in the corpus are single-parent commits; adds an `# amendment:` line to the gate block's comment vocabulary and makes `gate-block.md:27`'s placement wording precise — it says "above the gate block", which is true of an HTML comment (`002:202`, `003:1147-1148`) and false of a `#` line, since `GATE_FENCE_RE` admits only whitespace and `<!-- -->` between the heading and the fence, so a bare `#` line above it makes the gate block unparseable while the same line inside the fence parses (`006:822`, `010:786`); narrows `CONVENTIONS.md:172`, which grants `Draft` PRDs "freely editable until promoted" and would otherwise contradict the reworded invariant in a file every adopter receives; widens the `untrusted-evidence` fence's scope at `.claude/rules/roadmap.md:112` and `:129` and binds the lead to it in `workflow.md` step 9; adds one row to `prd-authoring.md`'s decision table. Amends four reviewer definitions at their `post-implementation` bullets, their `re-verification` moving-target prose, their report-contract bullet and their `CODE_REFERENCES` gloss, and two implementer definitions at four sites each where the never-edit clause cites hard rule 7 as its justification — the clause's behaviour is unchanged, only its stated reason. Amends six Mermaid node labels across `README.md` and `README.es.md` (normative review surface per PRD-006 §4.1), leaves the three READMEs' `permissions.deny` arrays untouched (§3 records the entry an earlier draft appended and why it was withdrawn), and amends `docs/faq.md`, `docs/workflow/overview.md`, `docs/quickstart.md`, `docs/index.md` and `optional-rules/headless-session.md:36`, whose sole step-9 instruction is to take the no-op option (ii). Adds no framework file, no subagent definition (the `DEFINITIONS` roster stays at 14), no `REVIEW_MODE` value (three stay), no `doctor` validator, and no `Status` value. Adds two manual walkthrough fixtures under `tests/workflow/`, which is outside `FRAMEWORK_FILES` and therefore needs no `partition.ts` edit. |
+| **specforge** | Rewords `.claude/rules/hard-rules.md`'s rule 7 so the freeze point is stated in one place and the rule count stays at 14; adds a validation sub-phase and a PRD-amendment route inside `.claude/rules/workflow.md` step 9 as bold-lead paragraphs, never a `### ` heading (which would truncate `stepBlock(workflow, 9)` and silently drop four pinned assertion sets, since step 9 is the last step and its block runs to EOF); redefines step 9's escalation option (ii), today a no-op because the PRD it moves "back to `Draft`" is already `Draft` with a `[TBD]` gate block; relaxes the moving-target rule in **both** step 7 (`:91`, "never both") and step 9 (`:129`, "not `DOCUMENT_LINES`"), which currently disagree with each other under this change; corrects `.claude/rules/gate-block.md:34`'s `commit_hash` definition, which demands a merge commit while `CONVENTIONS.md:134` permits any commit and all seven populated values in the corpus are single-parent commits; adds an `# amendment:` line to the gate block's comment vocabulary and makes `gate-block.md:27`'s placement wording precise — it says "above the gate block", which is true of an HTML comment (`002:202`, `003:1147-1148`) and false of a `#` line, since `GATE_FENCE_RE` admits only whitespace and `<!-- -->` between the heading and the fence, so a bare `#` line above it makes the gate block unparseable while the same line inside the fence parses (`006:822`, `010:786`); narrows `CONVENTIONS.md:172`, which grants `Draft` PRDs "freely editable until promoted" and would otherwise contradict the reworded invariant in a file every adopter receives; widens the `untrusted-evidence` fence's scope at `.claude/rules/roadmap.md:112` and `:129` and binds the lead to it in `workflow.md` step 9; adds one row to `prd-authoring.md`'s decision table. Amends four reviewer definitions at their `post-implementation` bullets, their `re-verification` moving-target prose, their report-contract bullet and their `CODE_REFERENCES` gloss, and two implementer definitions at four sites each where the never-edit clause cites hard rule 7 as its justification — the clause's behaviour is unchanged, only its stated reason. Amends six Mermaid node labels across `README.md`, `README.es.md` and `tools/cli/README.md` (normative review surface per PRD-006 §4.1), leaves the three READMEs' `permissions.deny` arrays untouched (§3 records the entry an earlier draft appended and why it was withdrawn), and amends `docs/faq.md`, `docs/workflow/overview.md`, `docs/quickstart.md`, `docs/index.md`, `docs/concepts/mental-model.md` and `optional-rules/headless-session.md:36`, whose sole step-9 instruction is to take the no-op option (ii). Adds no framework file, no subagent definition (the `DEFINITIONS` roster stays at 14), no `REVIEW_MODE` value (three stay), no `doctor` validator, and no `Status` value. Adds two manual walkthrough fixtures under `tests/workflow/`, which is outside `FRAMEWORK_FILES` and therefore needs no `partition.ts` edit. |
 
 ---
 
@@ -417,9 +426,11 @@ auditable.
 ## 6. Data Model
 
 No persisted schema, database, manifest, or bundle-hash entity is introduced
-or altered. This PRD amends prose in five rule files, six subagent
-definitions, two READMEs, four docs pages and one optional rule, and adds two
-markdown fixtures under `tests/workflow/`.
+or altered. This PRD amends prose in six rule files, `CONVENTIONS.md`,
+six subagent definitions, four READMEs, five docs pages and one optional
+rule, and adds two markdown fixtures under `tests/workflow/`. The figures are
+`git diff --name-only 31f4783 2814996`; an earlier form of this sentence
+under-counted three of them.
 
 ### 6.1 Bundle and manifest — no change required
 
@@ -436,55 +447,54 @@ consequence.
 
 ### 6.2 Documentation propagation surface
 
-**This table is exhaustive.** Every line number below was verified against
-the tree at authoring time, after a first draft of this table missed seven
-sites — `CONVENTIONS.md:172`, `workflow.md:129`, the reviewers' report-contract
-bullet and `CODE_REFERENCES` gloss, `roadmap.md:112,129`, four `docs/` pages
-and four README diagram labels. The `count` and `identifier` fact classes are
-exactly what `workflow.md` step 6's propagation pass exists to catch, so the
-enumeration is a table rather than prose.
+**These are the sites known at authoring time — not a completeness claim.**
+The table drifted against this change more than once, and completeness is
+established instead by `workflow.md` step 9's diff-reconcile, which compares
+the actual diff against what was expected. The `Line` column this table
+carried was removed by PRD-013: its line numbers had already drifted, and the
+clause vouching for them went with it.
 
-| File(s) | Line | Current | Change |
-|---|---|---|---|
-| `.claude/rules/hard-rules.md` | `:34` | rule 7, carrying both the `Implemented`-scoped clause and the escape hatch | Reworded: freeze begins at `Implemented`; a `Draft` PRD past step 8 is amendable by the lead only, through §5.2's route. Rule **count stays 14** — `caption_sync_test` and the `13`/`14` single-match assertions are unaffected |
-| `.claude/rules/workflow.md` | step 7, `:91`, `:95-96` | `:91` *"exactly one of the last two lines is sent, never both"*; `:95` *"**Draft loop only**: there the PRD is what moves"*; `:96` *"**Step 9 only**: … the PRD's line count is constant by construction"* | All three restated to §5.3's three-case rule. Changing `:91` alone leaves the two bullets four lines below it restating the superseded binary inside the same paragraph block |
-| `.claude/rules/workflow.md` | step 9, `:129` | *"`COMMIT_REF` … (not `DOCUMENT_LINES`: the PRD is frozen here, so the code is the moving target)"* | Same rule as step 7 — the parenthetical becomes "`COMMIT_REF` for the fix range, and `DOCUMENT_LINES` too when an amendment landed since the last round". **Without this row the two steps contradict each other inside one file** |
-| `.claude/rules/workflow.md` | step 9 | 🔴 handling, three 🟡 destinations, escalation options (i)–(iii) | Adds the validation phase and the amendment route **as bold-lead paragraphs** (`**Validation.**`, matching `**🔴 handling.**`), never a `### ` heading; adds the fence obligation (below); extends the gate-precondition parenthetical to name validation, paren-free so `/Only once the re-review clears \(([^)]*)\)/` still matches; restates option (ii) as "leave the PRD at `Draft` and ungated, record why at the top" |
-| `.claude/rules/roadmap.md` | `:112` | rule 1, *"Scope — every user-supplied field, every category"* | Widened: "…and every verbatim excerpt of third-party or running-system output carried into any briefing." Without it the binding sentence points at a scope clause that excludes a stack trace |
-| `.claude/rules/roadmap.md` | `:129` | *"non-negotiable for all 8 roadmap briefings and any future generator/critic briefing"* | **Additive, not a replacement**: "…for all 8 roadmap briefings, any future generator/critic briefing, **and** any briefing carrying verbatim third-party or running-system output." Swapping the unconditional binding for a conditional one would *subtract* — a category-4 quote is user-supplied but is not "third-party output", so the 8 briefings would lose their existing obligation over it. §9 row 13 asserts `all 8 roadmap briefings` still appears |
-| `.claude/rules/gate-block.md` | `:27` | *"Reference it by number in a comment **above the gate block**"* | Placement stated precisely: a `#` line goes **inside** the ` ```yaml ` fence; an HTML comment may go above it; a bare `#` line above the fence breaks `GATE_FENCE_RE` and is forbidden |
-| `.claude/rules/gate-block.md` | `:34` | *"the **merge commit** where the feature landed"* | "the commit (or merge commit) where the feature landed", matching `CONVENTIONS.md:134` and all seven populated values |
-| `.claude/rules/gate-block.md` | comment vocabulary | `# yellow-tracking:` only | Adds `# amendment:` with §5.2's three required fields. No waiver token (§3) |
-| `.claude/rules/prd-authoring.md` | decision table | rows for factual correction and for `Supersedes:` | One row: validation at step 9 shows a `Draft` PRD misdescribes the intended design → amend in place via the bounce |
-| `CONVENTIONS.md` | `:134` | *"use the last merge commit that completes the feature"* | "the last commit that completes the feature"; the first clause is already permissive and unchanged |
-| `CONVENTIONS.md` | `:172` | `Draft` row: *"Yes — freely editable until promoted"* | "Before step 8: freely editable. Past step 8: amendable by the lead only, via `workflow.md` step 9's bounce." Otherwise a bundled file every adopter receives grants exactly the permission the reworded invariant withdraws |
-| `CONVENTIONS.md` | `:173`, `:311` | freeze scoped to `Implemented` and to factual corrections | **No change** — already correct. Pinned by §9 row 1 against future regression |
-| `specforge-backend-reviewer.md` | `:25` | `CODE_REFERENCES` gloss, *"static paths in draft mode"* | Widened to admit a fix range's changed files in a `draft`-mode bounce |
-| `specforge-backend-reviewer.md` | `:90`, `:92`, `:94`, `:96` | *"the PRD carries `Status: Draft`"*, *"the frozen PRD"*, *"The PRD is frozen — do not propose changes to it"*, *"🔴 remediation is always 'fix the code', never 'fix the PRD'"* | Reviewer reports a PRD defect as a finding and never edits the PRD; remediation routing is the lead's |
-| `specforge-backend-reviewer.md` | `:112` | brief field block: `DOCUMENT_LINES: <current line count of PRD_PATH>   # draft loop only` | Gloss replaced (e.g. `# pinned whenever the PRD moved`). §5.3 makes the comment false in the exact block a reviewer reads to learn which fields it receives, and the prose paragraph below it does not correct the field list |
-| `specforge-backend-reviewer.md` | `:117-120` | *"the PRD is frozen (hard rule 7) and its line count is constant by construction"* | Restated per §5.3's three-case table |
-| `specforge-backend-reviewer.md` | `:123-129` | report contract: *"If **that value** does not match the `DOCUMENT_LINES` / `COMMIT_REF` given in your brief, halt"* | "open the report with **every** moving-target value your brief pinned; a mismatch on any of them halts". `framework.test.ts:748-763` pins this literal string — see §10 |
-| `specforge-frontend-reviewer.md` | `:25`, `:91`, `:93`, `:95`, `:97`, `:113`, `:118-121`, `:124-130` | same text | same changes |
-| `specforge-security-reviewer.md` | `:24`, `:90`, `:92`, `:94`, `:95`, `:97`, `:113`, `:118-121`, `:124-130` | same, plus *"drift from **frozen security contract**"* | same changes; `:95` becomes "drift from the reviewed security contract" |
-| `specforge-quality-reviewer.md` | `:25`, `:92`, `:94`, `:96`, `:101`, `:103`, `:119`, `:124-127`, `:130-136` | same, plus `:101`'s *"either §9 was incomplete and needs a follow-up PRD"* | same changes; `:101` gains amendment as the second route |
-| `specforge-quality-reviewer.md` | `:136-137` | warns a §9 row number *"renumbers silently when rows are inserted"* | Unchanged text, now load-bearing: §4.3 makes §9 amendments append-only and forbids deletion |
-| `specforge-backend-implementer.md` | `:3`, `:22`, `:80`, `:159` | *"a **frozen** specforge PRD"*, *"the frozen Draft PRD"*, *"It is a frozen snapshot (hard rule 7)"*, *"frozen snapshots under hard rule 7"* | Behaviour unchanged. Only the rationale: "You are not the PRD's author; amendment is the lead's route (`workflow.md` step 9)." The forbidden-path list, the skip-and-continue contract and `:293`'s "What you do NOT do" line all stand verbatim |
-| `specforge-frontend-implementer.md` | `:3`, `:22`, `:82`, `:162` | same text | same change |
-| `README.md`, `README.es.md` | `:224` | Mermaid node `Fix in code,<br/>not in the frozen PRD` | `Fix in code, or amend<br/>the PRD via the bounce` |
-| `README.md`, `README.es.md` | `:226`, `:228` | `escalate{User escalation:<br/>…revert to Draft…}` and `thaw[PRD → Draft<br/>escape hatch,<br/>rule 7 intact]` | Restated for the meaningful option (ii): stop with the PRD `Draft` and ungated. Normative diagram surface per PRD-006 §4.1. Both files carry the Mermaid block in English; only surrounding prose is translated (`CONVENTIONS.md §9`) |
-| `README.md`, `README.es.md` | `:21`, `:28` | freeze scoped to `Implemented` | **No change** — already correct. Pinned by §9 row 1 |
-| `README.md`, `README.es.md`, `tools/cli/README.md` | `deny` array, opening at `:148` in all three | fourteen `Agent(specforge-*)` entries | **No change.** An earlier draft appended `"Bash(specforge init:*)"` here; §3 records why it was withdrawn. Listed as a no-change row because the array is a three-copy parity set (`framework.test.ts:969`, `:1147`) and a future reader will otherwise assume §8's control lives here |
-| `docs/faq.md` | `:31`, `:50` | *"the frozen PRD"* at step 9 | "the reviewed PRD"; `:50` gains the amendment route |
-| `docs/faq.md` | `:58-64` | the escape-hatch Q&A, describing a no-op | Rewritten: the freeze begins at `Implemented`; between step 8 and the gate the lead may amend through the bounce; option (ii) is stopping with the PRD ungated |
-| `docs/workflow/overview.md` | `:27`, `:31` | the same two Mermaid labels as `README.md:224,228` | same change |
-| `docs/workflow/overview.md` | `:119`, `:123` | *"the PRD is frozen"*, *"never into the frozen PRD"* | "the reviewed PRD"; `:123` gains the amendment route |
-| `docs/workflow/overview.md` | `:128` | option (ii): *"the single escape hatch for hard rule 7 … free to be edited"* | Restated; "free to be edited" is a broader grant than "amendable by the lead only" |
-| `docs/quickstart.md` | `:108` | *"never into the PRD"* | Gains the amendment route |
-| `docs/index.md` | `:16` | *"honors the frozen PRD"* | "the reviewed PRD" |
-| `optional-rules/headless-session.md` | `:36` | step-9 row: option (ii) *"move the PRD back to `Draft`, strip the gate fields"* | Restated to the meaningful form, plus: a headless session that cannot run validation, or whose amendment the bounce refuted, takes option (ii) and stops without re-proposing — waiving needs a human. **Row count unchanged at 7** |
-| `tests/workflow/validation_phase_test.md` | new | — | Manual fixture, §9 rows 15, 17, 19. **Carries the corpus shape**, not an ad-hoc one: the `**Execution**: manual — needs an agent in the loop` header marker plus `## What this verifies` / `## Fixtures` / `## Steps` / `## Pass criteria` / `## Fail examples`, per `tests/README.md:15-19` and the reference file `tests/roadmap/rollback_test.md:1-51`. Name follows the corpus's dominant `<name>_test.md` pattern (39 of 42 files) |
-| `tests/workflow/amendment_bounce_test.md` | new | — | Manual fixture, §9 rows 16, 18 (row 13 is the conformance counterpart to row 18, not an owner of this path). Same shape and naming obligation as the row above |
-| `tests/README.md` | `:3`, `:11` | *"These 42 files…"*; the kind table's Manual count of `16`, summing 13+13+16=42 | 44 and 18. Adding two fixtures falsifies both counters, and `:3`'s framing that every fixture is referenced by PRD-001/002 §9 no longer holds — these are the first that are not. Nothing under `tools/cli/` asserts these numbers and `tests/**` classifies `unknown`, so no adopter sees the drift; it is listed because this table's exhaustiveness claim is what an implementer trusts instead of looking |
+| File(s) | Current | Change |
+|---|---|---|
+| `.claude/rules/hard-rules.md` | rule 7, carrying both the `Implemented`-scoped clause and the escape hatch | Reworded: freeze begins at `Implemented`; a `Draft` PRD past step 8 is amendable by the lead only, through §5.2's route. Rule **count stays 14** — `caption_sync_test` and the `13`/`14` single-match assertions are unaffected |
+| `.claude/rules/workflow.md` | `:91` *"exactly one of the last two lines is sent, never both"*; `:95` *"**Draft loop only**: there the PRD is what moves"*; `:96` *"**Step 9 only**: … the PRD's line count is constant by construction"* | All three restated to §5.3's three-case rule. Changing `:91` alone leaves the two bullets four lines below it restating the superseded binary inside the same paragraph block |
+| `.claude/rules/workflow.md` | *"`COMMIT_REF` … (not `DOCUMENT_LINES`: the PRD is frozen here, so the code is the moving target)"* | Same rule as step 7 — the parenthetical becomes "`COMMIT_REF` for the fix range, and `DOCUMENT_LINES` too when an amendment landed since the last round". **Without this row the two steps contradict each other inside one file** |
+| `.claude/rules/workflow.md` | 🔴 handling, three 🟡 destinations, escalation options (i)–(iii) | Adds the validation phase and the amendment route **as bold-lead paragraphs** (`**Validation.**`, matching `**🔴 handling.**`), never a `### ` heading; adds the fence obligation (below); extends the gate-precondition parenthetical to name validation, paren-free so `/Only once the re-review clears \(([^)]*)\)/` still matches; restates option (ii) as "leave the PRD at `Draft` and ungated, record why at the top" |
+| `.claude/rules/roadmap.md` | rule 1, *"Scope — every user-supplied field, every category"* | Widened: "…and every verbatim excerpt of third-party or running-system output carried into any briefing." Without it the binding sentence points at a scope clause that excludes a stack trace |
+| `.claude/rules/roadmap.md` | *"non-negotiable for all 8 roadmap briefings and any future generator/critic briefing"* | **Additive, not a replacement**: "…for all 8 roadmap briefings, any future generator/critic briefing, **and** any briefing carrying verbatim third-party or running-system output." Swapping the unconditional binding for a conditional one would *subtract* — a category-4 quote is user-supplied but is not "third-party output", so the 8 briefings would lose their existing obligation over it. §9 row 13 asserts `all 8 roadmap briefings` still appears |
+| `.claude/rules/gate-block.md` | *"Reference it by number in a comment **above the gate block**"* | Placement stated precisely: a `#` line goes **inside** the ` ```yaml ` fence; an HTML comment may go above it; a bare `#` line above the fence breaks `GATE_FENCE_RE` and is forbidden |
+| `.claude/rules/gate-block.md` | *"the **merge commit** where the feature landed"* | "the commit (or merge commit) where the feature landed", matching `CONVENTIONS.md:134` and all seven populated values |
+| `.claude/rules/gate-block.md` | `# yellow-tracking:` only | Adds `# amendment:` with §5.2's three required fields. No waiver token (§3) |
+| `.claude/rules/prd-authoring.md` | rows for factual correction and for `Supersedes:` | One row: validation at step 9 shows a `Draft` PRD misdescribes the intended design → amend in place via the bounce |
+| `CONVENTIONS.md` | *"use the last merge commit that completes the feature"* | "the last commit that completes the feature"; the first clause is already permissive and unchanged |
+| `CONVENTIONS.md` | `Draft` row: *"Yes — freely editable until promoted"* | "Before step 8: freely editable. Past step 8: amendable by the lead only, via `workflow.md` step 9's bounce." Otherwise a bundled file every adopter receives grants exactly the permission the reworded invariant withdraws |
+| `CONVENTIONS.md` | freeze scoped to `Implemented` and to factual corrections | **No change** — already correct. Pinned by §9 row 1 against future regression |
+| `specforge-backend-reviewer.md` | `CODE_REFERENCES` gloss, *"static paths in draft mode"* | Widened to admit a fix range's changed files in a `draft`-mode bounce |
+| `specforge-backend-reviewer.md` | *"the PRD carries `Status: Draft`"*, *"the frozen PRD"*, *"The PRD is frozen — do not propose changes to it"*, *"🔴 remediation is always 'fix the code', never 'fix the PRD'"* | Reviewer reports a PRD defect as a finding and never edits the PRD; remediation routing is the lead's |
+| `specforge-backend-reviewer.md` | brief field block: `DOCUMENT_LINES: <current line count of PRD_PATH>   # draft loop only` | Gloss replaced (e.g. `# pinned whenever the PRD moved`). §5.3 makes the comment false in the exact block a reviewer reads to learn which fields it receives, and the prose paragraph below it does not correct the field list |
+| `specforge-backend-reviewer.md` | *"the PRD is frozen (hard rule 7) and its line count is constant by construction"* | Restated per §5.3's three-case table |
+| `specforge-backend-reviewer.md` | report contract: *"If **that value** does not match the `DOCUMENT_LINES` / `COMMIT_REF` given in your brief, halt"* | "open the report with **every** moving-target value your brief pinned; a mismatch on any of them halts". `framework.test.ts:748-763` pins this literal string — see §10 |
+| `specforge-frontend-reviewer.md` | same text | same changes |
+| `specforge-security-reviewer.md` | same, plus *"drift from **frozen security contract**"* | same changes; `:95` becomes "drift from the reviewed security contract" |
+| `specforge-quality-reviewer.md` | same, plus `:101`'s *"either §9 was incomplete and needs a follow-up PRD"* | same changes; `:101` gains amendment as the second route |
+| `specforge-quality-reviewer.md` | warns a §9 row number *"renumbers silently when rows are inserted"* | Unchanged text, now load-bearing: §4.3 makes §9 amendments append-only and forbids deletion |
+| `specforge-backend-implementer.md` | *"a **frozen** specforge PRD"*, *"the frozen Draft PRD"*, *"It is a frozen snapshot (hard rule 7)"*, *"frozen snapshots under hard rule 7"* | Behaviour unchanged. Only the rationale: "You are not the PRD's author; amendment is the lead's route (`workflow.md` step 9)." The forbidden-path list, the skip-and-continue contract and `:293`'s "What you do NOT do" line all stand verbatim |
+| `specforge-frontend-implementer.md` | same text | same change |
+| `README.md`, `README.es.md` | Mermaid node `Fix in code,<br/>not in the frozen PRD` | `Fix in code, or amend<br/>the PRD via the bounce` |
+| `README.md`, `README.es.md` | `escalate{User escalation:<br/>…revert to Draft…}` and `thaw[PRD → Draft<br/>escape hatch,<br/>rule 7 intact]` | Restated for the meaningful option (ii): stop with the PRD `Draft` and ungated. Normative diagram surface per PRD-006 §4.1. Both files carry the Mermaid block in English; only surrounding prose is translated (`CONVENTIONS.md §9`) |
+| `README.md`, `README.es.md` | freeze scoped to `Implemented` | **No change** — already correct. Pinned by §9 row 1 |
+| `README.md`, `README.es.md`, `tools/cli/README.md` | fourteen `Agent(specforge-*)` entries | **No change.** An earlier draft appended `"Bash(specforge init:*)"` here; §3 records why it was withdrawn. Listed as a no-change row because the array is a three-copy parity set (`framework.test.ts:969`, `:1147`) and a future reader will otherwise assume §8's control lives here |
+| `docs/faq.md` | *"the frozen PRD"* at step 9 | "the reviewed PRD"; `:50` gains the amendment route |
+| `docs/faq.md` | the escape-hatch Q&A, describing a no-op | Rewritten: the freeze begins at `Implemented`; between step 8 and the gate the lead may amend through the bounce; option (ii) is stopping with the PRD ungated |
+| `docs/workflow/overview.md` | the same two Mermaid labels as `README.md:224,228` | same change |
+| `docs/workflow/overview.md` | *"the PRD is frozen"*, *"never into the frozen PRD"* | "the reviewed PRD"; `:123` gains the amendment route |
+| `docs/workflow/overview.md` | option (ii): *"the single escape hatch for hard rule 7 … free to be edited"* | Restated; "free to be edited" is a broader grant than "amendable by the lead only" |
+| `docs/quickstart.md` | *"never into the PRD"* | Gains the amendment route |
+| `docs/index.md` | *"honors the frozen PRD"* | "the reviewed PRD" |
+| `optional-rules/headless-session.md` | step-9 row: option (ii) *"move the PRD back to `Draft`, strip the gate fields"* | Restated to the meaningful form, plus: a headless session that cannot run validation, or whose amendment the bounce refuted, takes option (ii) and stops without re-proposing — waiving needs a human. **Row count unchanged at 7** |
+| `tests/workflow/validation_phase_test.md` | — | Manual fixture, §9 rows 15, 17, 19. **Carries the corpus shape**, not an ad-hoc one: the `**Execution**: manual — needs an agent in the loop` header marker plus `## What this verifies` / `## Fixtures` / `## Steps` / `## Pass criteria` / `## Fail examples`, per `tests/README.md:15-19` and the reference file `tests/roadmap/rollback_test.md:1-51`. Name follows the corpus's dominant `<name>_test.md` pattern (39 of 42 files) |
+| `tests/workflow/amendment_bounce_test.md` | — | Manual fixture, §9 rows 16, 18 (row 13 is the conformance counterpart to row 18, not an owner of this path). Same shape and naming obligation as the row above |
+| `tests/README.md` | *"These 42 files…"*; the kind table's Manual count of `16`, summing 13+13+16=42 | 44 and 18. Adding two fixtures falsifies both counters, and `:3`'s framing that every fixture is referenced by PRD-001/002 §9 no longer holds — these are the first that are not. Nothing under `tools/cli/` asserts these numbers and `tests/**` classifies `unknown`, so no adopter sees the drift; it is listed because a work list that omits it is a site the implementer will miss |
 
 ## 7. Architecture
 
@@ -669,7 +679,8 @@ block's `commit_hash`, same as every other PRD in the corpus.
 and adding **no `### ` sub-heading** inside step 9; edit `roadmap.md:112,129`,
 `gate-block.md:27,34`, `prd-authoring.md` and `CONVENTIONS.md:134,172`; edit
 the four reviewer and two implementer definitions; edit `README.md`,
-`README.es.md`, the four `docs/` pages and `optional-rules/headless-session.md`;
+`README.es.md`, `tools/cli/README.md`, the five `docs/` pages and
+`optional-rules/headless-session.md`;
 add the two `tests/workflow/` fixtures and re-stamp `tests/README.md:3,11`'s
 counters (42→44, Manual 16→18); add the §9 conformance rows, labelling each
 `describe`/`it` **`PRD-012 (specforge) § 9 row N`** — `framework.test.ts`

@@ -335,6 +335,8 @@ Any AI agent investigating the history of a feature should run this grep as part
 
 If a team needs the "what touches this?" lookup to be cheaper than grep, they can maintain an auto-generated index file — but it must be *generated* from the headers, never hand-edited into the frozen PRDs.
 
+A PRD's propagation table is not such an index — it is hand-written, and it is a work list rather than a derived record. Its shape and its anchoring rule are prescribed in [`.claude/rules/prd-authoring.md`](.claude/rules/prd-authoring.md).
+
 ---
 
 ## 12. Phase decomposition
