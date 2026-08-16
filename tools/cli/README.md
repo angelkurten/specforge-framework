@@ -226,7 +226,7 @@ flowchart TB
     roundCheck -->|yes| escalate{User escalation:<br/>one more round,<br/>stop ungated,<br/>or waive?}
     escalate -->|one more once| implFix
     escalate -->|stop| thaw[Stop: PRD stays Draft<br/>and ungated,<br/>reason at the top]
-    escalate -->|waive + comment above gate| siblingsImpl
+    escalate -->|waive + HTML comment above fence| siblingsImpl
     postDecide -->|no| siblingsImpl[[Update sibling's<br/>SYSTEM_ARTIFACT.md +<br/>fill gate block entry]]
     siblingsImpl --> done([Status: Implemented])
 ```

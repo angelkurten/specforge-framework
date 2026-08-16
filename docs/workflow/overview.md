@@ -29,7 +29,7 @@ flowchart TB
     roundCheck -->|yes| escalate{User escalation:<br/>one more round,<br/>stop ungated,<br/>or waive?}
     escalate -->|one more once| implFix
     escalate -->|stop| thaw[Stop: PRD stays Draft<br/>and ungated,<br/>reason at the top]
-    escalate -->|waive + comment above gate| siblingsImpl
+    escalate -->|waive + HTML comment above fence| siblingsImpl
     postDecide -->|no| siblingsImpl[[Update sibling's<br/>SYSTEM_ARTIFACT.md +<br/>fill gate block entry]]
     siblingsImpl --> done([Status: Implemented])
 ```
@@ -124,7 +124,7 @@ Before that panel is dispatched, the lead runs the **validation phase**: exercis
 
 A 🔴 finding blocks gate promotion. The fix goes back to the implementer(s) whose `SCOPE` covers the finding, re-dispatched with `IMPL_MODE: fix-round` and a `PRIOR_FINDINGS` ledger, never into the PRD — a panel finding never motivates an amendment. Re-dispatch the re-review after each fix round.
 
-The one route into the document is the lead's own: when validation shows a `Draft` PRD misdescribes the design that was always intended, the lead proposes an amendment, bounces it off one reviewer pinned by the amended section (`REVIEW_MODE: draft`, the full prior-findings ledger in `DOMAIN_CONTEXT`), and — if the bounce does not refute it — commits the amendment on its own with an `# amendment:` line inside the gate fence. A refutation is fatal however it is filed.
+The one route into the document is the lead's own: when validation shows a `Draft` PRD misdescribes the design that was always intended, the lead proposes an amendment, bounces it off one reviewer pinned by the amended section (`REVIEW_MODE: draft`, the full prior-findings ledger in `DOMAIN_CONTEXT`), and — if the bounce does not refute it — commits the amendment on its own with an `# amendment:` line inside the gate fence, then re-runs validation against the amended text before the panel is dispatched. A refutation is fatal however it is filed.
 
 Count rounds explicitly: `initial re-review + fix-round-1 + fix-round-2 = escalation`. If the same 🔴 persists after fix-round-2, or if rounds produce contradictory 🔴s, halt and escalate to the user via `AskUserQuestion` with three options:
 

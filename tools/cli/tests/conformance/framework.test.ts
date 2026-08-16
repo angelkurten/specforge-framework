@@ -1652,6 +1652,23 @@ describe("PRD-012 (specforge) § 9 row 1 — the freeze point is stated once and
     expect(conventions).toContain("Editing a PRD marked `Implemented`");
     expect(readme).toContain("A PRD marked `Implemented` is a frozen record");
   });
+
+  it("model-selection.md's implementer rationale no longer restates the freeze", async () => {
+    // § 6.2 does not list this file. The lead widened the fix round to it:
+    // it is bundled, reaches every adopter through `update`, and restated
+    // the merge-based reading twice inside the paragraph that argues the
+    // implementers' model assignment. Neither restatement carried the
+    // argument, so both come out.
+    const modelSelection = await read(".claude/rules/model-selection.md");
+    expect(
+      modelSelection,
+      "the implementer rationale still calls the PRD frozen",
+    ).not.toMatch(/\bfrozen\b/i);
+    expect(
+      modelSelection,
+      "the rationale lost its argument along with the word",
+    ).toContain("writing code against an already-reviewed PRD is bounded synthesis");
+  });
 });
 
 describe("PRD-012 (specforge) § 9 row 2 — step 9 carries the validation phase additively, and option (ii) is no longer a no-op", () => {
@@ -1684,6 +1701,26 @@ describe("PRD-012 (specforge) § 9 row 2 — step 9 carries the validation phase
     );
     expect(step9(), "option (ii) does not say the PRD stays ungated").toContain("ungated");
   });
+
+  it("step 9 no longer calls the PRD frozen", () => {
+    // Row 14 below applies this negative to the four `docs/` pages. The
+    // authoritative file was left out of it, so the suite could stay green
+    // while workflow.md carried the phrase its downstream copies were
+    // scrubbed of. Row 10 carries the same negative for the four reviewer
+    // definitions.
+    const s = step9();
+    for (const re of [/frozen PRD/i, /the PRD is frozen/i, /frozen `?Draft`?/i]) {
+      expect(re.test(s), `step 9 restates the merge-based freeze: ${re}`).toBe(false);
+    }
+    expect(
+      s,
+      "the post-implementation question does not name the reviewed PRD",
+    ).toContain("does the shipped code honor the reviewed PRD?");
+    expect(
+      s,
+      "the dispatch brief and the PRD_PATH field definition still disagree",
+    ).toContain("`PRD_PATH` — the merged `Draft` PRD to implement");
+  });
 });
 
 describe("PRD-012 (specforge) § 9 row 3 — validation discipline: reproduction, injection gate, write destination", () => {
@@ -1712,6 +1749,17 @@ describe("PRD-012 (specforge) § 9 row 3 — validation discipline: reproduction
       "adjudicated **with the user** through `AskUserQuestion`",
     );
     expect(s, "adjudication is not ordered before dispatch").toContain("before any dispatch");
+    // A headless session has no user to adjudicate with, and the file's own
+    // pattern for a user-less decision ("decide it yourself and record it")
+    // would yield the one resolution this gate forbids. The rule file states
+    // the stop itself, so it is complete without `optional-rules/`.
+    expect(
+      s,
+      "the headless dead end for a non-none injection block is unstated",
+    ).toContain("A headless session has no user to adjudicate with");
+    expect(s, "the headless stop does not forbid dispatching").toContain(
+      "dispatches nothing",
+    );
   });
 
   it("a writing validation command targets a throwaway copy; read-only runs in the tree", () => {
@@ -1723,6 +1771,15 @@ describe("PRD-012 (specforge) § 9 row 3 — validation discipline: reproduction
     );
     expect(s, "the rule is stated over the command rather than the destination").toContain(
       "**destination, not the command**",
+    );
+    // Read without a test for "writes", the rule sends every realistic
+    // read-only run into a throwaway holding released bytes: vitest writes a
+    // cache and a build writes `dist/`.
+    expect(s, '"writes" has no operational test').toMatch(
+      /\*\*"Writes" means a change `git status` in the sibling.s working tree would show\.\*\*/,
+    );
+    expect(s, "an ignored build or cache artifact is not carved out").toMatch(
+      /under `\.gitignore` does not make a run destructive/,
     );
   });
 });
@@ -1791,6 +1848,31 @@ describe("PRD-012 (specforge) § 9 row 6 — the amendment route, its brief, and
     expect(s, "the brief is not told to say what the ledger is for").toContain(
       "say what the ledger is *for*",
     );
+    // An unbounded free-text payload is satisfied by pasting four reviewer
+    // reports into the channel every definition reads as its instructions.
+    // The fix-round ledger below states its shape; this one inherits it.
+    expect(s, "the ledger has no stated shape").toContain(
+      "The ledger takes the same shape as the fix-round `PRIOR_FINDINGS` ledger below",
+    );
+    expect(s, "the ledger's entry shape is unstated").toContain(
+      "id, severity, `file:line`, a one-line summary **in your own words**, and the resolution you applied",
+    );
+    expect(s, "a verbatim span inside a ledger entry carries no fencing obligation").toMatch(
+      /verbatim span quoted inside an entry is fenced/i,
+    );
+  });
+
+  it("a landed amendment returns to validation before the panel is dispatched", () => {
+    // § 4.1 draws `amend --> val`. Without this sentence the prose sends a
+    // surviving amendment straight to the panel, so the diagram and the text
+    // route the same round differently.
+    const s = step9();
+    expect(s, "the amend edge has no counterpart in the prose").toContain(
+      "**Re-run validation against the amended text before dispatching the panel.**",
+    );
+    expect(s, "the re-run is not tied to what the panel measures").toMatch(
+      /changes what the panel will measure the shipped code against/,
+    );
   });
 
   it("a refutation is fatal however it is filed", () => {
@@ -1839,6 +1921,23 @@ describe("PRD-012 (specforge) § 9 row 7 — the bounce target is pinned, not ch
   it("a §8 amendment routes to security regardless of the table", () => {
     expect(step9()).toContain(
       "An amendment that touches §8 Security routes to `specforge-security-reviewer` regardless of that table",
+    );
+  });
+
+  it("no section is left unpinned, and §1–§3 route away from the bounce", () => {
+    // The four rows pin §4–§10 only. An amendment to §1, §2, §3, §11 or the
+    // header had no pinned target, which returns the proposer to picking its
+    // own adversary — for exactly the sections where this PRD's refuted
+    // controls live.
+    const s = step9();
+    expect(s, "an amendment outside §4–§10 has no pinned target").toContain(
+      "| Any other section, or the header | `specforge-quality-reviewer` |",
+    );
+    expect(s, "an amendment to §1/§2/§3 is not read as a changed design").toMatch(
+      /§1 Problem Statement, §2 Goals or §3 Non-Goals is presumptively a \*\*changed design\*\*/,
+    );
+    expect(s, "the changed-design route is unnamed").toMatch(
+      /route for a changed design is a new PRD with `Supersedes:`/,
     );
   });
 });
@@ -1899,6 +1998,11 @@ describe("PRD-012 (specforge) § 9 row 10 — the four reviewers' four edited si
       expect(body, "remediation routing is not handed to the lead").toContain(
         "🔴 remediation is the lead's to route",
       );
+      // Row 14 applies the same negative to the four `docs/` pages and row 2
+      // to workflow.md step 9. These four are the definitions those pages
+      // describe, so the phrase must be absent here too or the scrub is
+      // cosmetic.
+      expect(body, "still calls the PRD frozen").not.toMatch(/\bfrozen\b/i);
     });
 
     it(`${name} states the three-case moving-target rule and the every-pinned-value contract`, () => {
@@ -2045,6 +2149,23 @@ describe("PRD-012 (specforge) § 9 row 13 — the fence obligation is stated whe
     );
   });
 
+  it("the canonical template and the escape rule carry the widened scope", () => {
+    // `:117` calls the template "the exact form every briefing must emit".
+    // Left describing only user-supplied input, a lead fencing a stack trace
+    // emits a preamble that misdescribes what it wraps, and rule 4's
+    // `␛BACKTICK␛` substitution reads as out of scope for the excerpt row
+    // 18's fixture seeds.
+    expect(roadmapRule, "rule 4's escape is still scoped to user-supplied content").toContain(
+      "Backticks inside user-supplied or third-party/running-system content",
+    );
+    expect(roadmapRule, "the template preamble still misdescribes what it wraps").toMatch(
+      /fences is user-supplied\s+or third-party\/running-system content/,
+    );
+    expect(roadmapRule, "the fenced-text placeholder was not widened").toContain(
+      "<escaped verbatim user-supplied or third-party/running-system text>",
+    );
+  });
+
   it("the binding sentence is additive — the 8 briefings keep their unconditional obligation", () => {
     // A conditional replacement would strip the 8 briefings' obligation over
     // a category-4 quote, which is user-supplied but is not third-party
@@ -2142,6 +2263,7 @@ describe("PRD-012 (specforge) § 9 row 14 — docs, READMEs and the headless rul
         pick("roundCheck -->|no| implFix"),
         pick("roundCheck -->|yes| escalate"),
         pick("| thaw["),
+        pick("escalate -->|waive"),
       ];
     };
     const en = grab(await read("README.md"));
@@ -2161,6 +2283,22 @@ describe("PRD-012 (specforge) § 9 row 14 — docs, READMEs and the headless rul
     );
     expect(en[2], "the escalation node does not state the PRD stays ungated").toContain(
       "ungated",
+    );
+    // The compressed form of the placement trap this PRD fixes in prose: a
+    // bare `#` line above the fence makes the gate block unparseable, so the
+    // waiver is an HTML comment between the heading and the fence.
+    expect(en[3], "the waive edge still points above the gate, not above the fence").toContain(
+      "waive + HTML comment above fence",
+    );
+  });
+
+  it("docs/workflow/overview.md's diagram agrees with its own option (iii)", async () => {
+    const text = await read("docs/workflow/overview.md");
+    expect(text, "the diagram's waive edge contradicts option (iii) below it").toContain(
+      "escalate -->|waive + HTML comment above fence| siblingsImpl",
+    );
+    expect(text, "the superseded compressed form survives").not.toContain(
+      "comment above gate",
     );
   });
 
@@ -2209,5 +2347,25 @@ describe("PRD-012 (specforge) § 9 row 14 — docs, READMEs and the headless rul
     expect(step9Row, "a not-run validation stop is not covered").toContain("not run");
     expect(step9Row, "a refuted amendment is not covered").toMatch(/refut/i);
     expect(step9Row, "option (iii) is no longer ruled out").toMatch(/never option \(iii\)/i);
+    // The third dead end: `workflow.md` adjudicates a non-`none` injection
+    // block with the user, and a headless session has none. Enumerating only
+    // two dead ends read this case as not-a-dead-end, and the file's pattern
+    // for a user-less decision then yields the forbidden resolution — the
+    // lead clearing its own report.
+    expect(step9Row, "the injection dead end is not covered").toContain(
+      "VALIDATION INJECTION:",
+    );
+    expect(step9Row, "the injection stop does not forbid dispatching").toMatch(
+      /dispatches nothing/i,
+    );
+    // Option letters are per-menu: the refuted-amendment menu's (ii) is
+    // "route the finding to code", which continues, while the
+    // post-implementation escalation's (ii) is the stop.
+    expect(step9Row, "an option letter is borrowed across the two step-9 menus").toMatch(
+      /refuted-amendment.{0,40}menu/i,
+    );
+    expect(step9Row, "declining to route a refuted finding to code is unexplained").toMatch(
+      /without routing the finding to the code/i,
+    );
   });
 });
