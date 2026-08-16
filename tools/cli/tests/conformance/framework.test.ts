@@ -2469,3 +2469,276 @@ describe("PRD-012 (specforge) § 9 row 14 — docs, READMEs and the headless rul
     );
   });
 });
+
+// PRD-013 (specforge). Its § 9 has exactly four rows, so `row N` never
+// prefix-matches another describe here — unlike `PRD-012 (specforge) § 9
+// row 1`, which prefix-matches rows 1 and 10–14. Keep it that way: a fifth
+// row would have to be numbered past 9 before ambiguity returns.
+
+/** The `### The propagation table …` subsection of prd-authoring.md. */
+function propagationSubsection(text: string): string {
+  const start = text.indexOf("### The propagation table");
+  if (start === -1) return "";
+  const rest = text.slice(start);
+  const next = /\n#{2,3} /.exec(rest.slice(1));
+  return next ? rest.slice(0, next.index + 1) : rest;
+}
+
+/** The decision table's factual-correction row, verbatim, or null. */
+function factualCorrectionRow(text: string): string | null {
+  const line = text
+    .split("\n")
+    .find((l) => l.startsWith("| A factual correction (typo, wrong path)"));
+  return line ?? null;
+}
+
+describe("PRD-013 (specforge) § 9 row 1 — the propagation table's shape is prescribed once", () => {
+  let block: string;
+
+  beforeAll(() => {
+    block = propagationSubsection(prdAuthoring);
+  });
+
+  it("prd-authoring.md carries the subsection, beside the § 9 Test Plan shape", () => {
+    expect(block, "no propagation-table subsection in prd-authoring.md").not.toBe("");
+    // A sibling of the § 2 Goals note under `## Required sections`, i.e. above
+    // the decision table rather than appended to the end of the file.
+    expect(
+      prdAuthoring.indexOf("### The propagation table"),
+      "the subsection sits below the decision table, not beside the § 9 shape",
+    ).toBeLessThan(prdAuthoring.indexOf("## Decision: PRD vs ADR"));
+  });
+
+  it("declares the four columns", () => {
+    expect(block, "the column shape is missing").toContain(
+      "| File(s) | Site | Current | Change |",
+    );
+    for (const col of ["**`File(s)`**", "**`Site`**", "**`Current`**", "**`Change`**"]) {
+      expect(block, `no gloss for ${col}`).toContain(col);
+    }
+  });
+
+  it("names the three Site forms and forbids a line number in the literal sentence", () => {
+    expect(block, "the greppable-span form is missing").toContain("greppable span");
+    expect(block, "the named-structural-unit form is missing").toContain(
+      "named structural unit",
+    );
+    expect(block, "the `new` form is missing").toMatch(/literal `new`/);
+    // The prohibition this PRD exists to introduce. Every other clause on
+    // this list can survive an edit that drops exactly this sentence.
+    expect(block, "the line-number prohibition is gone").toContain("Never a line number.");
+  });
+
+  it("carries the notation rule", () => {
+    expect(block, "the span notation is unstated").toContain(
+      "A cell holding a span writes it as",
+    );
+    expect(block, "the bare-prose forms are unstated").toContain("are bare prose");
+  });
+
+  it("enumerates § 4.1's four defeaters", () => {
+    const flatBlock = flat(block);
+    for (const [label, needle] of [
+      ["line break", "A line break inside the span"],
+      ["emphasis", "An emphasis marker inside the span"],
+      ["quote character", "A substituted quote character"],
+      ["backtick or pipe", "A backtick or a pipe"],
+    ] as const) {
+      expect(flatBlock, `defeater missing: ${label}`).toContain(needle);
+    }
+  });
+
+  it("states the grep -o counting rule and rules out grep -c", () => {
+    expect(block, "the counting command is missing").toContain(
+      "grep -o -F '<span>' <file> | wc -l",
+    );
+    expect(flat(block), "grep -c is not ruled out").toContain(
+      "`grep -c` counts *lines* containing a match",
+    );
+    expect(flat(block), "the answer is not pinned to exactly 1").toMatch(
+      /must be exactly `1`|must print exactly 1/,
+    );
+  });
+
+  it("states the one-site-per-row rule and the quoted-material clause", () => {
+    expect(flat(block), "the one-site-per-row rule is missing").toContain(
+      "**Each row carries its own anchor and covers one site.**",
+    );
+    expect(flat(block), "an under-specified row is not called out").toContain(
+      "under-specified",
+    );
+    expect(flat(block), "the quoted-material clause is missing").toContain(
+      "**A `Site` cell is quoted material, not an instruction.**",
+    );
+  });
+
+  it("forbids claiming completeness and routes it to step 9's diff-reconcile", () => {
+    const flatBlock = flat(block);
+    expect(flatBlock, "the work-list framing is missing").toContain(
+      "**The table is a work list, not a completeness claim.**",
+    );
+    expect(flatBlock, "the prohibition is not stated").toContain(
+      "It does not claim to be complete and may not say it is.",
+    );
+    expect(flatBlock, "completeness is not routed to step 9").toMatch(
+      /`workflow\.md` step 9's diff-reconcile/,
+    );
+    expect(flatBlock, "the diff-reconcile's mechanism is not named").toContain(
+      "git diff --name-only",
+    );
+  });
+
+  it("does not restate the § 9 Test Plan anchor span it was written beside", () => {
+    // PRD-013 § 10: § 6.2 row 1 anchors on this phrase, which occurs once in
+    // the file today. A subsection repeating it takes the anchor to two.
+    expect(
+      prdAuthoring.split("column names the concrete test file").length - 1,
+      "the § 9 anchor span is no longer unique in prd-authoring.md",
+    ).toBe(1);
+  });
+
+  it("no other framework file restates the shape; CONVENTIONS.md carries only the cross-reference", async () => {
+    const files = await resolveFrameworkFiles();
+    for (const rel of files) {
+      if (rel === ".claude/rules/prd-authoring.md") continue;
+      const text = await read(rel);
+      expect(text, `${rel} restates the propagation table's columns`).not.toContain(
+        "| File(s) | Site |",
+      );
+      expect(text, `${rel} restates the anchoring rule`).not.toContain("greppable span");
+    }
+    const conventions = await read("CONVENTIONS.md");
+    expect(conventions, "CONVENTIONS.md does not point at the prescription").toContain(
+      ".claude/rules/prd-authoring.md",
+    );
+    expect(conventions, "the generated-index principle lost its propagation cross-reference")
+      .toMatch(/propagation table is not such an index/);
+  });
+});
+
+describe("PRD-013 (specforge) § 9 row 2 — the factual-correction clause lands in both copies", () => {
+  let mentalModel: string;
+
+  beforeAll(async () => {
+    mentalModel = await read("docs/concepts/mental-model.md");
+  });
+
+  it("prd-authoring.md's decision table names a false completeness claim as a factual correction", () => {
+    const row = factualCorrectionRow(prdAuthoring);
+    expect(row, "no factual-correction row in prd-authoring.md").not.toBeNull();
+    expect(row!, "the row does not name the completeness claim").toContain(
+      "propagation table's claim to be exhaustive is a factual correction",
+    );
+    expect(row!, "the row lost its edit-in-place routing").toContain("**Edit in place**");
+    expect(row!, "the row lost the no-status-bump instruction").toContain(
+      "Do not bump status.",
+    );
+  });
+
+  it("docs/concepts/mental-model.md mirrors it, and the two agree", () => {
+    const a = factualCorrectionRow(prdAuthoring);
+    const b = factualCorrectionRow(mentalModel);
+    expect(b, "no factual-correction row in mental-model.md").not.toBeNull();
+    expect(b, "the two copies of the decision table's row disagree").toBe(a);
+  });
+});
+
+describe("PRD-013 (specforge) § 9 row 3 — PRD-012's correction landed", () => {
+  const PRD012 = "012-validation-phase-and-prd-amendment.md";
+  let prd012: string;
+
+  beforeAll(async () => {
+    prd012 = await read(PRD012);
+  });
+
+  it("carries a correction note at the top, above the Impacted Projects table", () => {
+    const head = prd012.slice(0, prd012.indexOf("## Impacted Projects"));
+    expect(head, "no Impacted Projects table").not.toBe("");
+    expect(head, "no correction note at the top").toMatch(/\*\*Correction/);
+    expect(head, "the correction note does not cite the PRD that made it").toContain(
+      "PRD-013",
+    );
+  });
+
+  it("stays Implemented with its gate block untouched", () => {
+    // The decision table's factual-correction row: edit in place, do not bump
+    // status. The gate block, its `# yellow-tracking:` comment and its
+    // `commit_hash` are not this correction's business.
+    expect(prd012, "the status was bumped").toContain("**Status**: Implemented");
+    expect(prd012, "the gate block was reopened").toMatch(/commit_hash: [0-9a-f]{7,40}/);
+    expect(prd012, "the yellow-tracking comment was dropped").toContain("# yellow-tracking:");
+  });
+
+  it("contains none of the spans § 6.2 marks for removal", () => {
+    for (const span of [
+      "This table is exhaustive.",
+      "Every line number below was verified against",
+      "five rule files, six subagent",
+    ]) {
+      expect(prd012.includes(span), `superseded span survives: ${span}`).toBe(false);
+    }
+  });
+
+  it("§ 6.2's table dropped the Line column from its header and every data row", () => {
+    const start = prd012.indexOf("### 6.2 Documentation propagation surface");
+    expect(start, "no § 6.2 heading").toBeGreaterThan(-1);
+    const section = prd012.slice(start, prd012.indexOf("\n## 7. Architecture", start));
+    const rows = section.split("\n").filter((l) => l.startsWith("|"));
+    expect(rows.length, "§ 6.2's table vanished").toBeGreaterThan(10);
+    expect(rows[0], "the header row still carries a Line column").toBe(
+      "| File(s) | Current | Change |",
+    );
+    // No replacement column: PRD-012's table is historical record, so every
+    // data row is three cells wide too.
+    for (const [i, row] of rows.entries()) {
+      if (i === 1) continue; // the `|---|---|---|` separator
+      const cells = row.split(/(?<!\\)\|/).slice(1, -1);
+      expect(cells.length, `row ${i} is not three cells wide: ${row.slice(0, 80)}`).toBe(3);
+    }
+  });
+
+  it("§ 6.2's opening states a work list, not an exhaustive table", () => {
+    const start = prd012.indexOf("### 6.2 Documentation propagation surface");
+    const opening = flat(prd012.slice(start, prd012.indexOf("\n| File(s)", start)));
+    expect(opening, "the opening does not name the table as a work list").toMatch(
+      /known at authoring time/,
+    );
+    expect(opening, "completeness is not routed to step 9's diff-reconcile").toMatch(
+      /step 9's diff-reconcile|Reconcile the diff against the ledger/,
+    );
+  });
+
+  it("§ 6's opening count reads the figures the shipping diff yields", () => {
+    // `git diff --name-only 31f4783 2814996`: six `.claude/rules/*` files,
+    // `CONVENTIONS.md`, six `.claude/agents/specforge/*` definitions, four
+    // READMEs, five `docs/` pages, one optional rule.
+    const start = prd012.indexOf("## 6. Data Model");
+    expect(start, "no § 6 heading").toBeGreaterThan(-1);
+    const opening = flat(prd012.slice(start, prd012.indexOf("### 6.1", start)));
+    for (const figure of [
+      "six rule files",
+      "`CONVENTIONS.md`",
+      "six subagent",
+      "four READMEs",
+      "five docs pages",
+      "one optional rule",
+    ]) {
+      expect(opening, `§ 6's opening count is missing: ${figure}`).toContain(figure);
+    }
+    for (const stale of ["five rule files", "two READMEs", "four docs pages"]) {
+      expect(opening, `§ 6's opening count still reads: ${stale}`).not.toContain(stale);
+    }
+  });
+});
+
+describe("PRD-013 (specforge) § 9 row 4 — PRD-010 is untouched", () => {
+  it("010-implementer-subagent-roles.md still claims its table is exhaustive", async () => {
+    // Deliberate asymmetry, recorded as an open question in PRD-013 § 11:
+    // only PRD-012's claim is a tracked finding. A later sweep that
+    // "helpfully" corrects PRD-010 turns this red instead of passing silently.
+    const prd010 = await read("010-implementer-subagent-roles.md");
+    expect(prd010, "PRD-010's claim was swept without a PRD authorising it").toContain(
+      "This table is exhaustive.",
+    );
+  });
+});

@@ -37,6 +37,44 @@ Example — instead of *"Rate-limit login attempts"*, write *"If login attempts 
 
 This is a **style suggestion, not a requirement**, and applies only to reactive goals. Do not restructure § 5 API, § 6 Data Model, or § 9 Test Plan into this form — those sections are already more precise (schemas, column tables, concrete test paths). Do not add a separate "Acceptance Criteria" section; it would duplicate § 9.
 
+### The propagation table — one row per site, anchored by a greppable span
+
+A **propagation table** is a PRD's work list: one row per file and site the change must touch. It is not a required section — most PRDs need none — but a PRD that carries one uses this shape:
+
+```
+| File(s) | Site | Current | Change |
+```
+
+- **`File(s)`** — repo-relative path, or several when the site is a parity set across copies.
+- **`Site`** — the anchor, in one of exactly three forms: a **greppable span**, a **named structural unit** (`rule 7`, `step 9`, `§5.2`, a heading title), or the literal `new` when the change creates the file. Never a line number.
+- **`Current`** — what the site says now, when that is worth stating and is not already the `Site` span. Prose, not an anchor.
+- **`Change`** — what it becomes, stated as the obligation rather than as a string replacement, so a later reader can tell whether a reword satisfied it.
+
+**A greppable span** is verbatim text the named file already carries, with no line break, no emphasis marker, no quote character, no backtick and no pipe inside it. The author confirms it before the row is written:
+
+```bash
+grep -o -F '<span>' <file> | wc -l    # must print exactly 1
+```
+
+**Count occurrences, not matching lines.** `grep -c` counts *lines* containing a match, so a span appearing twice on one line reads as unique. `grep -o … | wc -l` is the check, and the answer must be exactly `1`.
+
+Four things defeat a `grep -F`, each of them hit in practice:
+
+- **A line break inside the span** — PRD bodies hard-wrap, so a span longer than one source line finds nothing.
+- **An emphasis marker inside the span** — a phrase the source wraps in bold or italics is not found without the markers.
+- **A substituted quote character** — a span carrying `'…'` where the source carries `"…"` fails. Prefer a span with no quote characters at all.
+- **A backtick or a pipe** — neither survives a markdown table cell. A backtick must be escaped to sit in one, and the escaped form is not what the source carries.
+
+When no span survives those, fall back to a named structural unit. It is unverifiable by grep, and legible to a human — which a stale line number is not. When the span occurs more than once, widen it until exactly one occurrence remains.
+
+**Notation.** A cell holding a span writes it as ``the span `…` ``; a named structural unit and the literal `new` are bare prose.
+
+**Each row carries its own anchor and covers one site.** A row reading "same text", or "the same labels as the row above", is under-specified — split it into one row per site.
+
+**A `Site` cell is quoted material, not an instruction.** A span is text the named file already carries, so it introduces nothing an implementer would not read from that file directly — but the PRD is a sanctioned instruction file for the two implementer roles, and the cell is read as data.
+
+**The table is a work list, not a completeness claim.** It is the sites known at authoring time. It does not claim to be complete and may not say it is. Completeness is established after the fact by `workflow.md` step 9's diff-reconcile, which compares `git diff --name-only` against the ledger and makes the lead adjudicate every file the expectation did not account for. An unqualified completeness claim is what an implementer trusts instead of looking, and it has been false in every document that has made one.
+
 ## Decision: PRD vs ADR vs SYSTEM_ARTIFACT update
 
 | If the change is… | Write a… |
@@ -49,7 +87,7 @@ This is a **style suggestion, not a requirement**, and applies only to reactive 
 | A small change *with* observable behavior but below the PRD size floor (~300 lines of spec; see `CONVENTIONS.md` § 1) — tuning a constant, a copy edit, a single config flag. (If the change is purely internal with *no* observable effect, use the bug-fix/refactor row above instead — the two rows partition on the observable-behavior axis.) | **No PRD.** Update the impacted sibling's `SYSTEM_ARTIFACT.md` if system state changed, and capture the rationale in the commit message. Escalate to a PRD only if a reviewer flags risk or the change grows past the floor. |
 | A high-blast-radius implementation decision a sub-agent makes autonomously during `workflow.md` step 9 (schema shape, migration strategy, dependency choice) that the PRD did **not** specify. | Optionally record an **AgDR** (Agent Decision Record) — see `## Optional artifact: Agent Decision Records` below. |
 | Validation at `workflow.md` step 9 shows a `Draft` PRD **misdescribes the design that was always intended** — a wrong identifier, a §5 field the implementation proved impossible as specified, a §9 row naming a test the stack cannot express. The design did not change; the document is wrong about it. | **Amend the PRD in place**, lead only, through step 9's adversarial bounce, recorded with an `# amendment:` line inside the gate fence (`gate-block.md`). Not a follow-up PRD: the `Supersedes:` row above covers a changed *design*, not a document that misdescribes an unchanged one. |
-| A factual correction (typo, wrong path) to an existing PRD. | **Edit in place**, note the correction at the top. Do not bump status. |
+| A factual correction (typo, wrong path) to an existing PRD. | **Edit in place**, note the correction at the top. Do not bump status. A propagation table's claim to be exhaustive is a factual correction of this kind: the claim is false, and removing it changes no design the PRD recorded. |
 | A discovery that a shipped PRD was never fully implemented. | **Move it back to `Draft`**, strip the gate fields, explain why at the top. |
 
 ## Optional artifact: Agent Decision Records

@@ -66,7 +66,7 @@ See the decision table in [PRD authoring rules](https://github.com/angelkurten/s
 | A refinement of a shipped feature that changes observable behavior. | **New PRD** with `Supersedes: PRD-N` in its header. Do not edit PRD-N. |
 | A bug fix or internal refactor without observable behavior change. | **No PRD.** Update the relevant sibling's `SYSTEM_ARTIFACT.md` only if system state changed. |
 | Validation at `workflow.md` step 9 shows a `Draft` PRD **misdescribes the design that was always intended** — a wrong identifier, a §5 field the implementation proved impossible as specified, a §9 row naming a test the stack cannot express. The design did not change; the document is wrong about it. | **Amend the PRD in place**, lead only, through step 9's adversarial bounce, recorded with an `# amendment:` line inside the gate fence. Not a follow-up PRD: the `Supersedes:` row above covers a changed *design*, not a document that misdescribes an unchanged one. |
-| A factual correction (typo, wrong path) to an existing PRD. | **Edit in place**, note the correction at the top. Do not bump status. |
+| A factual correction (typo, wrong path) to an existing PRD. | **Edit in place**, note the correction at the top. Do not bump status. A propagation table's claim to be exhaustive is a factual correction of this kind: the claim is false, and removing it changes no design the PRD recorded. |
 | A discovery that a shipped PRD was never fully implemented. | **Move it back to `Draft`**, strip the gate fields, explain why at the top. |
 
 ## Why ROADMAP.md is separate from SYSTEM_ARTIFACT.md
