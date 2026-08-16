@@ -48,7 +48,33 @@ jobs:
       - name: Test
         run: pnpm test
 
+      # `npm publish` defaults to the `latest` dist-tag, which npm assigns by
+      # publish order rather than by version. So publishing a tag that is not
+      # the highest version -- a backfilled tag, a patch on an old line --
+      # silently demotes `latest`, and every `npx @angelkurten/specforge` gets
+      # the older tree. This happened: v0.18.0 was tagged retroactively after
+      # v0.19.0 had shipped.
+      #
+      # `sort -V` orders plain x.y.z correctly. It does NOT order prereleases
+      # per semver (1.0.0-rc.1 sorts after 1.0.0); this repo publishes none,
+      # and a release line that starts using them needs a real semver compare
+      # here.
+      - name: Resolve dist-tag
+        id: disttag
+        run: |
+          set -euo pipefail
+          publishing=$(node -p "require('./package.json').version")
+          current=$(npm view "$(node -p "require('./package.json').name")" version 2>/dev/null || echo "0.0.0")
+          highest=$(printf '%s\n%s\n' "$current" "$publishing" | sort -V | tail -1)
+          if [ "$highest" = "$publishing" ] && [ "$current" != "$publishing" ]; then
+            tag=latest
+          else
+            tag=previous
+          fi
+          echo "Publishing $publishing; registry latest is $current; dist-tag: $tag"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
       - name: Publish to npm with provenance
-        run: npm publish --provenance --access public
+        run: npm publish --provenance --access public --tag "${{ steps.disttag.outputs.tag }}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
