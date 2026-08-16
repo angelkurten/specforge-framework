@@ -2598,6 +2598,13 @@ describe("PRD-013 (specforge) § 9 row 1 — the propagation table's shape is pr
   });
 
   it("no other framework file restates the shape; CONVENTIONS.md carries only the cross-reference", async () => {
+    // Anchor the needle in the file it is quoted from. If that wording is
+    // reworded away, `not.toContain` below passes vacuously in every file and
+    // the check stops covering anything.
+    expect(
+      prdAuthoring,
+      "the restatement needle no longer occurs in prd-authoring.md",
+    ).toContain("the anchor, in one of exactly three forms");
     const files = await resolveFrameworkFiles();
     for (const rel of files) {
       if (rel === ".claude/rules/prd-authoring.md") continue;
@@ -2605,7 +2612,14 @@ describe("PRD-013 (specforge) § 9 row 1 — the propagation table's shape is pr
       expect(text, `${rel} restates the propagation table's columns`).not.toContain(
         "| File(s) | Site |",
       );
-      expect(text, `${rel} restates the anchoring rule`).not.toContain("greppable span");
+      // The needle is the `Site` gloss's own wording, not the bare phrase
+      // `greppable span`: § 9 row 1 forbids *restating the shape*, and a file
+      // is free to mention the convention by name. `CONVENTIONS.md`'s
+      // cross-reference is the concrete case — rewording it to name the rule
+      // would trip a bare-phrase check with no defect present.
+      expect(text, `${rel} restates the Site anchoring rule`).not.toContain(
+        "the anchor, in one of exactly three forms",
+      );
     }
     const conventions = await read("CONVENTIONS.md");
     expect(conventions, "CONVENTIONS.md does not point at the prescription").toContain(
@@ -2652,8 +2666,13 @@ describe("PRD-013 (specforge) § 9 row 3 — PRD-012's correction landed", () =>
   });
 
   it("carries a correction note at the top, above the Impacted Projects table", () => {
-    const head = prd012.slice(0, prd012.indexOf("## Impacted Projects"));
-    expect(head, "no Impacted Projects table").not.toBe("");
+    // Bound the head slice on an index that exists. `indexOf` returns -1 when
+    // the heading is absent and `slice(0, -1)` then returns nearly the whole
+    // file, so a `not.toBe("")` guard would pass while the *above the table*
+    // claim this test states goes unchecked.
+    const tableAt = prd012.indexOf("## Impacted Projects");
+    expect(tableAt, "no Impacted Projects table").toBeGreaterThan(-1);
+    const head = prd012.slice(0, tableAt);
     expect(head, "no correction note at the top").toMatch(/\*\*Correction/);
     expect(head, "the correction note does not cite the PRD that made it").toContain(
       "PRD-013",
@@ -2663,10 +2682,41 @@ describe("PRD-013 (specforge) § 9 row 3 — PRD-012's correction landed", () =>
   it("stays Implemented with its gate block untouched", () => {
     // The decision table's factual-correction row: edit in place, do not bump
     // status. The gate block, its `# yellow-tracking:` comment and its
-    // `commit_hash` are not this correction's business.
+    // `commit_hash` are not this correction's business — so the values are
+    // pinned, not their shape. `commit_hash: deadbeef` and a bare
+    // `# yellow-tracking:` prefix satisfy a shape check while destroying the
+    // record this is the only automated guard on.
     expect(prd012, "the status was bumped").toContain("**Status**: Implemented");
-    expect(prd012, "the gate block was reopened").toMatch(/commit_hash: [0-9a-f]{7,40}/);
-    expect(prd012, "the yellow-tracking comment was dropped").toContain("# yellow-tracking:");
+
+    const gateAt = prd012.indexOf("## Gate: Promotion to `Implemented`");
+    expect(gateAt, "no gate-block heading").toBeGreaterThan(-1);
+    const gate = prd012.slice(gateAt);
+    expect(gate, "the gate block's commit_hash changed").toContain(
+      "commit_hash: 2814996",
+    );
+    expect(gate, "the yellow-tracking comment's routing changed").toContain(
+      "# yellow-tracking: PRD-012 → follow-up PRD-013",
+    );
+    // Verbatim list entries, so a re-indent or a dropped path fails too.
+    for (const entry of [
+      "\n  - tools/cli/tests/conformance/framework.test.ts\n",
+      "\n  - tests/workflow/validation_phase_test.md\n",
+      "\n  - tests/workflow/amendment_bounce_test.md\n",
+    ]) {
+      expect(gate, `the gate block's tests list lost: ${entry.trim()}`).toContain(entry);
+    }
+  });
+
+  it("the Impacted Projects cell names the mirrored docs page it amends", () => {
+    // The fifth correction PRD-013 § 6.2 did not enumerate: the cell listed
+    // four `docs/` pages while PRD-012 amends five, `mental-model.md` being
+    // the omitted one — it carries `prd-authoring.md`'s decision table
+    // verbatim, which is why PRD-013 § 9 row 2 asserts against it at all.
+    const row = prd012.split("\n").find((l) => l.startsWith("| **specforge** |"));
+    expect(row, "no Impacted Projects row for specforge").toBeDefined();
+    expect(row!, "the Impacted Projects cell omits the mirrored docs page").toContain(
+      "`docs/concepts/mental-model.md`",
+    );
   });
 
   it("contains none of the spans § 6.2 marks for removal", () => {

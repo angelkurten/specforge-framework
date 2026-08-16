@@ -1,8 +1,9 @@
 # PRD-012: A validation phase and a PRD-amendment route for step 9
 
 > **Correction, 2026-08-16 (PRD-013).** §6.2's table claimed to be exhaustive
-> and was not; its `Line` column anchored on absolute line numbers that had
-> already drifted; the clause vouching for those numbers went with the column;
+> and was not; its `Line` column anchored mostly on absolute line
+> numbers that had already drifted, and on a named structural unit in five
+> cells; the clause vouching for those numbers went with the column;
 > and §6's opening count and the `Impacted Projects` cell both under-counted
 > the files this PRD amends. Corrected in place under hard rule 7's
 > factual-error clause, per `prd-authoring.md`'s decision table. `Status`,
@@ -493,7 +494,7 @@ clause vouching for them went with it.
 | `optional-rules/headless-session.md` | step-9 row: option (ii) *"move the PRD back to `Draft`, strip the gate fields"* | Restated to the meaningful form, plus: a headless session that cannot run validation, or whose amendment the bounce refuted, takes option (ii) and stops without re-proposing — waiving needs a human. **Row count unchanged at 7** |
 | `tests/workflow/validation_phase_test.md` | — | Manual fixture, §9 rows 15, 17, 19. **Carries the corpus shape**, not an ad-hoc one: the `**Execution**: manual — needs an agent in the loop` header marker plus `## What this verifies` / `## Fixtures` / `## Steps` / `## Pass criteria` / `## Fail examples`, per `tests/README.md:15-19` and the reference file `tests/roadmap/rollback_test.md:1-51`. Name follows the corpus's dominant `<name>_test.md` pattern (39 of 42 files) |
 | `tests/workflow/amendment_bounce_test.md` | — | Manual fixture, §9 rows 16, 18 (row 13 is the conformance counterpart to row 18, not an owner of this path). Same shape and naming obligation as the row above |
-| `tests/README.md` | *"These 42 files…"*; the kind table's Manual count of `16`, summing 13+13+16=42 | 44 and 18. Adding two fixtures falsifies both counters, and `:3`'s framing that every fixture is referenced by PRD-001/002 §9 no longer holds — these are the first that are not. Nothing under `tools/cli/` asserts these numbers and `tests/**` classifies `unknown`, so no adopter sees the drift; it is listed because this table's exhaustiveness claim is what an implementer trusts instead of looking |
+| `tests/README.md` | *"These 42 files…"*; the kind table's Manual count of `16`, summing 13+13+16=42 | 44 and 18. Adding two fixtures falsifies both counters, and `:3`'s framing that every fixture is referenced by PRD-001/002 §9 no longer holds — these are the first that are not. Nothing under `tools/cli/` asserts these numbers and `tests/**` classifies `unknown`, so no adopter sees the drift; it is listed because a work list that omits it is a site the implementer will miss |
 
 ## 7. Architecture
 
@@ -678,7 +679,7 @@ block's `commit_hash`, same as every other PRD in the corpus.
 and adding **no `### ` sub-heading** inside step 9; edit `roadmap.md:112,129`,
 `gate-block.md:27,34`, `prd-authoring.md` and `CONVENTIONS.md:134,172`; edit
 the four reviewer and two implementer definitions; edit `README.md`,
-`README.es.md`, the four `docs/` pages and `optional-rules/headless-session.md`;
+`README.es.md`, the five `docs/` pages and `optional-rules/headless-session.md`;
 add the two `tests/workflow/` fixtures and re-stamp `tests/README.md:3,11`'s
 counters (42→44, Manual 16→18); add the §9 conformance rows, labelling each
 `describe`/`it` **`PRD-012 (specforge) § 9 row N`** — `framework.test.ts`
