@@ -1,6 +1,7 @@
 # PRD-012: A validation phase and a PRD-amendment route for step 9
 
-**Status**: Draft
+**Status**: Implemented
+**Implemented at**: 2026-08-16
 **Date**: 2026-08-16
 **Author**: AI-assisted
 **Priority**: P2
@@ -760,10 +761,34 @@ None blocking. Three decisions are recorded here rather than closed silently:
 
 ## Gate: Promotion to `Implemented`
 
+<!-- validation: the lead's step-9 validation run recorded five paths, all clean.
+     `npm pack` → `mkdtemp` → `init` from the packaged bytes → `doctor` on the
+     resulting install (0 findings), plus a byte-check that the bundle carries
+     the new rule text. An earlier run recorded that path `not run` because this
+     session's shell aliases `npm` to `pnpm`, which refuses `bundleDependencies`
+     under `nodeLinker: isolated`; the real binary packs 315 files without
+     complaint, which is also why `tests/e2e/pack-and-run.test.ts` always passed
+     — it invokes npm through `spawnSync`, where shell aliases do not apply. No
+     waiver was needed and none is recorded. -->
+
 ```yaml
-commit_hash: [TBD]
+# yellow-tracking: PRD-012 → follow-up PRD-013 (§6.2's propagation table claims exhaustiveness it cannot hold; two amendment attempts were refuted by the bounce, the second on the diagnosis that the table pins absolute line numbers into a Draft document while the tree beneath it moves. The shipped code is correct — all three post-implementation reviewers verified so; the document is what drifted.)
+commit_hash: 2814996
 tests:
-  - [TBD]
-system_artifact_diff:
-  - [TBD]
+  - tools/cli/tests/conformance/framework.test.ts
+  - tests/workflow/validation_phase_test.md
+  - tests/workflow/amendment_bounce_test.md
+system_artifact_diff: []
 ```
+
+`system_artifact_diff` is an empty list because no impacted sibling maintains
+a `SYSTEM_ARTIFACT.md` — `SIBLINGS.md`'s only row declares `Read first:
+CLAUDE.md`. Same shape as PRD-001, PRD-002, PRD-003, PRD-005, PRD-006,
+PRD-008 and PRD-010.
+
+The `tests` list is the deduplicated §9 `Path` column: rows 1-14 name
+`framework.test.ts`, rows 15/17/19 name `validation_phase_test.md`, and rows
+16/18 name `amendment_bounce_test.md`. `commit_hash` is the last commit that
+completes the feature, per this PRD's own correction to `gate-block.md:34` —
+it is a single-parent commit, which the superseded "merge commit" wording
+would have forbidden and which all seven prior populated values also are.
