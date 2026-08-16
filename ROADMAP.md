@@ -144,3 +144,20 @@
 - [PRD-012] — retroactive meta-reference per `.claude/rules/roadmap.md` § Evidence category 7
 
 **Caveats**: one 🟡 tracked in PRD-013 (`Draft`) — PRD-012 §6.2's propagation table claims an exhaustiveness it drifted from four times, and two amendment attempts were refuted by the bounce, the second on the diagnosis that the table pins absolute line numbers into a `Draft` document while the tree beneath it moves. The shipped code is correct and all three post-implementation reviewers verified so; the document is what drifted. Separately, none of the controls this PRD adds is host-enforced — the destination rule, the fence obligation and the injection gate are all advisory rule text, audited through the mandatory `<exact command>` record rather than blocked by the host. The framework's first amendment route was exercised on its own PRD and refused both proposals, which is the mechanism working rather than failing.
+
+### ROADMAP-009: A propagation table you can resolve, and one that stops claiming completeness
+
+**Status**: Shipped
+**Last reviewed**: 2026-08-16
+**Theme**: —
+**PRD**: PRD-013
+
+**Problem / outcome**: PRD-010 invented a propagation table — a PRD's work list of every file and site a change must touch — anchored on a `Line` column of absolute line numbers under the heading "This table is exhaustive", and PRD-012 copied it. Neither property held. Measured across the corpus, 221 `file:line` citations resolve at 70.6%, and the predictor is churn in the target file rather than age: citations into frozen PRDs resolve at 100%, into `framework.test.ts` at 19%. The completeness claim held even less often — PRD-012's table drifted four times, two amendment attempts to repair it were refuted, and the PRD written to fix it failed the same class ten more times across four drafts. `prd-authoring.md` now prescribes the shape: rows anchor by a **greppable span** — verbatim source text carrying no line break, no emphasis, no quote character, no backtick and no pipe, confirmed unique with `grep -o … | wc -l` — or by a named structural unit, or by the literal `new`; never a line number. The table is a work list, and completeness is established by the diff-reconcile `workflow.md` step 9 already performs. PRD-012 §6.2 was corrected in place under hard rule 7's factual-error clause, the first time the corpus has used that route at scale.
+**User**: specforge maintainers and adopting teams
+**Siblings likely impacted**: specforge
+
+**Evidence**:
+- [PRD-013] — retroactive meta-reference per `.claude/rules/roadmap.md` § Evidence category 7
+
+**Caveats**: two 🟡 tracked in PRD-014 (`Draft`) — the in-place correction route states no boundary on its own reach, so `commit_hash` and the rest of the gate block are unconstrained by anything but convention; and a lead edit to a frozen `Implemented` PRD has no mandatory review surface, since no validator holds a baseline and the reviewer definitions oblige no record-integrity read. Both surfaced from the security panel, which verified the boundary held here by executing thirteen mutations in a detached worktree and finding it jointly guarded — vitest pins the gate's values, `doctor` pins its structure, and no mutation passed both. Scope was cut after four review rounds: an earlier draft's `doctor` validator was withdrawn when its finding shape proved to be a `contains(file, string)` oracle reachable from a contributed PRD in CI, and the conformance assertions checking the PRD's own table against itself were cut when the last two blockers in the corpus were both defects in those assertions rather than in the convention.
+

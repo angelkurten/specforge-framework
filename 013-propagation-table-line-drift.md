@@ -1,6 +1,7 @@
 # PRD-013: Propagation tables anchor by greppable span, and stop claiming completeness
 
-**Status**: Draft
+**Status**: Implemented
+**Implemented at**: 2026-08-16
 **Date**: 2026-08-16
 **Author**: AI-assisted
 **Priority**: P3
@@ -389,9 +390,20 @@ Neither blocks the other.
 ## Gate: Promotion to `Implemented`
 
 ```yaml
-commit_hash: [TBD]
+# yellow-tracking: PRD-013 → follow-up PRD-014 (the in-place factual-correction route states no boundary on its own reach — `Do not bump status` constrains one field while `commit_hash`, the `tests:` list, `system_artifact_diff` and the `# yellow-tracking:` comment are unconstrained; and a lead edit to a frozen `Implemented` PRD has no mandatory review surface, since no validator holds a baseline and the reviewer definitions oblige no record-integrity read. Both were raised by the security panel and are new design surface rather than corrections to this PRD. PRD-014 also carries this PRD's §9 row 3 Description, which under-enumerates the assertions that landed under it, and §8's construction argument, which reaches one of the three `Site` forms.)
+commit_hash: 4cd10df
 tests:
-  - [TBD]
-system_artifact_diff:
-  - [TBD]
+  - tools/cli/tests/conformance/framework.test.ts
+system_artifact_diff: []
 ```
+
+`system_artifact_diff` is an empty list because no impacted sibling maintains
+a `SYSTEM_ARTIFACT.md` — `SIBLINGS.md`'s only row declares `Read first:
+CLAUDE.md`. Same shape as PRD-001, PRD-002, PRD-003, PRD-005, PRD-006,
+PRD-008, PRD-010 and PRD-012.
+
+The `tests` list is the deduplicated §9 `Path` column: all four rows name
+`framework.test.ts`. `commit_hash` is the last commit that completes the
+feature, per this PRD's predecessor's correction to `gate-block.md` — a
+single-parent commit, which the wording PRD-012 replaced would have
+forbidden.
