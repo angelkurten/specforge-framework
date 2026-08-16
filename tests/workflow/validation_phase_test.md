@@ -59,7 +59,10 @@ PRD's §8 names: `init --force` copies bundle bytes over `CLAUDE.md`,
 `.claude/rules/**` and `.claude/agents/specforge/**`, and its git safety gate
 sits inside `if (opts.erase)` — so `--force` alone would silently revert the
 change under validation. Record `git status` in the working tree immediately
-before the run.
+before the run, and alongside it the state of the ignored files the sibling
+does **not** regenerate — enumerate them with `git status --ignored` minus the
+build and cache paths, since `core.excludesFile` and `.git/info/exclude` keep
+some of them out of plain `git status` on any given machine.
 
 ## Steps
 
@@ -129,9 +132,15 @@ before the run.
 - [ ] The `VALIDATION:` line's `<exact command>` targets a `mkdtemp` path,
       not the sibling root.
 - [ ] `git status` in the working tree is byte-identical before and after the
-      run. `git status` is the whole test of "writes": an artifact under
-      `.gitignore` — a build directory, a runner cache — does not appear
-      there and does not make the run destructive.
+      run, **and** so are the ignored paths recorded in the fixture step.
+      `git status` is a necessary check, not the whole test of "writes": the
+      carve-out covers artifacts the sibling regenerates — a build directory,
+      a runner cache — and nothing else. A write to an ignored file the
+      sibling does not regenerate (`.env`, a credentials cache, agent or
+      editor settings, a local database) is destructive even though `git
+      status` stays silent about it, since `core.excludesFile` and
+      `.git/info/exclude` are per-machine and hold exactly the files a repo
+      declines to declare.
 - [ ] Read-only validation of the same PRD **does** run in the working tree —
       a fresh throwaway holds released bytes, not the edits under validation,
       so the conformance rows could not be asserted against it.
