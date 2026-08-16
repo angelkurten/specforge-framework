@@ -746,11 +746,17 @@ describe("PRD-006 § 9 row 17 — the re-verification contract is present", () =
 });
 
 describe("PRD-006 § 9 row 18 — the freeze and the moving-target pin", () => {
+  // PRD-012 (specforge) § 6.2 changes the sentence this range used to pin
+  // verbatim ("If **that value** does not match the `DOCUMENT_LINES` /
+  // `COMMIT_REF` given in your brief, halt"): with amendment available at
+  // step 9, both targets can move in one round, so the contract is now
+  // "every value your brief pinned, and a mismatch on any of them halts".
+  // § 10 calls for updating this range rather than preserving it.
   for (const name of REVIEWERS) {
-    it(`${name} halts on a moving-target mismatch for both use-sites`, () => {
-      expect(flat(bodies.get(name)!)).toContain(
-        "does not match the `DOCUMENT_LINES` / `COMMIT_REF` given in your brief, halt",
-      );
+    it(`${name} halts on a moving-target mismatch for every pinned value`, () => {
+      const body = flat(bodies.get(name)!);
+      expect(body).toContain("Open the report with every moving-target value your brief pinned");
+      expect(body).toContain("A mismatch on any of them halts");
     });
   }
 
@@ -1584,5 +1590,624 @@ describe("PRD-010 § 9 row 22 — CHANGELOG.md carries the deny-list instruction
       changelog,
       "CHANGELOG.md does not name the frontend implementer deny entry",
     ).toContain("Agent(specforge-frontend-implementer)");
+  });
+});
+
+// ─── PRD-012 (specforge): the step-9 validation phase and the PRD-amendment ──
+// route. Labelled "PRD-012 (specforge)" throughout, never a bare "PRD-012":
+// this file already carries three "PRD-012 phase 3" labels at :157, :188 and
+// :236 for an adopting team's unrelated document that shares only the number.
+
+/** step 9 of workflow.md, whitespace-collapsed. Recomputed per `it` because
+ *  `workflow` is loaded in a `beforeAll`. */
+const step9 = () => flat(stepBlock(workflow, 9));
+const step7 = () => flat(stepBlock(workflow, 7));
+
+describe("PRD-012 (specforge) § 9 row 1 — the freeze point is stated once and not restated elsewhere", () => {
+  it("hard rule 7 scopes the freeze to Implemented and does not call a Draft PRD frozen", () => {
+    const block = ruleBlock(hardRules, 7);
+    expect(block, "rule 7 no longer names the Implemented state").toContain("`Implemented`");
+    expect(
+      block,
+      "rule 7 does not say where the freeze begins",
+    ).toMatch(/freeze[sd]? (at|begins at) `Implemented`|PRDs freeze at `Implemented`/i);
+    expect(
+      block,
+      "rule 7 names the lead-only amendment route",
+    ).toContain("amendable by the lead only");
+    // The superseded reading: a PRD frozen from step 8's merge.
+    expect(
+      /`Draft`[^.|\n]{0,80}\bfrozen\b/i.test(block),
+      "rule 7 asserts a Draft PRD is frozen",
+    ).toBe(false);
+    expect(
+      /\bfrozen\b[^.|\n]{0,80}`Draft`/i.test(block),
+      "rule 7 asserts a Draft PRD is frozen",
+    ).toBe(false);
+  });
+
+  it("rule 7 appears exactly once and the rule count stays 14", () => {
+    expect([...hardRules.matchAll(/^7\. /gm)]).toHaveLength(1);
+    expect(highestRuleNumber(hardRules)).toBe(14);
+    expect(captionCount(claudeMd)).toBe(14);
+  });
+
+  it("CONVENTIONS.md and README.md carry no competing merge-based restatement", async () => {
+    // § 6.2 marks CONVENTIONS.md:173,311 and README.md:21,28 "no change —
+    // already correct". Pin that claim so a later edit cannot re-introduce
+    // the reading rule 7 just removed.
+    const conventions = await read("CONVENTIONS.md");
+    const readme = await read("README.md");
+    const MERGE_BASED = [
+      /`Draft`[^.|\n]{0,80}\bfrozen\b/i,
+      /\bfrozen\b[^.|\n]{0,80}\bat (the )?merge\b/i,
+      /\bfrozen\b[^.|\n]{0,80}\bfrom step 8\b/i,
+    ];
+    for (const [rel, text] of [["CONVENTIONS.md", conventions], ["README.md", readme]] as const) {
+      for (const re of MERGE_BASED) {
+        expect(re.test(text), `${rel} restates the merge-based freeze: ${re}`).toBe(false);
+      }
+    }
+    // The affirmative half: both still scope the freeze to `Implemented`.
+    expect(conventions).toContain("Editing a PRD marked `Implemented`");
+    expect(readme).toContain("A PRD marked `Implemented` is a frozen record");
+  });
+});
+
+describe("PRD-012 (specforge) § 9 row 2 — step 9 carries the validation phase additively, and option (ii) is no longer a no-op", () => {
+  it("the step-9 heading shape is unchanged and no new `### ` heading sits inside step 9", () => {
+    expect(/^### 9\. /m.test(workflow), "the `### 9. ` heading shape moved").toBe(true);
+    // `stepBlock` slices to the next `### `, and step 9 is the last step, so a
+    // sub-heading inserted at the natural place for the validation phase would
+    // silently drop every assertion below it out of the tested block. The
+    // sentinel must sit near the END of the step: `INJECTION ATTEMPTS
+    // DETECTED` is at the top and would stay inside a truncated slice.
+    expect(
+      step9(),
+      "step 9's tail fell out of the block — a `### ` heading was inserted inside it",
+    ).toContain("Only once the re-review clears");
+  });
+
+  it("the validation phase's two blocks are present", () => {
+    expect(step9(), "no VALIDATION: block").toContain("VALIDATION:");
+    expect(step9(), "no VALIDATION INJECTION: block").toContain("VALIDATION INJECTION:");
+  });
+
+  it("option (ii) no longer strips a gate block that was never filled", () => {
+    // `strip gate fields` — the literal at workflow.md, with no article.
+    // `strip the gate fields` exists in other files and would make this
+    // assertion vacuous: it passes today and would keep passing after a
+    // full revert.
+    expect(step9(), "option (ii) is still the no-op strip").not.toContain("strip gate fields");
+    expect(step9(), "option (ii) does not leave the PRD where it is").toContain(
+      "leave the PRD at",
+    );
+    expect(step9(), "option (ii) does not say the PRD stays ungated").toContain("ungated");
+  });
+});
+
+describe("PRD-012 (specforge) § 9 row 3 — validation discipline: reproduction, injection gate, write destination", () => {
+  it("a validation finding without a reproduction is rejected, observed against specified", () => {
+    const s = step9();
+    expect(s, "an unanchored validation finding is not rejected").toContain(
+      "A validation finding without a reproduction is rejected",
+    );
+    expect(s, "reproduction does not require the observed result").toContain("**observed**");
+    expect(s, "reproduction does not require the specified result").toContain("**specifies**");
+    expect(s, "reproduction is not tied to the reviewer's `file:line` discipline").toContain(
+      "`file:line`",
+    );
+  });
+
+  it("VALIDATION INJECTION: defaults to none, is mandatory, and gates every outcome", () => {
+    const s = step9();
+    expect(s).toContain(
+      "**`VALIDATION INJECTION:` defaults to `none`, is mandatory, and is evaluated on every run.**",
+    );
+    expect(
+      /gate every outcome passes through/i.test(s),
+      "the injection check reads as one outcome among several, not a gate",
+    ).toBe(true);
+    expect(s, "a non-none value is not adjudicated with the user").toContain(
+      "adjudicated **with the user** through `AskUserQuestion`",
+    );
+    expect(s, "adjudication is not ordered before dispatch").toContain("before any dispatch");
+  });
+
+  it("a writing validation command targets a throwaway copy; read-only runs in the tree", () => {
+    const s = step9();
+    expect(s, "no throwaway-destination rule").toContain("throwaway copy");
+    expect(s, "the throwaway pattern is not named").toContain("mkdtemp");
+    expect(s, "read-only validation is not kept in the working tree").toContain(
+      "Read-only validation runs in the working tree",
+    );
+    expect(s, "the rule is stated over the command rather than the destination").toContain(
+      "**destination, not the command**",
+    );
+  });
+});
+
+describe("PRD-012 (specforge) § 9 row 4 — `not run` blocks promotion and the waiver names its mechanism", () => {
+  it("not run is not a pass and the waiver goes through AskUserQuestion", () => {
+    const s = step9();
+    expect(s, "`not run` is not declared a non-pass").toContain("`not run` is not a pass");
+    expect(s, "the waiver mechanism is unnamed").toContain(
+      "waives it through `AskUserQuestion`",
+    );
+    expect(s, "the waiver placement is not pinned to an HTML comment").toContain(
+      "HTML comment between the `## Gate:` heading and the fence",
+    );
+  });
+
+  it("the gate precondition still parses, now names validation, and still omits injection", () => {
+    // Shape-compatible with framework.test.ts's PRD-010 row 15 check: the
+    // parenthetical must stay paren-free inside so `[^)]*` still captures it.
+    const precond = /Only once the re-review clears \(([^)]*)\)/.exec(step9());
+    expect(precond, "step 9 no longer states the gate precondition").not.toBeNull();
+    expect(precond![1], "the precondition does not name validation").toMatch(/validation/i);
+    expect(precond![1], "the precondition names the injection block").not.toMatch(/injection/i);
+  });
+});
+
+describe("PRD-012 (specforge) § 9 row 5 — the moving-target rule is relaxed consistently in both steps", () => {
+  it("step 7 drops the binary and its two restatements", () => {
+    const s = step7();
+    expect(s, "step 7 still sends exactly one of the two lines").not.toContain("never both");
+    // workflow.md's two bullets restated the superseded binary four lines
+    // below the "never both" sentence, inside the same paragraph block.
+    expect(s, "the step-9-only bullet still restates the binary").not.toContain(
+      "constant by construction",
+    );
+    expect(s, "step 7 does not state the relaxed rule").toContain("every target that moved");
+  });
+
+  it("step 9 drops its contradicting parenthetical and states the same rule", () => {
+    const s = step9();
+    expect(s, "step 9 still forbids DOCUMENT_LINES").not.toContain("not `DOCUMENT_LINES`");
+    expect(s, "step 9 does not state the relaxed rule").toContain("every target that moved");
+    expect(s, "step 9 does not pin DOCUMENT_LINES on an amendment round").toContain(
+      "`DOCUMENT_LINES` too when an amendment landed since the last round",
+    );
+  });
+
+  it("step 7's three freeze assertions still pass", () => {
+    const s = step7();
+    expect(/freeze/i.test(s), "no freeze sentence").toBe(true);
+    expect(/no edits to the PRD/i.test(s), "draft loop not frozen").toBe(true);
+    expect(/no commits land/i.test(s), "step-9 reviewed range not frozen").toBe(true);
+  });
+});
+
+describe("PRD-012 (specforge) § 9 row 6 — the amendment route, its brief, and its escalation", () => {
+  it("the bounce is a draft-mode dispatch carrying the full ledger unconditionally", () => {
+    const s = step9();
+    expect(s, "the bounce does not name its mode").toContain("**`REVIEW_MODE: draft`**");
+    expect(s, "the ledger does not travel in DOMAIN_CONTEXT").toContain(
+      "full prior-findings ledger in `DOMAIN_CONTEXT`",
+    );
+    expect(s, "the ledger travels on a condition the lead evaluates").toContain(
+      "with no condition the lead evaluates",
+    );
+    expect(s, "the brief is not told to say what the ledger is for").toContain(
+      "say what the ledger is *for*",
+    );
+  });
+
+  it("a refutation is fatal however it is filed", () => {
+    const s = step9();
+    expect(s).toContain("A refutation is fatal to the amendment however it is filed.");
+    expect(s, "the new-out-of-scope filing is not closed off").toContain("`new-out-of-scope`");
+    expect(s, "the lead is not forbidden to record a survival").toContain(
+      "you may not record `bounce: … survives`",
+    );
+  });
+
+  it("a refuted amendment escalates through three enumerated options that do not reset", () => {
+    // New assertions: framework.test.ts's PRD-006 row 29 pins "does not
+    // reset" and `AskUserQuestion` for step 7 only, and pins no option-count
+    // string anywhere.
+    const s = step9();
+    const esc = /A refutation is fatal[\s\S]*?does not reset\.\*\*/.exec(s);
+    expect(esc, "no refuted-amendment escalation").not.toBeNull();
+    const block = esc![0];
+    expect(block, "the escalation does not reach the user").toContain("`AskUserQuestion`");
+    for (const opt of ["(i)", "(ii)", "(iii)"]) {
+      expect(block, `escalation option ${opt} missing`).toContain(opt);
+    }
+    expect(block, "option (i) is not bounded to one re-proposal").toContain(
+      "**Option (i) buys exactly one re-proposal, and the counter does not reset.**",
+    );
+  });
+});
+
+describe("PRD-012 (specforge) § 9 row 7 — the bounce target is pinned, not chosen", () => {
+  it("step 9 carries the four-row section-to-role mapping", () => {
+    const s = step9();
+    expect(s, "the target is chosen rather than pinned").toContain(
+      "**The bounce's target is pinned by the amended section**",
+    );
+    for (const row of [
+      "| §4 User Flows, `Frontend Spec` | `specforge-frontend-reviewer` |",
+      "| §5 API, §6 Data Model, §7 Architecture | `specforge-backend-reviewer` |",
+      "| §8 Security | `specforge-security-reviewer` |",
+      "| §9 Test Plan, §10 Migration Plan | `specforge-quality-reviewer` |",
+    ]) {
+      expect(s, `mapping row missing: ${row}`).toContain(row);
+    }
+  });
+
+  it("a §8 amendment routes to security regardless of the table", () => {
+    expect(step9()).toContain(
+      "An amendment that touches §8 Security routes to `specforge-security-reviewer` regardless of that table",
+    );
+  });
+});
+
+describe("PRD-012 (specforge) § 9 row 8 — §9 amendments are append-only and non-deleting", () => {
+  it("rows are appended, never inserted, and never deleted or weakened", () => {
+    const s = step9();
+    expect(s).toContain(
+      "**§9 Test Plan rows are appended, never inserted, and never deleted or weakened.**",
+    );
+    expect(/renumbers every later row/i.test(s), "the silent-renumber hazard is not cited").toBe(
+      true,
+    );
+    expect(s, "an inexpressible row is not replaced").toContain(
+      "**replaced** by the closest expressible test",
+    );
+    expect(
+      /gate's own drift check cannot see/i.test(s),
+      "deletion is not tied to the drift check's blind spot",
+    ).toBe(true);
+  });
+});
+
+describe("PRD-012 (specforge) § 9 row 9 — amendment provenance", () => {
+  it("an amendment is motivated only by a lead-produced VALIDATION: finding", () => {
+    const s = step9();
+    expect(s).toContain(
+      "**Only the lead amends, and only on a `VALIDATION:` finding the lead itself produced.**",
+    );
+    expect(s, "a panel or implementer claim is not reproduced first").toContain(
+      "**reproduced by the lead's own validation run**",
+    );
+    expect(s, "the implementer report channel is not named").toContain("`DEVIATIONS FROM PRD`");
+  });
+
+  it("the 🔴-handling prohibition is restated, not deleted", () => {
+    const s = step9();
+    expect(s, "the never-into-the-PRD rule was deleted").toContain("never into the PRD");
+    expect(s, "a panel finding is not ruled out as an amendment motive").toContain(
+      "a panel finding never motivates an amendment",
+    );
+  });
+});
+
+describe("PRD-012 (specforge) § 9 row 10 — the four reviewers' four edited sites", () => {
+  for (const name of REVIEWERS) {
+    it(`${name} reports PRD defects instead of being told the PRD is frozen`, () => {
+      const body = flat(bodies.get(name)!);
+      expect(body, "still forbids proposing changes rather than editing").not.toContain(
+        "do not propose changes to it",
+      );
+      expect(body, "still routes 🔴 remediation as a reviewer rule").not.toMatch(
+        /never "fix the PRD"/,
+      );
+      expect(body, "no report-don't-edit form").toContain(
+        "**You report PRD defects as findings; you never edit the PRD.**",
+      );
+      expect(body, "remediation routing is not handed to the lead").toContain(
+        "🔴 remediation is the lead's to route",
+      );
+    });
+
+    it(`${name} states the three-case moving-target rule and the every-pinned-value contract`, () => {
+      const body = flat(bodies.get(name)!);
+      expect(body, "no relaxed moving-target rule").toContain(
+        "every target that moved since the last round, at least one",
+      );
+      expect(body, "no every-pinned-value report contract").toContain(
+        "Open the report with every moving-target value your brief pinned",
+      );
+      expect(body, "a mismatch on one pinned value does not halt").toContain(
+        "A mismatch on any of them halts",
+      );
+      // § 5.3 falsifies this gloss in the exact block a reviewer reads to
+      // learn which fields it receives, and the prose below it does not
+      // correct the field list.
+      expect(body, "the DOCUMENT_LINES gloss still says draft loop only").not.toContain(
+        "# draft loop only",
+      );
+      expect(body, "the COMMIT_REF gloss still says step 9 only").not.toContain("# step 9 only");
+    });
+
+    it(`${name} widens the CODE_REFERENCES gloss and leaves the mode contract alone`, () => {
+      const body = flat(bodies.get(name)!);
+      expect(body, "the gloss does not admit a bounce's fix range").toContain(
+        "a fix range's changed files on a step-9 amendment bounce, which is dispatched in `draft` mode",
+      );
+      expect(body, "the three-value REVIEW_MODE enum moved").toContain(
+        "REVIEW_MODE: draft | post-implementation | re-verification",
+      );
+      expect(body, "the missing-mode halt clause moved").toContain(
+        "missing `REVIEW_MODE` in brief",
+      );
+      expect(body, "the halt verdict moved").toContain("VERDICT: BLOCK");
+    });
+  }
+});
+
+describe("PRD-012 (specforge) § 9 row 11 — the implementers' prohibition survives verbatim", () => {
+  for (const name of IMPLEMENTERS) {
+    it(`${name} keeps the prohibition and drops only the hard-rule-7 rationale`, () => {
+      const body = flat(bodies.get(name)!);
+      expect(body, "the never-edit clause is gone").toContain("**Never edit the PRD.**");
+      expect(body, "the NNN-*.md forbidden-path entry is gone").toContain(
+        "**`NNN-*.md` PRDs and `ADR-NNN-*.md` ADRs**",
+      );
+      expect(body, "the 'What you do NOT do' line is gone").toContain(
+        "Editing the PRD, or filling the gate block.",
+      );
+      expect(body, "still cites hard rule 7 as the reason").not.toMatch(/hard rule 7/i);
+      expect(body, "the replacement rationale is missing at the never-edit clause").toContain(
+        "You are not the PRD's author, and amending one is the lead's route",
+      );
+      expect(body, "the replacement rationale is missing at the forbidden-path entry").toContain(
+        "You are not their author; amending one is the lead's route",
+      );
+    });
+  }
+
+  it("DEFINITIONS still enumerates exactly 14 files with unchanged model and tools", () => {
+    expect(DEFINITIONS).toHaveLength(14);
+    for (const d of DEFINITIONS) {
+      const fm = frontmatter(bodies.get(d.name)!);
+      expect(fm.model, `${d.name} model drifted`).toBe(d.model);
+      expect(fm.tools, `${d.name} tools drifted`).toBe(d.tools);
+    }
+  });
+});
+
+describe("PRD-012 (specforge) § 9 row 12 — rule-file and convention edits", () => {
+  it("gate-block.md no longer demands a merge commit", async () => {
+    const gate = await read(".claude/rules/gate-block.md");
+    const bullet = /- \*\*`commit_hash`\*\*[^\n]*/.exec(gate);
+    expect(bullet, "no commit_hash bullet").not.toBeNull();
+    expect(bullet![0], "commit_hash still demands a merge commit").toContain(
+      "the commit (or merge commit)",
+    );
+    expect(bullet![0], "the multi-sibling clause still demands a merge commit").not.toMatch(
+      /last merge commit/,
+    );
+  });
+
+  it("gate-block.md documents `# amendment:` and the inside-the-fence placement", async () => {
+    const gate = await read(".claude/rules/gate-block.md");
+    expect(gate, "no comment vocabulary section").toContain("## Comment vocabulary");
+    expect(gate, "no amendment token").toContain("# amendment:");
+    expect(gate, "the amendment's three required fields are not stated").toMatch(
+      /three required fields[\s\S]{0,200}bounce/i,
+    );
+    expect(gate, "the yellow-tracking line is gone").toContain("# yellow-tracking:");
+    expect(gate, "a bare `#` line above the fence is not forbidden").toMatch(
+      /bare `#` line above the fence is forbidden/i,
+    );
+    expect(gate, "HTML comments above the fence are not admitted").toMatch(
+      /HTML comment[\s\S]{0,160}above the fence/i,
+    );
+    expect(gate, "a waiver token is documented").toMatch(/There is no waiver token/i);
+  });
+
+  it("gate-block.md's canonical shape still declares exactly the three keys and no agdr", async () => {
+    const gate = await read(".claude/rules/gate-block.md");
+    const canonical = /## Canonical shape\s*\n+```yaml\n([\s\S]*?)\n```/.exec(gate);
+    expect(canonical, "no canonical shape block").not.toBeNull();
+    expect([...canonical![1]!.matchAll(/^([a-z_]+):/gm)].map((m) => m[1])).toEqual([
+      "commit_hash",
+      "tests",
+      "system_artifact_diff",
+    ]);
+    expect(/^\s*agdr\s*:/im.test(gate)).toBe(false);
+  });
+
+  it("CONVENTIONS.md drops the last-merge-commit and freely-editable claims", async () => {
+    const conventions = await read("CONVENTIONS.md");
+    expect(conventions, "still demands the last merge commit").not.toMatch(/last merge commit/);
+    expect(conventions, "the Draft row is still an unrestricted grant").not.toContain(
+      "freely editable until promoted",
+    );
+    expect(conventions, "the Draft row does not name the lead-only amendment route").toContain(
+      "amendable by the lead only",
+    );
+  });
+
+  it("prd-authoring.md's decision table carries the amendment row", () => {
+    expect(prdAuthoring, "no amendment row").toContain("**Amend the PRD in place**");
+    expect(prdAuthoring, "the row does not name its trigger").toMatch(
+      /misdescribes the design that was always intended/,
+    );
+    expect(prdAuthoring, "the row does not separate itself from Supersedes:").toContain(
+      "Not a follow-up PRD",
+    );
+  });
+});
+
+describe("PRD-012 (specforge) § 9 row 13 — the fence obligation is stated where the lead reads it, and widens without subtracting", () => {
+  let roadmapRule: string;
+
+  beforeAll(async () => {
+    roadmapRule = await read(".claude/rules/roadmap.md");
+  });
+
+  it("the fence scope rule admits third-party and running-system output", () => {
+    expect(roadmapRule, "rule 1's scope was not widened").toContain(
+      "every verbatim excerpt of third-party or running-system output carried into any briefing",
+    );
+  });
+
+  it("the binding sentence is additive — the 8 briefings keep their unconditional obligation", () => {
+    // A conditional replacement would strip the 8 briefings' obligation over
+    // a category-4 quote, which is user-supplied but is not third-party
+    // output.
+    expect(roadmapRule, "the 8 roadmap briefings lost their binding").toContain(
+      "all 8 roadmap briefings",
+    );
+    expect(roadmapRule, "the binding does not reach the new class").toContain(
+      "any briefing carrying verbatim third-party or running-system output",
+    );
+  });
+
+  it("workflow.md step 9 names all four outbound channels and bars PRD prose entirely", () => {
+    const s = step9();
+    expect(s, "the obligation is not channel-agnostic").toContain("channel-agnostic");
+    for (const channel of [
+      "the `VALIDATION:` block",
+      "a `PRIOR_FINDINGS` ledger",
+      "a bounce brief",
+      "an amendment's commit message",
+    ]) {
+      expect(s, `outbound channel missing: ${channel}`).toContain(channel);
+    }
+    expect(s, "the fence is not named").toContain("`untrusted-evidence`");
+    expect(s, "verbatim output may still reach PRD prose").toContain(
+      "**no verbatim validation output enters PRD prose in any form, fenced or unfenced**",
+    );
+  });
+
+  it("the eight roadmap definitions' fence cross-references still resolve", () => {
+    for (const name of ROADMAP_ROLES) {
+      const body = bodies.get(name)!;
+      expect(body, `${name} lost its fence cross-reference`).toContain(".claude/rules/roadmap.md");
+      expect(body, `${name} lost the untrusted-evidence label`).toContain("untrusted-evidence");
+    }
+  });
+});
+
+describe("PRD-012 (specforge) § 9 row 14 — docs, READMEs and the headless rule", () => {
+  const DOCS = [
+    "docs/faq.md",
+    "docs/workflow/overview.md",
+    "docs/quickstart.md",
+    "docs/index.md",
+  ];
+
+  for (const rel of DOCS) {
+    it(`${rel} carries no step-9 "frozen PRD" and no no-op option (ii)`, async () => {
+      const text = await read(rel);
+      expect(text, "still calls the step-9 target a frozen PRD").not.toContain("frozen PRD");
+      expect(text, "still strips a gate block that was never filled").not.toMatch(
+        /[Ss]trip (the )?gate fields/,
+      );
+    });
+  }
+
+  it("docs/faq.md and docs/workflow/overview.md describe the meaningful option (ii)", async () => {
+    for (const rel of ["docs/faq.md", "docs/workflow/overview.md"]) {
+      const text = await read(rel);
+      expect(text, `${rel} does not state the PRD stays ungated`).toContain("ungated");
+    }
+    expect(await read("docs/faq.md"), "the escape-hatch Q&A was not rewritten").not.toContain(
+      "single escape hatch",
+    );
+  });
+
+  it("docs/concepts/mental-model.md describes the lead-only amendment window", async () => {
+    // Not in DOCS above: its decision table mirrors prd-authoring.md, whose
+    // never-fully-implemented row legitimately still says "strip the gate
+    // fields" — that row is about a *shipped* PRD and PRD-012 does not touch
+    // it. The assertions below are scoped to what PRD-012 does change.
+    const text = await read("docs/concepts/mental-model.md");
+    expect(text, "the escape-hatch section survives").not.toContain("single escape hatch");
+    expect(text, "still calls the step-9 target a frozen PRD").not.toContain("frozen PRD");
+    expect(text, "the lead-only window is not named").toContain("amendable by the lead only");
+    expect(text, "option (ii) is not restated as a stop").toContain("ungated");
+    expect(text, "the decision table has no amendment row").toContain(
+      "**Amend the PRD in place**",
+    );
+    // The un-implement row is a different case and must survive intact.
+    expect(text, "the never-fully-implemented row was collateral damage").toContain(
+      "A discovery that a shipped PRD was never fully implemented",
+    );
+  });
+
+  it("the three READMEs' step-9 Mermaid labels match and carry the new model", async () => {
+    const grab = (text: string) => {
+      const lines = text.split("\n");
+      const pick = (needle: string) => {
+        const l = lines.find((x) => x.includes(needle));
+        expect(l, `no Mermaid line containing ${needle}`).toBeDefined();
+        return l!;
+      };
+      return [
+        pick("roundCheck -->|no| implFix"),
+        pick("roundCheck -->|yes| escalate"),
+        pick("| thaw["),
+      ];
+    };
+    const en = grab(await read("README.md"));
+    const es = grab(await read("README.es.md"));
+    // The workflow diagram is a three-copy parity set exactly as the
+    // permissions.deny array below it is, and tools/cli/README.md is the copy
+    // published to npm — a stale third copy teaches every adopter the
+    // superseded model. § 6.2 lists this file only in a no-change deny-array
+    // row; the lead widened the scope to cover the diagram too.
+    const cli = grab(await read("tools/cli/README.md"));
+    expect(es, "README.es.md's Mermaid block drifted from README.md's").toEqual(en);
+    expect(cli, "tools/cli/README.md's Mermaid block drifted from README.md's").toEqual(en);
+    expect(en[0], "the fix node does not name the amendment route").toContain("amend");
+    expect(en[0], "the fix node still calls the PRD frozen").not.toContain("frozen");
+    expect(en[2], "the escalation node is still the no-op escape hatch").not.toContain(
+      "escape hatch",
+    );
+    expect(en[2], "the escalation node does not state the PRD stays ungated").toContain(
+      "ungated",
+    );
+  });
+
+  it("the three READMEs' permissions.deny arrays are unchanged and still parity-match", async () => {
+    const MARKER = '"Agent(specforge-backend-reviewer)"';
+    const denyFence = async (rel: string) => {
+      const text = await read(rel);
+      const at = text.indexOf(MARKER);
+      expect(at, `${rel} has no permissions.deny snippet`).toBeGreaterThan(-1);
+      const open = text.lastIndexOf("```json", at);
+      const close = text.indexOf("```", open + 7);
+      return text.slice(open, close);
+    };
+    const fences = await Promise.all(
+      ["README.md", "README.es.md", "tools/cli/README.md"].map(denyFence),
+    );
+    expect(fences[1], "README.es.md's deny array drifted").toBe(fences[0]);
+    expect(fences[2], "tools/cli/README.md's deny array drifted").toBe(fences[0]);
+    expect(
+      [...fences[0]!.matchAll(/"Agent\(specforge-/g)],
+      "the deny array is no longer the fourteen Agent entries",
+    ).toHaveLength(14);
+    // § 3 records the `Bash(specforge init:*)` entry an earlier draft
+    // appended and why it was withdrawn: § 8's control constrains the
+    // destination instead, and lives in workflow.md where `update`
+    // propagates it.
+    expect(fences[0], "a withdrawn Bash deny entry was added").not.toContain("Bash(specforge");
+  });
+
+  it("headless-session.md keeps its 7-row table and covers both step-9 stops", async () => {
+    const headless = await read("optional-rules/headless-session.md");
+    const rows = headless
+      .split("\n")
+      .filter((l) => l.startsWith("|"))
+      .map((l) => l.split("|").slice(1, -1).map((c) => c.trim()))
+      .filter((cells) => cells.length === 2 && !/^-+$/.test(cells[0]!))
+      .filter((cells) => !/^\*{0,2}Point\*{0,2}$/i.test(cells[0]!));
+    expect(rows, "the step table's row count changed").toHaveLength(7);
+
+    const step9Row = rows.find((c) => /\bstep 9\b/i.test(c[0]!))?.[1];
+    expect(step9Row, "no step-9 row").toBeDefined();
+    expect(step9Row, "option (ii) is still the no-op strip").not.toMatch(
+      /[Ss]trip (the )?gate fields/,
+    );
+    expect(step9Row, "the restated option (ii) is missing").toContain("ungated");
+    expect(step9Row, "a not-run validation stop is not covered").toContain("not run");
+    expect(step9Row, "a refuted amendment is not covered").toMatch(/refut/i);
+    expect(step9Row, "option (iii) is no longer ruled out").toMatch(/never option \(iii\)/i);
   });
 });

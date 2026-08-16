@@ -131,7 +131,7 @@ Rules:
 - **Both `tests` and `system_artifact_diff` are always YAML lists**, even when the list has only one entry. Never a bare scalar. This rule is absolute — single-shape fields are what lets tooling and grep treat the gate block as machine-readable.
 - **`tests` list provenance.** The list at gate-promotion time is the deduplicated set of paths named in the PRD's §9 Test Plan `Path` column. Paths in the gate block that are not in §9, or §9 paths missing from the gate block, indicate drift between spec and gate and fail gate validation.
 - `tests` paths are **relative to the specforge directory** and typically point into one of the sibling projects declared in [`SIBLINGS.md`](SIBLINGS.md). Any language: `.py`, `.ts`, `.go`, `_test.go`, Rust modules — whatever the sibling uses.
-- `commit_hash` is the commit (or merge commit) where the feature landed on the main branch of the impacted sibling project. If a single PRD ships across multiple siblings in separate commits, use the last merge commit that completes the feature.
+- `commit_hash` is the commit (or merge commit) where the feature landed on the main branch of the impacted sibling project. If a single PRD ships across multiple siblings in separate commits, use the last commit that completes the feature.
 - Each entry in `system_artifact_diff` is a relative path into one sibling's `SYSTEM_ARTIFACT.md` (with a section anchor) plus the commit that updated it. **The list length equals the number of impacted siblings that maintain a `SYSTEM_ARTIFACT.md`** — siblings without one (e.g. UI-only) contribute zero entries. A PRD that impacts two siblings where only one has a `SYSTEM_ARTIFACT.md` has a 1-element list, not a 2-element list with a blank.
 - The gate block is the **only** location for these fields. Do not duplicate them in the header or anywhere else.
 
@@ -169,7 +169,7 @@ ADRs do not carry the three-field implementation gate because they document deci
 
 | Status | Meaning | Editable? |
 |---|---|---|
-| `Draft` | Design agreed, not yet shipped. | Yes — freely editable until promoted. |
+| `Draft` | Design agreed, not yet shipped. | Before `workflow.md` step 8: freely editable. Past step 8: amendable by the lead only, via step 9's bounce. |
 | `Implemented` | Design shipped at `commit_hash`. Historical snapshot tied to a specific commit and test set. | No — frozen except for factual corrections. |
 | `Superseded by PRD-N` | A newer PRD replaces this design. | No — frozen. Add a `> **Superseded**` banner at the top. |
 

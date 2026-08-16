@@ -13,7 +13,7 @@ specforge is an opinionated workflow and a set of templates for teams that use A
 - **Grounding before writing.** Every endpoint, table, function, or config key in a PRD is verified against real code — or explicitly marked as new.
 - **Multi-reviewer critique anchored to code.** Four parallel reviewers (backend, frontend, security, quality), each briefed with links to the actual code they are checking against.
 - **A hard gate between `Draft` and `Implemented`.** No PRD gets promoted without a YAML gate block carrying `commit_hash`, `tests`, and `system_artifact_diff`.
-- **A post-implementation re-review.** After the code ships, the same reviewer panel runs against the merge commit diff to verify the shipped code honors the frozen PRD — before the gate block can be filled.
+- **A post-implementation re-review.** After the code ships, the same reviewer panel runs against the commit diff to verify the shipped code honors the reviewed PRD — before the gate block can be filled.
 - **A product-level [roadmap cycle](concepts/roadmap.md)** (v0.4.0+). `ROADMAP.md` captures problems, users, and evidence without technical detail. A two-panel workflow (generative + critical) produces items under the same grounding discipline PRDs apply to code.
 - **A single source of truth for current system state.** `SYSTEM_ARTIFACT.md` is the only per-sibling living document; PRDs and ADRs are frozen snapshots.
 

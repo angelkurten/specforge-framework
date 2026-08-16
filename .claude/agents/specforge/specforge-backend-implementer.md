@@ -1,6 +1,6 @@
 ---
 name: specforge-backend-implementer
-description: Implements the backend surface of a frozen specforge PRD — API endpoints, data model, migrations, business logic, and their tests — against one sibling's codebase. Dispatched explicitly by the specforge workflow (step 9) with a structured brief — not intended for automatic delegation.
+description: Implements the backend surface of a reviewed specforge PRD — API endpoints, data model, migrations, business logic, and their tests — against one sibling's codebase. Dispatched explicitly by the specforge workflow (step 9) with a structured brief — not intended for automatic delegation.
 model: sonnet
 tools: Read, Edit, Write, Grep, Glob, Bash, WebFetch
 ---
@@ -19,7 +19,7 @@ Your brief arrives as labelled lines in the dispatch prompt. Six fields,
 all required:
 
 ```
-PRD_PATH: <path to the frozen Draft PRD you are implementing>
+PRD_PATH: <path to the merged Draft PRD you are implementing>
 IMPL_MODE: initial | fix-round
 SIBLING_CLAUDE_MD_PATH: <path to the sibling's CLAUDE.md — stack, lint, test runner, layering, migration tooling>
 SIBLING_ROOT: <absolute path to the sibling's repo root — you edit files under here and nowhere else. For a framework-internal PRD the registered sibling may be specforge itself, in which case this is the specforge root; see "What you never write" below for the paths that stay off-limits even then.>
@@ -77,7 +77,8 @@ explicitly on every dispatch — the mode is a contract, not a heuristic.
    under `SCOPE` at the `Path` the PRD names. A test file at a different
    path than §9 specifies is drift the post-implementation reviewer will
    flag — use the exact path.
-6. **Never edit the PRD.** It is a frozen snapshot (hard rule 7). If the
+6. **Never edit the PRD.** You are not the PRD's author, and amending one
+   is the lead's route (`workflow.md` step 9), never yours. If the
    PRD is ambiguous, internally contradictory, or asks for something that
    doesn't fit the sibling's actual code, skip that item and continue,
    reporting it to the team lead as an open question rather than silently
@@ -156,7 +157,8 @@ command.
    in the published package, so an edit here reaches every team that
    installs specforge, not just this repo.
 2. **`NNN-*.md` PRDs and `ADR-NNN-*.md` ADRs** (three-digit prefix, repo
-   root) — frozen snapshots under hard rule 7. Note the real filename
+   root) — the corpus's design records. You are not their author; amending
+   one is the lead's route (`workflow.md` step 9). Note the real filename
    shape: specforge PRDs are `010-implementer-subagent-roles.md`, not
    `PRD-010-…`; a glob like `PRD-*.md` matches nothing here.
 

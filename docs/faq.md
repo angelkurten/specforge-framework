@@ -28,7 +28,7 @@ Because a typical PRD touches 2-3 different sibling projects. If the template ha
 The reviewer definitions in `.claude/agents/specforge/` operate in three distinct modes:
 
 - **`draft`** (step 5) — critiques the PRD itself. "Is this spec sound?"
-- **`post-implementation`** (step 9) — verifies that the shipped code honors the frozen PRD. "Does the code honor the spec?"
+- **`post-implementation`** (step 9) — verifies that the shipped code honors the reviewed PRD. "Does the code honor the spec?"
 - **`re-verification`** (step 7, and step 9 fix rounds) — verdicts each finding from the previous round `fixed` or `not-fixed` against a ledger the lead supplies. "Did the applied resolutions actually close what this reviewer raised?"
 
 The modes share one definition but produce different findings: a `draft`-mode reviewer says "PRD §5 should specify rate limits"; a `post-implementation`-mode reviewer says "PRD §5 specifies rate limits but `<file>:<line>` does not enforce them"; a `re-verification`-mode reviewer says "finding B-3: `not-fixed` — the §9 row still signs the old message pair". The team lead sets `REVIEW_MODE` explicitly on every dispatch; a missing mode causes the reviewer to emit `VERDICT: BLOCK` and halt.
@@ -47,21 +47,24 @@ Never retrofit PRDs for features already shipped. The SYSTEM_ARTIFACT is the gro
 
 Post-implementation re-review catches this in step 9. Severity determines routing:
 
-- **🔴 blocker**: the fix goes back to the implementer(s) whose `SCOPE` covers it, re-dispatched with `IMPL_MODE: fix-round` and a `PRIOR_FINDINGS` ledger, never into the frozen PRD. Re-dispatch after each fix round. After 2 persistent rounds, escalate to the user with three options — another fix round, revert the PRD to `Draft` (the single escape hatch), or waive with a written reason.
+- **🔴 blocker**: the fix goes back to the implementer(s) whose `SCOPE` covers it, re-dispatched with `IMPL_MODE: fix-round` and a `PRIOR_FINDINGS` ledger, never into the PRD — a panel finding never motivates an amendment. Re-dispatch after each fix round. After 2 persistent rounds, escalate to the user with three options — another fix round, stop with the PRD `Draft` and ungated, or waive with a written reason.
+- **A document defect** — the design the team built is the design that was always intended and the PRD's text fails to describe it — is the lead's to amend in place, but only off a finding the lead reproduced in its own validation run, and only after an adversarial bounce (`REVIEW_MODE: draft`, target pinned by the amended section) fails to refute it. See [Workflow → Step 9](workflow/overview.md#9-implement-then-gate-to-implemented).
 - **🟡 should-fix**: must be routed to exactly one of three tracked destinations — fix in code, a follow-up PRD with `Supersedes:`, or a note in the sibling's `SYSTEM_ARTIFACT.md` describing the drift. Untracked 🟡s block promotion the same way a 🔴 does.
 - **🟢 nit**: advisory, not blocking.
 
 See [Workflow → Step 9](workflow/overview.md#9-implement-then-gate-to-implemented).
 
-## Can I edit an `Implemented` PRD?
+## When does a PRD stop being editable?
 
-No, with one exception. Hard rule 7 ("PRDs are frozen snapshots") has a single escape hatch documented in both `prd-authoring.md` and `workflow.md` step 9 option (ii):
+At `Implemented`, and not before. Hard rule 7 states the freeze point in one place, and every other file defers to it:
 
-> If post-implementation re-review surfaces an unresolvable 🔴, move the PRD back to `Draft` and strip the gate fields. At that point the PRD is no longer `Implemented`, no longer frozen, and is free to be edited on its way to a later ship.
+- **Before `workflow.md` step 8's merge** — freely editable. This is the draft loop.
+- **Between step 8's merge and the gate** — `Draft`, merged, and **amendable by the lead only**. An implementer or a reviewer that finds a document defect reports it as a finding and never writes it. The lead amends only off a `VALIDATION:` finding it reproduced itself, only through step 9's adversarial bounce, and records the result as an `# amendment:` line inside the gate fence.
+- **At `Implemented`** — frozen. Edit only to correct factual errors or to mark it `Superseded by PRD-N`.
 
-The rule applies to the `Implemented` **state**, not to the file. Once you un-implement, the file is editable again.
+The rule applies to the `Implemented` **state**, not to the file.
 
-For normal design evolution, do not edit the old PRD — write a new one with `Supersedes: PRD-N` in its header.
+Two things this is not. It is not a route for a *changed design* — a different approach, a dropped capability, a new dependency is a new PRD with `Supersedes: PRD-N`. And step 9's escalation option (ii) is not an escape hatch: it stops with the PRD at `Draft` and ungated, gate block still `[TBD]`, reason recorded at the top. Nothing was promoted, so nothing is un-frozen.
 
 ## Why Mermaid only for diagrams?
 
@@ -75,7 +78,7 @@ Markdown tables and nested bullet lists are **not** considered diagrams and are 
 
 ## How does specforge compare to a Ralph loop?
 
-A Ralph loop (an agent iterating over the same task with checkpoints) is compatible with specforge, not opposed to it. Step 9 (implementation) is essentially a Ralph loop: you spawn a team of agents that loop over the code with the gate block as the checkpoint. The difference is that specforge gives the loop a **verifiable target** — the frozen PRD — so every iteration is measuring against the same contract. Without a spec, every Ralph loop iteration has to re-derive the architecture from scratch.
+A Ralph loop (an agent iterating over the same task with checkpoints) is compatible with specforge, not opposed to it. Step 9 (implementation) is essentially a Ralph loop: you spawn a team of agents that loop over the code with the gate block as the checkpoint. The difference is that specforge gives the loop a **verifiable target** — the reviewed PRD — so every iteration is measuring against the same contract. Without a spec, every Ralph loop iteration has to re-derive the architecture from scratch.
 
 ## Which AI tools does specforge work with?
 

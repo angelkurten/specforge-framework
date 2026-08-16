@@ -24,16 +24,36 @@ system_artifact_diff:
 - **Post-implementation re-review is a precondition for filling this block.** Per `workflow.md` step 9, the gate block is populated **only after** the post-impl reviewer panel clears with no open 🔴 and every 🟡 routed to a tracked destination (fix-in-code / follow-up PRD / `SYSTEM_ARTIFACT.md` note). A populated gate block without a cleared re-review is a protocol violation.
 - **🟡 closure requires a concrete artifact.** "Tracked" is not honor-system. Each 🟡 finding must point at one of:
   1. **Fix-in-code** — a code change **in the same merge commit range referenced by `commit_hash`** that addresses the finding (the quality reviewer verifies this in the post-impl re-review).
-  2. **Follow-up PRD** — a **new PRD file** on disk with `Supersedes: PRD-N` in its header (a stub header is acceptable but the file must exist). Reference it by number in a comment above the gate block: `# yellow-tracking: PRD-N → follow-up PRD-M`.
+  2. **Follow-up PRD** — a **new PRD file** on disk with `Supersedes: PRD-N` in its header (a stub header is acceptable but the file must exist). Reference it by number in a `# yellow-tracking: PRD-N → follow-up PRD-M` line placed **inside** the ` ```yaml ` fence, above `commit_hash` — see § Comment vocabulary for the placement rule and why a bare `#` line above the fence is forbidden.
   3. **`SYSTEM_ARTIFACT.md` note** — a **line in the impacted sibling's `SYSTEM_ARTIFACT.md`** that names the finding and cites the re-review round. The line must be present in the diff declared in `system_artifact_diff`.
 
   Before promoting to `Implemented`, verify every 🟡 finding from the post-impl re-review has exactly one of these three artifacts. Missing artifacts block promotion identically to a 🔴.
 - **`tests` list provenance.** The `tests` list at gate-promotion time is the deduplicated set of paths named in the PRD's §9 Test Plan `Path` column (see `prd-authoring.md`). Paths in the gate block that are not in §9, or §9 paths missing from the gate block, indicate drift between spec and gate and fail gate validation.
 - **A PRD cannot carry `Status: Implemented`** unless all three fields are present and non-empty. Any `[TBD]`, empty, or missing field keeps the PRD in `Draft`. No exceptions.
 - **`tests` paths** are relative to the specforge directory and typically point into one of the sibling projects in `SIBLINGS.md`. Any language: `.py`, `.ts`, `.go`, `_test.go`, Rust modules — whatever the sibling uses.
-- **`commit_hash`** is the merge commit where the feature landed on the main branch of the impacted sibling project. For multi-sibling PRDs shipped across separate commits, use the last merge commit that completes the feature.
+- **`commit_hash`** is the commit (or merge commit) where the feature landed on the main branch of the impacted sibling project — a squash or a direct commit is as valid as a merge. For multi-sibling PRDs shipped across separate commits, use the last commit that completes the feature.
 - **Each entry in `system_artifact_diff`** is a relative path into one sibling's `SYSTEM_ARTIFACT.md` (with section anchor) plus the commit that updated it. **The list length equals the number of impacted siblings that maintain a `SYSTEM_ARTIFACT.md`** — UI-only siblings contribute zero entries. A PRD that impacts two siblings where only one has a `SYSTEM_ARTIFACT.md` has a 1-element list, not a 2-element list with a blank.
 - **The gate block is the only location for these fields.** Do not duplicate them in the header. Tooling and grep rely on a single canonical shape.
+
+## Comment vocabulary
+
+Two comment lines are legal **inside** the gate fence, above `commit_hash`:
+
+| Line | Records |
+|---|---|
+| `# yellow-tracking: PRD-N → follow-up PRD-M` | A 🟡 closed through destination 2 above. |
+| `# amendment: §<section> ← VALIDATION finding <n>; bounce: <role> <survives>; commit <sha>` | A `Draft` PRD amended in place at `workflow.md` step 9, after validation showed the document — not the code — was wrong. |
+
+The `# amendment:` line carries three required fields: the **section** amended, the **validation finding** that motivated it, and the **bounce's role and verdict**. The trailing commit is the amendment's own commit — an amendment is committed separately from any code fix in the same round, so `git log -- <prd>` is the diff of record and this line is a pointer to it rather than a summary standing in for it. That pointer property is what makes the record auditable rather than self-attested.
+
+```yaml
+# amendment: §5.1 ← VALIDATION finding 2; bounce: specforge-backend-reviewer survives; commit 1a2b3c4
+commit_hash: a1b2c3d4
+```
+
+**Placement is load-bearing.** A `#` line goes inside the fence, where it parses as a YAML comment and leaves the three required keys untouched. An **HTML comment** (`<!-- … -->`) may sit above the fence, between the `## Gate:` heading and it — that is where a `not run` validation waiver and a waived step-9 finding are recorded. A **bare `#` line above the fence is forbidden**: the gate-block parser admits only whitespace and `<!-- -->` between the heading and the fence, so a `#` line there makes the gate block unparseable and it reports as missing.
+
+**There is no waiver token.** A `not run` validation waiver and a waived finding are recorded as HTML comments in the lead's own words. Unlike the two lines above, which point at a file on disk and at a commit, a waiver token would point at nothing and would be exactly as self-attested as the prose it replaced — while looking verified.
 
 ## Draft state
 

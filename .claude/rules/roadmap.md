@@ -109,7 +109,7 @@ All 8 briefings (4 generators + 4 critics) wrap every user-supplied field — ca
 
 **Rules:**
 
-1. **Scope — every user-supplied field, every category**. A category-5 URL is user-supplied and can carry prompt-injection via redirect; the fence applies regardless of "quote" framing.
+1. **Scope — every user-supplied field, every category, and every verbatim excerpt of third-party or running-system output carried into any briefing**. A category-5 URL is user-supplied and can carry prompt-injection via redirect; the fence applies regardless of "quote" framing. A stack trace, a log line, a rendered page, or a command's output quoted into a briefing is the same class of untrusted text and is fenced the same way.
 2. **Multi-entry handling — one fence per entry**. Never a single fence wrapping the whole Evidence list. Ambiguity about "the fence" across 7 entries in one fence produces inconsistent behaviour.
 3. **Preamble re-emitted per fence**. Not only once at the top of the briefing. An attacker quoting the preamble verbatim inside the fence would otherwise confuse a model that saw it once.
 4. **Triple-backtick escape**. Backticks inside user-supplied content are replaced with the literal string `␛BACKTICK␛` before fencing, preventing fence closure by adversarial input.
@@ -126,7 +126,7 @@ All 8 briefings (4 generators + 4 critics) wrap every user-supplied field — ca
     <escaped verbatim user-supplied text>
     ```
 
-This spec is non-negotiable for all 8 roadmap briefings and any future generator/critic briefing.
+This spec is non-negotiable for all 8 roadmap briefings, any future generator/critic briefing, **and** any briefing carrying verbatim third-party or running-system output — including the outbound channels `workflow.md` step 9's validation phase names. The three clauses are additive: the 8 briefings' obligation over user-supplied fields is unconditional and is not narrowed by the third.
 
 ## Decay
 

@@ -105,7 +105,9 @@ After code lands, **before** filling the gate block, re-dispatch the step 5 revi
 - `{{CODE_REFERENCES}}` = `git diff --name-only <commit_hash>`, scoped per sibling
 - `{{REVIEW_MODE}}: post-implementation`
 
-The reviewers now verify that the shipped code honors the frozen PRD. 🔴 blocks the gate — fixes go back to the implementer(s) whose `SCOPE` covers the finding, re-dispatched with `IMPL_MODE: fix-round` and a `PRIOR_FINDINGS` ledger, never into the PRD. 🟡 must be routed to one of three tracked destinations (fix-in-code, on the same `IMPL_MODE: fix-round` ledger / follow-up PRD with `Supersedes:` / `SYSTEM_ARTIFACT.md` note).
+Before the panel goes out, run the **validation phase**: exercise the shipped behaviour and record a `VALIDATION:` block plus a mandatory `VALIDATION INJECTION:` block. `not run` is not a pass and blocks promotion until the user waives it.
+
+The reviewers then verify that the shipped code honors the reviewed PRD. 🔴 blocks the gate — fixes go back to the implementer(s) whose `SCOPE` covers the finding, re-dispatched with `IMPL_MODE: fix-round` and a `PRIOR_FINDINGS` ledger, never into the PRD. 🟡 must be routed to one of three tracked destinations (fix-in-code, on the same `IMPL_MODE: fix-round` ledger / follow-up PRD with `Supersedes:` / `SYSTEM_ARTIFACT.md` note). When *validation* — not the panel — shows the PRD itself misdescribes the design that was always intended, the lead amends it in place through step 9's adversarial bounce.
 
 Only once the re-review clears do you fill the gate block and move `Status` to `Implemented`:
 

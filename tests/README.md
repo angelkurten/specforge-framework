@@ -1,6 +1,6 @@
 # Test corpus
 
-These 42 files are the test plans referenced by PRD-001 § 9 and PRD-002 § 9, and named in both PRDs' gate `tests:` lists. Both PRDs are `Implemented` and frozen, so **these paths must keep resolving** — files here are not renamed or moved.
+These 44 files are the test plans referenced by PRD-001 § 9, PRD-002 § 9 and PRD-012 § 9. The 42 from PRD-001 and PRD-002 are named in both PRDs' gate `tests:` lists; both PRDs are `Implemented` and frozen, so **those paths must keep resolving** — files here are not renamed or moved. The two under `workflow/` are PRD-012's and are the first fixtures in this corpus that no `Implemented` PRD references.
 
 They are not one kind of thing, and treating them as one is what made the corpus look uniformly broken. Three categories:
 
@@ -8,7 +8,7 @@ They are not one kind of thing, and treating them as one is what made the corpus
 |---|---|---|
 | **Ported** — assertions over framework-file content | 13 | `tools/cli/tests/conformance/framework.test.ts`, on every push and PR |
 | **Mechanizable, not yet ported** — same shape, no automation written yet | 13 | nowhere yet |
-| **Manual** — needs an agent in the loop | 16 | by hand |
+| **Manual** — needs an agent in the loop | 18 | by hand |
 
 ## Manual files carry a marker
 
