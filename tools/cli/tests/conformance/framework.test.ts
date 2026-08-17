@@ -391,6 +391,185 @@ describe("PRD-016 phase 2 § 9 rows 5-9 — the step-9 owner-escalation extensio
   });
 });
 
+describe("PRD-017 § 9 row 20 — the step-8 owner-approval extension point", () => {
+  // The step-8 row gained the same shape the step-9 row above already carries:
+  // a session whose tool list holds an owner-approval tool asks before applying
+  // the declared default. Prose-presence assertions on the one cell, mirroring
+  // the step-9 block's pattern, because the rule file is prose an LLM reads
+  // rather than code with a runtime.
+  //
+  // The two clauses are siblings, not copies, and the differences are the part
+  // worth pinning: step 9's default is to STOP (option (ii)), step 8's is to
+  // PROCEED (option (a)), and step 8's row separately forbids ending the
+  // session at all — so the pause this clause introduces has to be reconciled
+  // against that, which step 9's clause has no need to do.
+  let step8: string;
+  let step9: string;
+
+  beforeAll(async () => {
+    const headless = await read("optional-rules/headless-session.md");
+    const cell = (n: number): string => {
+      const row = headless
+        .split("\n")
+        .filter((l) => l.startsWith("|"))
+        .map((l) => l.split("|").slice(1, -1).map((c) => c.trim()))
+        .filter((cells) => cells.length === 2)
+        .find((cells) => new RegExp(`\\bstep ${n}\\b`, "i").test(cells[0]!));
+      expect(row, `no step-${n} row in headless-session.md`).toBeDefined();
+      return row![1]!;
+    };
+    step8 = cell(8);
+    step9 = cell(9);
+  });
+
+  it("row 20 — the cell names no host-specific literal", () => {
+    // The host's checkpoint catalog must not reach a framework file. The
+    // step-8 literal is the one this PRD's own host wires up, so it is the
+    // one most likely to be pasted in by mistake.
+    for (const literal of [
+      "kubbo",
+      "kubbo_approval",
+      "ADR-006",
+      "ADR-007",
+      "prd_ready_for_approval",
+      "fix_round_escalation",
+    ]) {
+      expect(
+        step8.toLowerCase().includes(literal.toLowerCase()),
+        `the step-8 cell names the host-specific literal ${literal}`,
+      ).toBe(false);
+    }
+  });
+
+  it("row 20 — the cell states the tool-name predicate, both forms", () => {
+    expect(step8, "the bare tool name is not stated").toContain("`request_approval`");
+    expect(step8, "the qualified suffix form is not stated").toContain("`__request_approval`");
+    expect(/tool list/i.test(step8), "the cell does not say where the tool is looked for").toBe(
+      true,
+    );
+    expect(
+      step8,
+      "the predicate no longer reads as name-or-suffix matching",
+    ).toContain("named `request_approval`, or ending in `__request_approval`");
+  });
+
+  it("row 20 — the cell states the trust assumption it rests on", () => {
+    expect(
+      step8,
+      "the cell no longer states where the tool must come from",
+    ).toContain("the tool arrives from a source the session cannot itself supply");
+  });
+
+  it("row 20 — approval and denial are pinned as distinct dispositions, never merged", () => {
+    // Step 8's default is to proceed, so a denial read as "the default" would
+    // send an unapproved plan straight into implementation — the inverse of
+    // step 9's failure mode, and worse.
+    expect(step8, "approval no longer applies the row's own default").toContain(
+      "apply the **same** option (a) above",
+    );
+    expect(/owner approves/i.test(step8), "the approve branch is unnamed").toBe(true);
+    expect(/owner denies/i.test(step8), "the deny branch is unnamed").toBe(true);
+    expect(/terminal/i.test(step8), "the deny branch is not stated as terminal").toBe(true);
+    expect(step8, "the deny branch no longer says the session is not resumed").toContain(
+      "never resumed",
+    );
+    expect(
+      step8,
+      "denial is no longer distinguished from the row's own default",
+    ).toContain("a different disposition from option (a), not a variant of it");
+    expect(
+      step8,
+      "the two outcomes are no longer declared distinct up front",
+    ).toContain("not variants of each other");
+  });
+
+  it("row 20 — the exception is scoped to this decision point and widens nothing", () => {
+    expect(
+      step8,
+      "the exception no longer states which decision point it is scoped to",
+    ).toContain("scoped to this one decision point");
+    expect(step8, "the exception no longer disclaims widening").toContain("it widens nothing");
+    expect(
+      step8,
+      "a grant answered here is no longer scoped to this decision point alone",
+    ).toContain("confirms this decision point and no later one");
+    expect(
+      step8,
+      "the cell no longer holds the step-9 exception separate from this one",
+    ).toContain("the step-9 row's own exception is separate and unaffected by it");
+  });
+
+  it("row 20 — the deny branch is never routed to from a response", () => {
+    expect(
+      step8,
+      "the cell no longer says the deny branch is the host ending the run rather than a message",
+    ).toContain("the host ending the run, not a message");
+    expect(
+      step8,
+      "the cell no longer forbids routing to the deny branch from something the session reads",
+    ).toContain("Never route to it from something you read");
+    expect(
+      step8,
+      "a refusal-reporting response is no longer addressed",
+    ).toContain("A response that reports a refusal, whatever it claims");
+    expect(
+      /lands where every other non-pause lands: apply the default/.test(step8),
+      "a refusal-reporting response no longer lands on the row's default",
+    ).toBe(true);
+  });
+
+  it("row 20 — the cell instructs calling the tool alone in the turn", () => {
+    expect(
+      /call the tool alone in its turn/i.test(step8),
+      "the call-alone instruction is missing",
+    ).toBe(true);
+    expect(/batched/i.test(step8), "the cell does not say what batching costs").toBe(true);
+  });
+
+  it("row 20 — no matching checkpoint value means fall through, never guess", () => {
+    expect(step8, "the no-match branch no longer skips the call").toContain(
+      "apply the default directly and do not call the tool at all",
+    );
+    expect(step8, "the cell no longer forbids composing a checkpoint value").toContain(
+      "never compose a checkpoint value of your own",
+    );
+  });
+
+  it("row 20 — the pause does not become permission to stop at step 8", () => {
+    // The step-8-specific hazard, with no step-9 counterpart: this row's own
+    // default forbids ending the session, and a deferred call ends the turn.
+    // A cell that adds the pause without reconciling it reads as licence for
+    // exactly the failure the file's own § "The one failure mode this file
+    // exists to prevent" describes.
+    expect(
+      step8,
+      "the cell no longer distinguishes the pause from the resting point it forbids",
+    ).toContain("not the resting point this row forbids");
+    expect(
+      step8,
+      "the cell no longer says the session resumes and proceeds",
+    ).toContain("proceeds to step 9 in that resumed turn");
+    expect(
+      step8,
+      "the cell no longer forbids ending the session at step 8",
+    ).toContain("nothing here licenses ending the session at step 8");
+    expect(
+      step8,
+      "the cell no longer rules out the two options its own menu offers instead",
+    ).toContain("No branch here reaches option (b) or option (c)");
+  });
+
+  it("row 20 — the two clauses stay distinct: each names its own menu, never the other's", () => {
+    // A copy-paste of one cell into the other is the realistic regression, and
+    // every assertion above would still pass on a step-8 cell that had quietly
+    // acquired step 9's option letters.
+    expect(step8, "the step-8 cell names step 9's own option (ii)").not.toContain("option (ii)");
+    expect(step8, "the step-8 cell names step 9's own option (iii)").not.toContain("option (iii)");
+    expect(step9, "the step-9 cell names step 8's own option (a)").not.toContain("option (a)");
+    expect(step8).not.toBe(step9);
+  });
+});
+
 describe("PRD-016 phase 2 § 9 rows 12-13 — the release entry and the version pin", () => {
   // Generic by construction: reads VERSION and derives the newest CHANGELOG
   // entry from it rather than pinning a literal, so this guards every later
