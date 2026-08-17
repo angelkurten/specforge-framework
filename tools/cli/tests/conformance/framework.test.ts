@@ -390,6 +390,55 @@ describe("PRD-016 phase 2 § 9 rows 5-9 — the step-9 owner-escalation extensio
   });
 });
 
+describe("PRD-016 phase 2 § 9 rows 12-13 — the release entry and the version pin", () => {
+  // Generic by construction: reads VERSION and derives the newest CHANGELOG
+  // entry from it rather than pinning a literal, so this guards every later
+  // bump the same way it guards this one. Lost once already during the
+  // re-grounding rebuild (post-implementation review, 2026-08-16) — the
+  // version/changelog files were rewritten but these two rows were not
+  // re-added alongside them.
+  let version: string;
+  let changelog: string;
+
+  beforeAll(async () => {
+    version = (await read("VERSION")).trim();
+    changelog = await read("CHANGELOG.md");
+  });
+
+  it("row 13 — VERSION and tools/cli/package.json agree", async () => {
+    expect(version, "VERSION is not a semver triple").toMatch(/^\d+\.\d+\.\d+$/);
+    const pkg = JSON.parse(await read("tools/cli/package.json"));
+    expect(pkg.version, "tools/cli/package.json has drifted from VERSION").toBe(version);
+  });
+
+  it("row 12 — the newest CHANGELOG entry names the current version and is dated", () => {
+    const newest = /^## \[(\d+\.\d+\.\d+)\] - (\d{4}-\d{2}-\d{2})\s*$/m.exec(changelog);
+    expect(newest, "the newest CHANGELOG entry is missing its version or its date").not.toBeNull();
+    expect(newest![1], "the newest CHANGELOG entry does not name the current VERSION").toBe(
+      version,
+    );
+  });
+
+  it("row 12 — the current entry's headless-session line carries the BREAKING callout", () => {
+    const entry = (v: string): string => {
+      const at = changelog.indexOf(`## [${v}]`);
+      expect(at, `CHANGELOG.md has no [${v}] entry`).toBeGreaterThan(-1);
+      const rest = changelog.slice(at);
+      const next = /^## \[/m.exec(rest.slice(1));
+      return next ? rest.slice(0, next.index + 1) : rest;
+    };
+    const body = entry(version);
+    const line = body.split("\n").find((l) => l.includes("optional-rules/headless-session.md"));
+    expect(
+      line,
+      `the ${version} entry does not name optional-rules/headless-session.md`,
+    ).toBeDefined();
+    expect(line, "the headless-session line carries no BREAKING callout").toContain(
+      "**BREAKING for a headless installation**",
+    );
+  });
+});
+
 describe("tests/roadmap/hard_rules_12_test.md", () => {
   it("rule 12 appears exactly once and carries the non-waivable PII clause verbatim", () => {
     expect([...hardRules.matchAll(/^12\. /gm)]).toHaveLength(1);
