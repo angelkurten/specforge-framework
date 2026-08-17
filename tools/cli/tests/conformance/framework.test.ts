@@ -14,6 +14,7 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
 import { FRAMEWORK_FILES } from "../../src/partition.js";
 
 const REPO = path.resolve(
@@ -405,10 +406,25 @@ describe("PRD-016 phase 2 § 9 rows 12-13 — the release entry and the version 
     changelog = await read("CHANGELOG.md");
   });
 
-  it("row 13 — VERSION and tools/cli/package.json agree", async () => {
+  it("row 13 — VERSION and tools/cli/package.json agree", () => {
+    // Reads the *committed* package.json via `git show HEAD:...`, not the
+    // working-tree copy: this suite's own globalSetup (tests/global-setup.ts)
+    // runs `npm pack`, which triggers `prepack` -> `prepublish`, which stamps
+    // the working-tree package.json's version from VERSION before any test
+    // body runs — so a working-tree read is inert by construction and cannot
+    // observe a real, committed drift. Found by mutation: setting VERSION to
+    // an unmatched value and re-running left this assertion green because the
+    // setup had already re-stamped package.json to the same wrong value.
     expect(version, "VERSION is not a semver triple").toMatch(/^\d+\.\d+\.\d+$/);
-    const pkg = JSON.parse(await read("tools/cli/package.json"));
-    expect(pkg.version, "tools/cli/package.json has drifted from VERSION").toBe(version);
+    const committed = execFileSync("git", ["show", "HEAD:tools/cli/package.json"], {
+      cwd: REPO,
+      encoding: "utf8",
+    });
+    const pkg = JSON.parse(committed);
+    expect(
+      pkg.version,
+      "tools/cli/package.json's committed version has drifted from VERSION",
+    ).toBe(version);
   });
 
   it("row 12 — the newest CHANGELOG entry names the current version and is dated", () => {
