@@ -174,16 +174,43 @@ describe("PRD-012 phase 3 § 9 rows 25 and 26 — the headless-session rule", ()
       .filter((r) => !/^\*{0,2}Point\*{0,2}$/i.test(r.point));
   });
 
-  it("declares a default for each of the six workflow points and the environment", () => {
-    expect(rows).toHaveLength(7);
-    for (const n of [1, 2, 5, 6, 8, 9]) {
+  it("declares a default for each of the four workflow points, and only those", () => {
+    expect(rows).toHaveLength(4);
+    for (const n of [1, 6, 8, 9]) {
       const row = rows.find((r) => new RegExp(`\\bstep ${n}\\b`, "i").test(r.point));
       expect(row, `no row for workflow.md step ${n}`).toBeDefined();
       expect(row!.declared.length, `step ${n} names no default`).toBeGreaterThan(40);
     }
+    // Steps 2 and 5 are gone deliberately: both rows restated `workflow.md`,
+    // which already fixes one grounding agent per impacted sibling and already
+    // requires the skipped reviewer roles to be reported. A second copy of a
+    // rule is a place for the two to disagree, not a safeguard. Asserted as an
+    // absence so a re-add has to argue with this line.
+    for (const n of [2, 5]) {
+      const row = rows.find((r) => new RegExp(`\\bstep ${n}\\b`, "i").test(r.point));
+      expect(row, `step ${n} restates workflow.md and should not have a row`).toBeUndefined();
+    }
     const env = rows.find((r) => /environment/i.test(r.point));
-    expect(env, "no environment-transcription row").toBeDefined();
-    expect(env!.declared.length).toBeGreaterThan(40);
+    expect(env, "the environment prohibition is hard rule 15, not a headless row").toBeUndefined();
+  });
+
+  it("the two migrated rules are hard-rules invariants, binding every session", async () => {
+    // Coverage moved rather than deleted. Neither is a question a user answers,
+    // so neither belonged in a file whose whole subject is what to do when
+    // there is no user to ask — and both bind an interactive session exactly
+    // as hard as a headless one.
+    const hard = await read(".claude/rules/hard-rules.md");
+
+    expect(/^15\. /m.test(hard), "no hard rule 15").toBe(true);
+    const env = hard.slice(hard.search(/^15\. /m));
+    expect(/process environment/i.test(env)).toBe(true);
+    expect(/os\.environ/.test(env)).toBe(true);
+    expect(/commits?/i.test(env)).toBe(true);
+
+    expect(
+      /does not dispatch further sub-agents/i.test(hard),
+      "the one-level-deep fan-out floor is not in hard-rules",
+    ).toBe(true);
   });
 
   it("declares the defaults PRD-012 phase 3 § 5.6 names, not merely some default", () => {
@@ -200,25 +227,14 @@ describe("PRD-012 phase 3 § 9 rows 25 and 26 — the headless-session rule", ()
     expect(/AskUserQuestion/.test(step(6))).toBe(true);
     expect(/reviewer recommended/i.test(step(6))).toBe(true);
 
-    expect(step(2)).toContain("SIBLINGS.md");
-
-    // The panel follows workflow.md's step-5 trigger table rather than a fixed
-    // width: the table is mechanical, and this file withholds judgement from a
-    // headless session, not rules. Quality fires unconditionally so the panel
-    // is never empty. Batching and the no-further-fan-out floor are unchanged.
-    const panel = step(5);
-    expect(/trigger table/i.test(panel)).toBe(true);
-    expect(/quality-reviewer/i.test(panel)).toBe(true);
-    expect(/one batch/i.test(panel)).toBe(true);
-    expect(/does not dispatch further sub-agents/i.test(panel)).toBe(true);
-
     expect(/\(a\)/.test(step(8))).toBe(true);
     expect(/\(ii\)/.test(step(9))).toBe(true);
     expect(/never option \(iii\)/i.test(step(9))).toBe(true);
 
-    const env = declared(/environment/i);
-    expect(/do not read/i.test(env)).toBe(true);
-    expect(/commits?/i.test(env)).toBe(true);
+    // Steps 2 and 5 and the environment prohibition were asserted here until
+    // the first two were found to restate `workflow.md` and the third to be an
+    // invariant rather than a decision. Their coverage is the two `it` blocks
+    // above, not a deletion.
   });
 
   it("purports to disable no hard rule", () => {
@@ -2038,10 +2054,15 @@ describe("PRD-012 (specforge) § 9 row 1 — the freeze point is stated once and
     ).toBe(false);
   });
 
-  it("rule 7 appears exactly once and the rule count stays 14", () => {
+  it("rule 7 appears exactly once and the rule count stays 16", () => {
     expect([...hardRules.matchAll(/^7\. /gm)]).toHaveLength(1);
-    expect(highestRuleNumber(hardRules)).toBe(14);
-    expect(captionCount(claudeMd)).toBe(14);
+    // 14 -> 16: the one-level-deep fan-out floor and the environment
+    // prohibition moved out of `optional-rules/headless-session.md`. Neither
+    // was a decision point a user answers, and both bind an interactive
+    // session exactly as hard as a headless one — the headless file was
+    // simply where they happened to be written down first.
+    expect(highestRuleNumber(hardRules)).toBe(16);
+    expect(captionCount(claudeMd)).toBe(16);
   });
 
   it("CONVENTIONS.md and README.md carry no competing merge-based restatement", async () => {
@@ -2819,7 +2840,7 @@ describe("PRD-012 (specforge) § 9 row 14 — docs, READMEs and the headless rul
     expect(fences[0], "a withdrawn Bash deny entry was added").not.toContain("Bash(specforge");
   });
 
-  it("headless-session.md keeps its 7-row table and covers both step-9 stops", async () => {
+  it("headless-session.md keeps its 4-row table and covers both step-9 stops", async () => {
     const headless = await read("optional-rules/headless-session.md");
     const rows = headless
       .split("\n")
@@ -2827,7 +2848,10 @@ describe("PRD-012 (specforge) § 9 row 14 — docs, READMEs and the headless rul
       .map((l) => l.split("|").slice(1, -1).map((c) => c.trim()))
       .filter((cells) => cells.length === 2 && !/^-+$/.test(cells[0]!))
       .filter((cells) => !/^\*{0,2}Point\*{0,2}$/i.test(cells[0]!));
-    expect(rows, "the step table's row count changed").toHaveLength(7);
+    // 7 -> 4: steps 2 and 5 restated `workflow.md` and the environment
+    // prohibition became hard rule 16. What is left is the four points a
+    // user actually answers — 1, 6, 8, 9.
+    expect(rows, "the step table's row count changed").toHaveLength(4);
 
     const step9Row = rows.find((c) => /\bstep 9\b/i.test(c[0]!))?.[1];
     expect(step9Row, "no step-9 row").toBeDefined();
