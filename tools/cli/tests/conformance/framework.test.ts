@@ -630,7 +630,14 @@ describe("PRD-016 phase 2 § 9 rows 12-13 — the release entry and the version 
     );
   });
 
-  it("row 12 — the current entry's headless-session line carries the BREAKING callout", () => {
+  // Was "carries the BREAKING callout", unconditionally. That over-fitted to
+  // 0.21.0, whose headless change genuinely was breaking, and generalised it
+  // into "every change to this file is". 0.22.0's is not — it deletes two rows
+  // that restated `workflow.md` and moves a third to `hard-rules.md`, all
+  // pointing at rules that still apply — and the guard as written would have
+  // forced a false claim into a changelog to go green. What is worth forcing
+  // is that a change to this file *states its blast radius*, either way.
+  it("row 12 — the current entry states the headless blast radius, either way", () => {
     const entry = (v: string): string => {
       const at = changelog.indexOf(`## [${v}]`);
       expect(at, `CHANGELOG.md has no [${v}] entry`).toBeGreaterThan(-1);
@@ -639,14 +646,20 @@ describe("PRD-016 phase 2 § 9 rows 12-13 — the release entry and the version 
       return next ? rest.slice(0, next.index + 1) : rest;
     };
     const body = entry(version);
-    const line = body.split("\n").find((l) => l.includes("optional-rules/headless-session.md"));
     expect(
-      line,
+      body.includes("optional-rules/headless-session.md"),
       `the ${version} entry does not name optional-rules/headless-session.md`,
-    ).toBeDefined();
-    expect(line, "the headless-session line carries no BREAKING callout").toContain(
-      "**BREAKING for a headless installation**",
-    );
+    ).toBe(true);
+    // One of the two, stated in bold so it is not buried: the change breaks a
+    // headless installation, or it demonstrably does not. Silence is what this
+    // row exists to refuse.
+    const breaking = body.includes("**BREAKING for a headless installation**");
+    const safe = /\*\*No behaviour change for a headless installation\.?\*\*/.test(body);
+    expect(
+      breaking || safe,
+      "the entry names headless-session.md but states neither BREAKING nor no-behaviour-change",
+    ).toBe(true);
+    expect(breaking && safe, "the entry claims both breaking and not").toBe(false);
   });
 });
 
