@@ -8,6 +8,30 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.22.0] - 2026-08-24
+
+### Added
+
+- **Hard rule 15 — the fan-out is one level deep: a dispatched sub-agent does not dispatch further sub-agents.** No framework role declares a delegation tool, so this has always been corpus-enforced rather than merely addressed to a model — but a team-owned role, or a host whose agent type carries one by default, reopens it. A nested fan-out multiplies a run's cost and concurrency by a factor nothing bounds, and the lead loses the property the panel exists for: knowing which perspectives actually ran.
+
+- **Hard rule 16 — never read this session's own process environment into anything the session writes or commits.** Not `env`, `printenv`, `process.env`, `os.environ`, `/proc/self/environ`, or an exported shell variable. A PRD's § 8 asks about auth, secrets and PII, which is the one prompt that makes transcribing a live credential look like grounding. Name the secrets a design depends on; never quote the values this process holds.
+
+  **New for an interactive installation.** Both rules existed before, but only inside `optional-rules/headless-session.md`, which `specforge init --headless` writes and an ordinary `init` does not — so an installation with a user to ask carried neither. Neither is a question a user answers, and both bind an interactive session exactly as hard as a headless one; the headless file was simply where they happened to be written down first.
+
+### Removed
+
+- **`optional-rules/headless-session.md`'s step-2, step-5 and environment rows.** The table declared seven points; three of them were not headless decisions.
+
+  Step 2's grounding fan-out restated `workflow.md`, which already fixes one Explore agent per impacted sibling — the row's own text said *"there is no headless special case"*. Step 5's panel size restated `workflow.md`'s trigger table, which already requires the skipped reviewer roles to be reported — the row's own text said *"Apply `workflow.md`'s step-5 trigger table unchanged"*. **A second copy of a rule is a place for the two to disagree, not a safeguard**, and both copies had already been rewritten once each since 0.15.x for exactly that reason. The environment row was never a `workflow.md` gap at all — the file said so in its own trailing paragraph — and is now hard rule 16.
+
+  **No behaviour change for a headless installation.** Both deleted rows pointed at rules that still apply, from the file that always owned them. What is left is the four points a user actually answers: steps 1, 6, 8 and 9.
+
+### Changed
+
+- Hard rule 14 is **byte-identical**. The one-level-deep floor is stated as its own invariant rather than appended to rule 14, because a conformance test pins that block and the guard was right to.
+- The `N invariants` caption moves 14 → 16 in `CLAUDE.md`, `README.md`, `README.es.md`, `docs/faq.md` and the npm README, per the caption-sync guard.
+- Conformance coverage moved rather than deleted: the headless suite now asserts the two rules in `hard-rules.md` **and** asserts steps 2, 5 and the environment are absent from the table, so re-adding one has to argue with a line rather than pass silently.
+
 ## [0.21.0] - 2026-08-17
 
 ### Changed
