@@ -85,7 +85,7 @@ function printUsage(): void {
   process.stdout.write(`specforge — install, update, validate, and migrate specforge framework layouts.
 
 Usage:
-  specforge init    [--force] [--erase] [--no-git-safety] [--headless]
+  specforge init    [--force] [--erase] [--no-git-safety]
                     [--dry-run] [--quiet]
   specforge update  [--strategy=ours|theirs|merge] [--dry-run] [--quiet]
   specforge doctor  [--json] [--rule=<id>] [--ignore-sibling=<name>] [--quiet]
@@ -131,7 +131,6 @@ async function main(argv: ReadonlyArray<string>): Promise<number> {
         noGitSafety: boolFlag(args, "no-git-safety"),
         dryRun,
         quiet,
-        headless: boolFlag(args, "headless"),
         importMetaUrl,
       });
 
@@ -201,7 +200,6 @@ function detectUnknownFlags(argv: ReadonlyArray<string>): string | null {
     "force",
     "erase",
     "no-git-safety",
-    "headless",
     "dry-run",
     "quiet",
     "strategy",

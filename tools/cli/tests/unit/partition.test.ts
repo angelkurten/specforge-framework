@@ -212,7 +212,6 @@ describe("--force --erase deletion list", () => {
         noGitSafety: false,
         dryRun: true,
         quiet: false,
-        headless: false,
         importMetaUrl: synthBundleImportMetaUrl(),
       });
     } finally {

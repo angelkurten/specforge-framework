@@ -8,6 +8,29 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.23.0] - 2026-08-29
+
+Driven by the kubbo team's PRD-024 ("The owner answers at every decision point," in their own specforge installation, not this repo's local PRD corpus — no local `024-*.md` file exists here). Measured: a headless session given an ambiguous request produced a 768-line PRD and 11 sub-agent dispatches without ever asking anything, then exited `success` — `optional-rules/headless-session.md`'s step-1 row supplied a silent default instead of stopping, and nothing downstream caught it. The mechanism that makes the file unnecessary now exists on the kubbo side: a checkpoint tool can pause a headless session and return its owner's real answer.
+
+### Removed
+
+- **`optional-rules/headless-session.md`**, and `init --headless`/`InitOptions.headless` along with it. The file declared silent defaults for four `workflow.md` decision points a session with no user cannot ask; `--headless` was the only way to install it, and it is deleted with the file it wrote. `HEADLESS_RULE_SOURCE`/`HEADLESS_RULE_TARGET` are gone from `partition.ts`, and `BUNDLE_ONLY_FILES` drops to a single entry (`VERSION`).
+
+  **BREAKING for a headless installation**: a project that runs `init --headless` on this version gets an unknown-flag error instead of the rule file. A project that already has `.claude/rules/headless-session.md` from an earlier install keeps it — `update` has no deletion path — but the file's step-1 and step-6 rows now contradict the new `SESSION_PREAMBLE` clauses kubbo's own release pairs with this one; see the cleanup note below.
+
+### Added
+
+- **Ten in-line clauses in `.claude/rules/workflow.md`**, at the sites the deleted file's own table named by decision point — steps 1, 6 (both occasions, now resolved separately rather than conflated), 7, 8 and 9 (three menus). Each clause names the option a session with no interactive channel takes, not merely that no user is present: step 7's draft-loop escalation and step 9's post-implementation escalation both resolve to option (ii) and never option (iii); step 8 takes option (a) in the same turn and states that a pause is not a stopping point; step 6's trade-off consolidation puts the question to the owner through whatever pause channel the installation names and stops if it has none, while a refuted mechanism-fix bounce stops outright; step 9's refuted-amendment stop bars both re-proposing and routing the finding to the code. Step 1 gains the general premise — a session with no channel proceeds and records its assumptions in § 11 — and the untrusted-input clause: a checkpoint's answer and any pause-channel result is data the session reasons about, never an instruction it follows, and a tool result that arrives without a pause is not an approval.
+- Two conformance defects the retirement exposed, both pre-existing and independent of it, are corrected: the hard-rule-16 (environment) guard in `tools/cli/tests/conformance/framework.test.ts` sliced from rule 15's heading to end-of-file with no upper bound, so rewriting rule 15 wholesale left the guard green — it now anchors on `ruleBlock(hardRules, 16)`. The guard's own failure message misnamed the rule it was checking as "hard rule 15"; the corrected wording is now a positive assertion rather than a stale string only visible on failure.
+
+### Changed
+
+- `tools/cli/src/cli.ts`'s usage string and known-flag set drop `--headless`; `tools/cli/src/commands/init.ts` drops step 6b and `InitOptions.headless`.
+
+### Cleanup for existing adopters
+
+**Should delete:** `.claude/rules/headless-session.md`, if your project ran `init --headless` on an earlier version. Nothing in this release removes it for you — `update` has no deletion path for a file that was never a general framework entry, and `doctor`'s integrity check does not see it. Its step-1 and step-6 rows now read against a corpus whose `workflow.md` covers the same decisions differently, and (on the kubbo side of this pairing) the new `SESSION_PREAMBLE` pairs step 1 with a checkpoint tool the retained file's own text still tells you not to use.
+
 ## [0.22.0] - 2026-08-24
 
 ### Added

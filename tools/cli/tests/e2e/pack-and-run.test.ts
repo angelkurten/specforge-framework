@@ -307,11 +307,13 @@ describe("e2e: the packed tarball pins its runtime closure", () => {
   }, 120000);
 });
 
-// PRD-012 phase 3 § 9 row 27. The corpus kubbo's sandbox image builds and
-// seeds into a run comes from `specforge init --headless --quiet` against the
-// published tarball, so the assertion has to run against the packed artifact:
-// the source tree carries files the tarball does not.
-describe("e2e: init --headless produces the corpus the sandbox seed expects", () => {
+// PRD-024 § 9 rows 43-45. `optional-rules/headless-session.md` is retired:
+// `init` accepts no `--headless` flag and writes no headless rule, and
+// `update` neither resurrects nor deletes an already-seeded project's own
+// copy. Driven against the packed tarball, like the block this replaces,
+// because the CLI's own flag parsing and usage string are what is under
+// test, not the source tree.
+describe("e2e: the headless rule is retired", () => {
   let extractDir: string | null = null;
   let cliEntry = "";
 
@@ -326,105 +328,104 @@ describe("e2e: init --headless produces the corpus the sandbox seed expects", ()
     if (extractDir) await fs.rm(extractDir, { recursive: true, force: true });
   });
 
-  async function initHeadless(label: string, ...flags: string[]): Promise<string> {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), `specforge-prd012-${label}-`));
-    const r = spawnSync(process.execPath, [cliEntry, "init", "--quiet", ...flags], {
-      cwd: dir,
+  it("row 43 — init accepts no --headless flag", async () => {
+    if (!tgzPath) {
+      console.warn("DEVIATION: npm pack failed; PRD-024 headless-retirement e2e skipped");
+      return;
+    }
+    const help = spawnSync(process.execPath, [cliEntry, "help"], {
       encoding: "utf8",
       timeout: 30000,
     });
-    expect(r.status, r.stderr).toBe(0);
-    return dir;
-  }
+    expect(help.status, help.stderr).toBe(0);
+    expect(help.stdout, "the usage string still names --headless").not.toContain("--headless");
 
-  // PRD-006 § 6.2's fourteen definitions, name only — kept as a flat literal
-  // here rather than imported from conformance/framework.test.ts so this e2e
-  // suite exercises the packed tarball's own file list independent of that
-  // file's DEFINITIONS constant.
-  const ALL_14_DEFINITIONS = [
-    "specforge-backend-reviewer",
-    "specforge-security-reviewer",
-    "specforge-frontend-reviewer",
-    "specforge-quality-reviewer",
-    "specforge-roadmap-market-generator",
-    "specforge-roadmap-ux-generator",
-    "specforge-roadmap-product-generator",
-    "specforge-roadmap-support-generator",
-    "specforge-roadmap-evidence-critic",
-    "specforge-roadmap-risk-critic",
-    "specforge-roadmap-devils-advocate-critic",
-    "specforge-roadmap-opportunity-cost-critic",
-    "specforge-backend-implementer",
-    "specforge-frontend-implementer",
-  ];
-
-  it("writes CLAUDE.md, the headless rule, the reviewer definitions and templates/", async () => {
-    if (!tgzPath) {
-      console.warn("DEVIATION: npm pack failed; PRD-012 headless e2e skipped");
-      return;
-    }
-    const dir = await initHeadless("headless", "--headless");
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "specforge-prd024-flag-"));
     try {
-      for (const rel of [
-        "CLAUDE.md",
-        ".claude/rules/headless-session.md",
-        ".claude/agents/specforge/specforge-backend-reviewer.md",
-        ".claude/agents/specforge/specforge-frontend-reviewer.md",
-        ".claude/agents/specforge/specforge-security-reviewer.md",
-        ".claude/agents/specforge/specforge-quality-reviewer.md",
-        "templates/prd.md",
-      ]) {
-        await expect(
-          fs.access(path.join(dir, rel)),
-          `${rel} must be installed by init --headless`,
-        ).resolves.toBeUndefined();
-      }
-
-      // § 9 row 27: all 14 definitions, from the packed artifact, each
-      // carrying a `tools:` line — not just the 4 reviewers spot-checked
-      // above. This is the packed-tarball counterpart to the source-tree
-      // check at conformance/framework.test.ts's PRD-006 § 9 row 15; the two
-      // don't collapse into one because packaging can drop or truncate a
-      // file the source tree still has intact (PRD-012 phase 3's own
-      // bundleDependencies fix was exactly this class of bug).
-      for (const name of ALL_14_DEFINITIONS) {
-        const defPath = path.join(dir, ".claude/agents/specforge", `${name}.md`);
-        const body = await fs.readFile(defPath, "utf8").catch((err) => {
-          throw new Error(`${name}.md missing from packed headless corpus: ${err}`);
-        });
-        expect(body, `${name}.md has no tools: frontmatter line`).toMatch(/^tools:\s*\S/m);
-      }
-
-      // kubbo's seed predicate reads both `CLAUDE.md` and `.claude/rules/`,
-      // so a rules directory holding only the headless rule would still be a
-      // seeded corpus, but an empty one would read as unseeded forever.
-      const rules = await fs.readdir(path.join(dir, ".claude", "rules"));
-      expect(rules).toContain("headless-session.md");
-      expect(rules.length).toBeGreaterThan(1);
-
-      // `doctor` runs the rule-frontmatter validator over the installed rule.
-      const doctor = spawnSync(process.execPath, [cliEntry, "doctor", "--quiet"], {
+      const r = spawnSync(process.execPath, [cliEntry, "init", "--quiet", "--headless"], {
         cwd: dir,
         encoding: "utf8",
         timeout: 30000,
       });
-      expect(doctor.status, doctor.stderr).toBe(0);
+      expect(r.status, "an unknown --headless flag must be refused").not.toBe(0);
+      expect(r.stderr).toContain("unknown flag: --headless");
     } finally {
       await fs.rm(dir, { recursive: true, force: true });
     }
   }, 120000);
 
-  it("plain init leaves the headless rule out", async () => {
+  it("row 44 — a fresh install carries the same eight rule files with or without the (now-unknown) flag", async () => {
     if (!tgzPath) {
-      console.warn("DEVIATION: npm pack failed; PRD-012 headless e2e skipped");
+      console.warn("DEVIATION: npm pack failed; PRD-024 headless-retirement e2e skipped");
       return;
     }
-    const dir = await initHeadless("interactive");
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "specforge-prd024-init-"));
     try {
+      const r = spawnSync(process.execPath, [cliEntry, "init", "--quiet"], {
+        cwd: dir,
+        encoding: "utf8",
+        timeout: 30000,
+      });
+      expect(r.status, r.stderr).toBe(0);
+      const rules = (await fs.readdir(path.join(dir, ".claude", "rules"))).sort();
+      expect(rules).toEqual([
+        "adr-specific.md",
+        "framework-maintenance.md",
+        "gate-block.md",
+        "hard-rules.md",
+        "model-selection.md",
+        "prd-authoring.md",
+        "roadmap.md",
+        "workflow.md",
+      ]);
       await expect(
         fs.access(path.join(dir, ".claude", "rules", "headless-session.md")),
       ).rejects.toThrow();
-      await expect(fs.access(path.join(dir, "CLAUDE.md"))).resolves.toBeUndefined();
+    } finally {
+      await fs.rm(dir, { recursive: true, force: true });
+    }
+  }, 120000);
+
+  it("row 45 — update neither resurrects nor deletes an already-seeded project's own copy", async () => {
+    if (!tgzPath) {
+      console.warn("DEVIATION: npm pack failed; PRD-024 headless-retirement e2e skipped");
+      return;
+    }
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "specforge-prd024-update-"));
+    try {
+      const initResult = spawnSync(process.execPath, [cliEntry, "init", "--quiet"], {
+        cwd: dir,
+        encoding: "utf8",
+        timeout: 30000,
+      });
+      expect(initResult.status, initResult.stderr).toBe(0);
+
+      // Simulate a project seeded by an earlier version's `init --headless`.
+      // `update` has no deletion path for it (§ 8), so this is what an
+      // already-seeded project actually carries going into this release.
+      const seeded = path.join(dir, ".claude", "rules", "headless-session.md");
+      await fs.writeFile(
+        seeded,
+        "---\nname: headless session defaults\ndescription: pre-existing install\n---\n# Headless session\n",
+      );
+
+      const updateResult = spawnSync(process.execPath, [cliEntry, "update", "--quiet"], {
+        cwd: dir,
+        encoding: "utf8",
+        timeout: 30000,
+      });
+      expect(updateResult.status, updateResult.stderr).toBe(0);
+
+      // The seeded copy survives — update has no deletion path.
+      await expect(fs.access(seeded)).resolves.toBeUndefined();
+
+      // And the manifest never names it: `update` rebuilds `framework_files`
+      // from the bundle's own framework set, which this path was never in.
+      const manifest = JSON.parse(
+        await fs.readFile(path.join(dir, ".specforge", "manifest.json"), "utf8"),
+      );
+      const paths = manifest.framework_files.map((f: { path: string }) => f.path);
+      expect(paths).not.toContain(".claude/rules/headless-session.md");
     } finally {
       await fs.rm(dir, { recursive: true, force: true });
     }

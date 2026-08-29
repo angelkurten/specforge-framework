@@ -103,19 +103,21 @@ describe("prepublish: bundles the reduced framework set plus VERSION", () => {
     }
     expect(bundled.filter((p) => p.startsWith("docs/"))).toEqual([]);
 
-    // PRD-012 phase 3: bundled, but never written by a plain `init` — it is
-    // absent from the framework list above and lands only on `--headless`.
-    expect(bundled).toContain("optional-rules/headless-session.md");
+    // PRD-024 § 9 row 42: `optional-rules/headless-session.md` is retired
+    // along with `init --headless`. Not in BUNDLE_ONLY_FILES, so it is not
+    // in the tarball at all any more — not merely excluded from what a
+    // plain `init` writes, the way it was between PRD-012 phase 3 and here.
+    expect(bundled).not.toContain("optional-rules/headless-session.md");
 
     // PRD-005 § 5.1: 32 framework files + VERSION. PRD-006 swapped twelve
     // briefings for twelve subagent definitions, so the count was unchanged
     // there. PRD-010 § 6.2 row 8 adds two more subagent definitions
     // (specforge-backend-implementer, specforge-frontend-implementer),
-    // moving the count from 33 to 35. PRD-012 phase 3 adds the bundle-only
-    // headless rule, 35 to 36. Adding a rule, template, definition, or
-    // example moves this number — update it here and in § 5.1's successor
-    // rather than loosening the assertion.
-    expect(bundled).toHaveLength(36);
+    // moving the count from 33 to 35. PRD-012 phase 3 added the bundle-only
+    // headless rule, 35 to 36; PRD-024 retires it, 36 back to 35. Adding a
+    // rule, template, definition, or example moves this number — update it
+    // here and in § 5.1's successor rather than loosening the assertion.
+    expect(bundled).toHaveLength(35);
   });
 });
 
@@ -322,9 +324,10 @@ describe("prepublish: a symlinked invocation is not silently skipped", () => {
         ".claude/agents/specforge/specforge-backend-reviewer.md",
         "templates/prd.md",
         "examples/prd-001-login-example.md",
-        // A bundle-only entry is never excused when missing, so the fixture
-        // tree has to carry every one of them or the run fails at step 4.
-        "optional-rules/headless-session.md",
+        // PRD-024 § 9 row 42 retired the other bundle-only entry
+        // (`optional-rules/headless-session.md`); `VERSION`, written above,
+        // is now the only one, and a bundle-only entry is never excused when
+        // missing, so it still has to be on disk for the run to reach step 4.
       ]) {
         const abs = path.join(repo, rel);
         await fs.mkdir(path.dirname(abs), { recursive: true });
