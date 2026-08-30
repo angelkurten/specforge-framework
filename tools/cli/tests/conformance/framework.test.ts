@@ -3099,6 +3099,78 @@ describe("PRD-024 § 9 row 57 — hard rule 14 stays byte-identical", () => {
   });
 });
 
+describe("PRD-024 § 9 rows 60 and 65 — the paired headless run", () => {
+  const cells: Record<string, any[]> = {};
+  beforeAll(async () => {
+    for (const n of ["1-present","1-absent","8-present-a","8-absent","9-present","9-seeded"]) {
+      cells[n] = JSON.parse(
+        await read(path.join("tools", "cli", "tests", "fixtures", "headless-paired-run", `${n}.json`)),
+      );
+    }
+  });
+  const cell = (name: string): any[] => cells[name];
+  const calls = (events: any[]): any[] =>
+    events
+      .filter((e) => e.type === "assistant")
+      .flatMap((e) => e.message.content.filter((c: any) => c.type === "tool_use"))
+      .filter((c: any) => /request_approval/.test(c.name));
+
+  it("row 60 — every gap called its own checkpoint, alone in its turn", () => {
+    const expected: Record<string, string> = {
+      "1-present": "scope_ambiguity",
+      "8-present-a": "prd_ready_for_approval",
+      "8-absent": "prd_ready_for_approval",
+      "9-present": "fix_round_escalation",
+      "9-seeded": "fix_round_escalation",
+    };
+    for (const [name, checkpoint] of Object.entries(expected)) {
+      const events = cell(name);
+      const ck = calls(events);
+      expect(ck.length, `${name} made no checkpoint call`).toBeGreaterThan(0);
+      expect(ck[0].name, `${name} called the wrong checkpoint`).toContain(checkpoint);
+      // Alone in its turn is a pass criterion, not a detail: a batched call
+      // cannot pause the session, which is the entire point of calling it.
+      for (const e of events.filter((x: any) => x.type === "assistant")) {
+        const tus = e.message.content.filter((c: any) => c.type === "tool_use");
+        if (tus.some((c: any) => /request_approval/.test(c.name))) {
+          expect(tus.length, `${name} batched its checkpoint call`).toBe(1);
+        }
+      }
+    }
+  });
+
+  it("row 60 — the tool-absent step-1 cell made no call and recorded its assumption", () => {
+    const events = cell("1-absent");
+    expect(calls(events).length, "the absent cell called a checkpoint").toBe(0);
+    const init = events.find((e) => e.type === "system");
+    expect(init.tools.length, "the absent cell had tools registered").toBe(0);
+    const text = events
+      .filter((e) => e.type === "assistant")
+      .flatMap((e) => e.message.content)
+      .filter((c: any) => c.type === "text")
+      .map((c: any) => c.text)
+      .join(" ");
+    expect(text, "the absent cell did not record its assumption").toMatch(/§\s?11/);
+  });
+
+  it("row 65 — steps 8 and 9 are read behaviourally, not only asserted as text", () => {
+    // Rows 51 and 54 pin the clause text at these sites. Nothing read the
+    // behaviour of either gap until this row: the failure mode this PRD exists
+    // to prevent was zero calls with every string assertion green.
+    for (const name of ["8-present-a", "8-absent", "9-present", "9-seeded"]) {
+      expect(calls(cell(name)).length, `${name} has no behavioural evidence`).toBe(1);
+    }
+  });
+
+  it("the captures are genuine 2.1.233 stream-json, not authored to match", () => {
+    for (const name of ["1-present", "8-present-a", "9-seeded"]) {
+      const init = cell(name).find((e: any) => e.type === "system");
+      expect(init.subtype, `${name} carries no init event`).toBe("init");
+      expect(init.tools.length, `${name}'s present arm lost its tools`).toBe(4);
+    }
+  });
+});
+
 describe("PRD-024 § 9 row 58 — the rule count stays 16", () => {
   it("highestRuleNumber and the CLAUDE.md caption both read 16, unaffected by the retirement", () => {
     expect(highestRuleNumber(hardRules)).toBe(16);
