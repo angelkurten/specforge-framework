@@ -40,6 +40,19 @@ Both were found by instrumenting a full nine-step run against a mature corpus (3
 - **Six spans an ablation would take on merit are kept because a conformance test guards them**, and in one case was written to anticipate exactly this pass: `framework.test.ts:3300` pins the waiver bar's reason clause, and its comment states the reason — *"unlike its neighbours, nothing anchors it, so a tidying round can delete the reason and leave two bare prohibitions with nothing red."* The others are the ordering assertion on step 1's trust disclaimer, the pause-is-not-an-approval sentence, §9's drift-check blind spot, the injection gate's every-outcome phrasing, and step 8's no-pause-is-a-stopping-point clause.
 - **Rule 9's five-word list and rule 3's second sentence stay pending a test.** Both are plausible cuts on inspection and neither is settled by argument. Rule 9's list must also stay byte-compatible with `prd-marketing-language.ts`, which greps those exact strings — the prompt list and the validator list disagreeing is worse than either being long.
 
+### Added — §9 rows that assert an absence must name what they fail against
+
+`prd-authoring.md` gains one rule, from a measurement rather than an argument. Splitting every test-touching fix in an instrumented run by what its assertion observes:
+
+| Class | Asserts | Instances | Found incapable of failing |
+|---|---|---:|---:|
+| Visible rejection | an input is refused — a status code, a thrown error, a grep hit | 10 | **0** |
+| Absence of an internal effect | something did *not* happen — no value logged, no store method called, no prototype re-pointed, an ordering not discarded | 9 | **9** |
+
+Nine for nine, in the reviewers' own words: *"passes identically whether or not the mitigation exists"*, *"passes against the exact vulnerable implementation it exists to catch"*, *"the `store.getTree` spy asserts nothing"*. The mechanism needs no model of agent psychology: a rejection assertion is verified by running it once, an absence assertion only by running it against a deliberately broken implementation — which nobody did, at any round, in either leg. A green suite is evidence for the first class and no evidence at all for the second.
+
+The rule is therefore stated at authoring time, where the row is written, rather than as another thing for the panel to catch after it has landed: a row asserting an absence names, in its `Description`, the broken implementation it would fail against.
+
 ### Headless blast radius
 
 **No behaviour change for a headless installation.** This release edits prose around the ten in-line clauses that 0.23.0 added to `workflow.md` when it retired `optional-rules/headless-session.md`, but changes none of them: every decision point still names the same option letter for a session with no interactive channel — step 7 resolves to option (ii) and never (iii), step 8 takes option (a) in the same turn, step 6 applies step 1's channel test by reference and stops when it finds none, step 9's post-implementation escalation resolves to option (ii) with a found channel never unlocking the waiver, and its refuted-amendment stop still bars both re-proposing and routing to the code. The evidence is the suite rather than this claim: PRD-024 § 9 rows 48-66, which assert those clauses individually, pass unchanged and without a test edit. An installation still carrying `.claude/rules/headless-session.md` from before 0.23.0 is affected exactly as 0.23.0 described, no more.

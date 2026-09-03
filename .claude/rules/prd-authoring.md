@@ -37,6 +37,12 @@ Example — instead of *"Rate-limit login attempts"*, write *"If login attempts 
 
 This is a **style suggestion, not a requirement**, and applies only to reactive goals. Do not restructure § 5 API, § 6 Data Model, or § 9 Test Plan into this form — those sections are already more precise (schemas, column tables, concrete test paths). Do not add a separate "Acceptance Criteria" section; it would duplicate § 9.
 
+### § 9 Test Plan — a row asserting an absence names what it fails against
+
+An assertion that observes an **absence** — nothing logged, a method not called, an ordering not discarded, a prototype not re-pointed — passes identically against a correct implementation and against a broken one. A green suite is evidence for a row asserting a **visible rejection** (a status code, a thrown error, a grep hit) and no evidence at all for a row asserting an absence.
+
+So a row asserting an absence names, in its `Description`, the broken implementation it would fail against. A row that cannot name one is not testing what it claims.
+
 ### The propagation table — one row per site, anchored by a greppable span
 
 A **propagation table** is a PRD's work list: one row per file and site the change must touch. It is not a required section — most PRDs need none — but a PRD that carries one uses this shape:
