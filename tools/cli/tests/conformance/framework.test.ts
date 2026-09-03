@@ -3179,8 +3179,17 @@ describe("PRD-024 § 9 row 58 — the rule count stays 16", () => {
 });
 
 describe("PRD-024 § 9 row 59 — the changelog entry names the retirement", () => {
-  it("the current CHANGELOG.md entry carries the breaking callout and the should-delete note", async () => {
-    const version = (await read("VERSION")).trim();
+  it("the 0.23.0 CHANGELOG.md entry carries the breaking callout and the should-delete note", async () => {
+    // Anchored to 0.23.0, the release that retired the file, rather than to
+    // whatever VERSION currently says. Read against VERSION, this row demanded
+    // the **BREAKING for a headless installation** callout from *every* later
+    // release — while PRD-016 row 12 (line 217) permits exactly one of BREAKING
+    // or "No behaviour change" and fails an entry claiming both. The two
+    // together left any non-breaking release unshippable unless it declared a
+    // headless break it did not have. The property this row exists for is a
+    // fact about the retirement release and does not move: that entry must name
+    // the vacated file, call the break, and carry the cleanup note.
+    const version = "0.23.0";
     const changelog = await read("CHANGELOG.md");
     const at = changelog.indexOf(`## [${version}]`);
     expect(at, `CHANGELOG.md has no [${version}] entry`).toBeGreaterThan(-1);

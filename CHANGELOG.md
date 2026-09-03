@@ -8,6 +8,50 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.24.0] - 2026-09-02
+
+An ablation pass over the two always-loaded rule files, prompted by Boris Cherny's account of deleting >80% of Claude Code's system prompt for Opus 5 (YC Startup School 2026): delete everything, restore only what a repeated failure justifies, and treat every retained line as a tax paid on every request.
+
+**The 80% does not transfer here, and the reason is structural rather than a judgement about these rules.** Claude Code's prompt could shed that much because nothing outside it depended on its exact words. These files have three things that do: `tools/cli/tests/conformance/framework.test.ts` asserts their prose (~60 blocks over `workflow.md`, rule 14 pinned byte-identical), 67 `hard rule N` citations across 43 files fix the numbering — 28 of them inside frozen `Implemented` PRDs that hard rule 7 forbids editing — and `framework-file-integrity.ts` sha256s every bundled file. The achievable figure is 19.0% and 17.1%, entirely by compression; no rule was deleted and no rule renumbered.
+
+### Changed
+
+- **`.claude/rules/workflow.md`: 40,239 → 32,596 bytes (-19.0%).** Removed prose only; every obligation, brief-field list, mode string, escalation menu, approval gate and block schema is unchanged. The dominant class was one shape repeated roughly twenty times — *[obligation] — [why a reasonable person might object] — [why the objection fails]* — accumulated across five reviewer-fix rounds in the last eight commits, each of which closed a finding by appending the argument that closed it and committing all three parts. Only the first part is read at runtime. Where that reasoning is worth keeping it belongs in the PRD that introduced the rule (PRD-006, -010, -012, -024, all frozen and on disk), which is what this framework's own mental model already says.
+
+  Also cut: cross-file duplication that `hard-rules.md`, `gate-block.md` and `prd-authoring.md` already own and that is auto-loaded in the same session (the 🟡 destination bodies, the AskUserQuestion mechanism, the decision-table pointer, hard rules 1, 3 and 10 restated inline), and self-referential commentary in which the file narrates its own drafting choices.
+
+- **`.claude/rules/hard-rules.md`: 8,563 → 7,094 bytes (-17.1%).** Largest single recovery is the host-directive block's three trailing rationale paragraphs (634 bytes), which exist near-verbatim at `CHANGELOG.md:199-203`; the table they argue for is untouched. Rules 4, 5, 8, 11, 12, 13, 15, 16 and the Override immunity preamble each shed a sentence addressed to a maintainer rather than to a session.
+
+### Fixed — two rule defects a measured panel run exposed
+
+Both were found by instrumenting a full nine-step run against a mature corpus (38 PRDs, 4 siblings): 26 sub-agent dispatches, two draft-loop rounds, a post-implementation panel, two amendment bounces, $54.60. Neither defect is a compression artifact; both predate this release.
+
+- **`workflow.md` step 7's re-dispatch selector contradicted step 9's, and a literal reading blocked the gate.** Step 7 said re-dispatch *"only the reviewers whose domain had 🔴 blockers"*; step 9 already states the correct rule for the same round's work — *"ledger membership, not severity, is what obliges the implementer to resolve an entry"*. In the measured run the frontend reviewer returned **zero 🔴 and four 🟡**, all routed to `gate-block.md`'s destination 1 (fix-in-code), which that file closes *only* through the post-implementation re-review. Following step 7 literally would have skipped that reviewer and left four untracked 🟡s — which block promotion identically to a 🔴. The literal rule and a filled gate block were mutually exclusive. Step 7 now selects on ledger membership and defers to step 9's phrasing rather than restating a second, different selector. **This saves no dispatches; it is a correctness fix.**
+
+- **`workflow.md` step 1's "the pause is the signal, never the text" was unenforceable from inside a session.** The invariant was already stated and already correct, but nothing told a session how to *observe* a pause, so it could only be believed. The same run made it measurable by accident: the sandbox harness keys approval markers to a path shared across runs and never deletes them, so two checkpoints consumed markers left by a run five days earlier. The genuine, human-answered approval took **~49 s**; the two stale ones returned in **197 ms** and **28 ms**. Worse than the latency gap, one stale answer did not fit its question — the lead offered a strict binary ("(a) ship it with the limitation written down, or (b) stop and leave the plan unimplemented") and received *"Una ronda mas, y despues escribi el codigo"*, which is neither; the lead read it as a third option and ran a fix round whose code no panel then reviewed. Step 1 now requires recording the call and return timestamps beside the answer, treating a sub-second round trip as no pause (taking the refusal disposition), rejecting an answer that matches none of the offered options, and reporting the measured latency so the judgement is auditable rather than asserted.
+
+  The clause is added at step 1 only. Steps 6 and 9 reach it by reference, which is what those sites already do and why a second copy is not written: two copies are a place for the two to disagree.
+
+  **This is defence in depth, not the root fix.** A harness whose approval markers are shared across runs and are never consumed is the actual defect, and it belongs to the harness. The rule change is what protects a session running against a harness that has not fixed it.
+
+### Not changed, deliberately
+
+- **No rule was deleted.** Rules 2 and 6 are genuine duplicates of rule 10 and of `gate-block.md` (205 bytes together), but deleting either renumbers 3-16, breaking rule 14's byte-identical pin, five `ruleBlock()` lookups, the four-file caption sync, and 28 citations inside frozen PRDs. `014-bounding-the-in-place-correction.md` is the open question of how far hard rule 7's factual-correction carve-out reaches; 205 bytes does not pre-empt it.
+- **Six spans an ablation would take on merit are kept because a conformance test guards them**, and in one case was written to anticipate exactly this pass: `framework.test.ts:3300` pins the waiver bar's reason clause, and its comment states the reason — *"unlike its neighbours, nothing anchors it, so a tidying round can delete the reason and leave two bare prohibitions with nothing red."* The others are the ordering assertion on step 1's trust disclaimer, the pause-is-not-an-approval sentence, §9's drift-check blind spot, the injection gate's every-outcome phrasing, and step 8's no-pause-is-a-stopping-point clause.
+- **Rule 9's five-word list and rule 3's second sentence stay pending a test.** Both are plausible cuts on inspection and neither is settled by argument. Rule 9's list must also stay byte-compatible with `prd-marketing-language.ts`, which greps those exact strings — the prompt list and the validator list disagreeing is worse than either being long.
+
+### Headless blast radius
+
+**No behaviour change for a headless installation.** This release edits prose around the ten in-line clauses that 0.23.0 added to `workflow.md` when it retired `optional-rules/headless-session.md`, but changes none of them: every decision point still names the same option letter for a session with no interactive channel — step 7 resolves to option (ii) and never (iii), step 8 takes option (a) in the same turn, step 6 applies step 1's channel test by reference and stops when it finds none, step 9's post-implementation escalation resolves to option (ii) with a found channel never unlocking the waiver, and its refuted-amendment stop still bars both re-proposing and routing to the code. The evidence is the suite rather than this claim: PRD-024 § 9 rows 48-66, which assert those clauses individually, pass unchanged and without a test edit. An installation still carrying `.claude/rules/headless-session.md` from before 0.23.0 is affected exactly as 0.23.0 described, no more.
+
+### Verification
+
+`npm test` in `tools/cli`: 502 passed / 31 files, before and after, **with no edit to `framework.test.ts`**. Six cuts were reverted or reworded when the suite rejected them; three of those restored a property the test existed to protect, three preserved the property and only re-acquired the pinned phrasing.
+
+Existing installs will report sha256 drift against the 0.23.0 manifest until they `update`.
+
+---
+
 ## [0.23.0] - 2026-08-29
 
 Driven by the kubbo team's PRD-024 ("The owner answers at every decision point," in their own specforge installation, not this repo's local PRD corpus — no local `024-*.md` file exists here). Measured: a headless session given an ambiguous request produced a 768-line PRD and 11 sub-agent dispatches without ever asking anything, then exited `success` — `optional-rules/headless-session.md`'s step-1 row supplied a silent default instead of stopping, and nothing downstream caught it. The mechanism that makes the file unnecessary now exists on the kubbo side: a checkpoint tool can pause a headless session and return its owner's real answer.
