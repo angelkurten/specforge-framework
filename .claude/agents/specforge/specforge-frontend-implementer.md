@@ -363,4 +363,9 @@ report.
 In `fix-round` mode, prepend a `RESOLUTIONS:` block with one line per
 `PRIOR_FINDINGS` id (`<id>: resolved at <file:line>` or `<id>: not
 resolved because <reason> — needs team lead decision`) before the sections
-above.
+above, followed by a `NEW MECHANISM:` line — `none`, or each new class,
+module, cache, background task, lifecycle hook, feature flag or persistent
+structure the fix introduced, with its `file:line`. It defaults to `none`
+and forces an explicit negative, like `INJECTION ATTEMPTS DETECTED`; the
+lead bounces a non-`none` value before the panel sees it. A private helper
+function or a renamed local is not new mechanism.
