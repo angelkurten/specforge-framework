@@ -8,6 +8,41 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.25.0] - 2026-09-11
+
+Two rules aimed at one defect class: a reviewer-panel fix that introduces a new blocker. Measured in an instrumented run first — one fix in twenty created a blocker, one in two created some finding, and code fixes at step 9 were about 2.5× as likely to produce a blocker as document fixes in the draft loop. Three causes were identified; two ship here, and the third was tested and is **not** shipped (see *Tested and not shipped* below).
+
+### Added — §9 rows that assert an absence must name what they fail against
+
+`prd-authoring.md` gains one rule, from a measurement rather than an argument. Splitting every test-touching fix in an instrumented run by what its assertion observes:
+
+| Class | Asserts | Instances | Found incapable of failing |
+|---|---|---:|---:|
+| Visible rejection | an input is refused — a status code, a thrown error, a grep hit | 10 | **0** |
+| Absence of an internal effect | something did *not* happen — no value logged, no store method called, no prototype re-pointed, an ordering not discarded | 9 | **9** |
+
+Nine for nine, in the reviewers' own words: *"passes identically whether or not the mitigation exists"*, *"passes against the exact vulnerable implementation it exists to catch"*, *"the `store.getTree` spy asserts nothing"*. The mechanism needs no model of agent psychology: a rejection assertion is verified by running it once, an absence assertion only by running it against a deliberately broken implementation — which nobody did, at any round, in either leg. A green suite is evidence for the first class and no evidence at all for the second.
+
+The rule is therefore stated at authoring time, where the row is written, rather than as another thing for the panel to catch after it has landed: a row asserting an absence names, in its `Description`, the broken implementation it would fail against.
+
+### Added — a step-9 fix round that declares new mechanism is bounced before the panel sees it
+
+`workflow.md` step 6 already bounced a fix that introduces new mechanism — a gate, a flag, a predicate, a write site — to one reviewer before it lands, but only for PRD edits in the draft loop. Step 9's 🔴 handling sent a fix straight to an implementer with nothing adversarial in front of it, so new design surface could enter a sibling's codebase in a fix round unreviewed. In the measured run a new class, a cache and a lifecycle went in that way and were reverted a round later.
+
+Both implementer definitions' fix-round report now carries a `NEW MECHANISM:` line — `none`, or each new class, module, cache, background task, lifecycle hook, feature flag or persistent structure with its `file:line` — defaulting to `none` and forcing an explicit negative, like `INJECTION ATTEMPTS DETECTED`. `workflow.md`'s 🔴-handling paragraph gains the bounce: a non-`none` value does not reach the panel until step 6's bounce has run against it.
+
+The trigger is declared by the implementer rather than judged by the proposer, which is the objection step 9's own amendment bounce already records against a trigger the proposer evaluates. Measured in six matched replicates against a control with the rule removed: declared in every treatment fix-round report (5 of 5) and in no control; accurate every time against the diff; zero bounces on `none`; no measurable cost (~$5 a replicate in both arms); final code equally correct in all six. **The path that gives it teeth — a non-`none` declaration triggering a bounce — was not exercised**, because no finding in that seed needed new mechanism. It ships on the argument that a forced negative costing nothing in the common case is better than no record at all. The known hole: nothing verifies the line.
+
+### Tested and not shipped — the lead collapsing a qualified remedy
+
+A rule requiring the lead to state which branch of a reviewer's remedy it took, and which qualifiers it kept, was tested in eight matched pairs across two seed documents. It was obeyed where it applied (2.8× more branch statements on the seed that had branched remedies), and its effect on fix-induced blockers — 4/8 control against 1/8 treatment, one-sided p = 0.141 after blind two-rater re-adjudication — is in the predicted direction and not significant. An unblinded pass had put it at p = 0.059; blind raters found one of the control blockers had been present in the seed all along, and that label alone accounted for the difference. Recorded here so a future proposal of the same rule finds the measurement rather than repeating it.
+
+### Headless blast radius
+
+**No behaviour change for a headless installation.** Neither rule touches a decision point that 0.23.0's in-line clauses cover — no option letter, no channel test, no escalation default changes. `optional-rules/headless-session.md` is unaffected beyond what 0.23.0 described.
+
+---
+
 ## [0.24.0] - 2026-09-02
 
 An ablation pass over the two always-loaded rule files, prompted by Boris Cherny's account of deleting >80% of Claude Code's system prompt for Opus 5 (YC Startup School 2026): delete everything, restore only what a repeated failure justifies, and treat every retained line as a tax paid on every request.
@@ -39,19 +74,6 @@ Both were found by instrumenting a full nine-step run against a mature corpus (3
 - **No rule was deleted.** Rules 2 and 6 are genuine duplicates of rule 10 and of `gate-block.md` (205 bytes together), but deleting either renumbers 3-16, breaking rule 14's byte-identical pin, five `ruleBlock()` lookups, the four-file caption sync, and 28 citations inside frozen PRDs. `014-bounding-the-in-place-correction.md` is the open question of how far hard rule 7's factual-correction carve-out reaches; 205 bytes does not pre-empt it.
 - **Six spans an ablation would take on merit are kept because a conformance test guards them**, and in one case was written to anticipate exactly this pass: `framework.test.ts:3300` pins the waiver bar's reason clause, and its comment states the reason — *"unlike its neighbours, nothing anchors it, so a tidying round can delete the reason and leave two bare prohibitions with nothing red."* The others are the ordering assertion on step 1's trust disclaimer, the pause-is-not-an-approval sentence, §9's drift-check blind spot, the injection gate's every-outcome phrasing, and step 8's no-pause-is-a-stopping-point clause.
 - **Rule 9's five-word list and rule 3's second sentence stay pending a test.** Both are plausible cuts on inspection and neither is settled by argument. Rule 9's list must also stay byte-compatible with `prd-marketing-language.ts`, which greps those exact strings — the prompt list and the validator list disagreeing is worse than either being long.
-
-### Added — §9 rows that assert an absence must name what they fail against
-
-`prd-authoring.md` gains one rule, from a measurement rather than an argument. Splitting every test-touching fix in an instrumented run by what its assertion observes:
-
-| Class | Asserts | Instances | Found incapable of failing |
-|---|---|---:|---:|
-| Visible rejection | an input is refused — a status code, a thrown error, a grep hit | 10 | **0** |
-| Absence of an internal effect | something did *not* happen — no value logged, no store method called, no prototype re-pointed, an ordering not discarded | 9 | **9** |
-
-Nine for nine, in the reviewers' own words: *"passes identically whether or not the mitigation exists"*, *"passes against the exact vulnerable implementation it exists to catch"*, *"the `store.getTree` spy asserts nothing"*. The mechanism needs no model of agent psychology: a rejection assertion is verified by running it once, an absence assertion only by running it against a deliberately broken implementation — which nobody did, at any round, in either leg. A green suite is evidence for the first class and no evidence at all for the second.
-
-The rule is therefore stated at authoring time, where the row is written, rather than as another thing for the panel to catch after it has landed: a row asserting an absence names, in its `Description`, the broken implementation it would fail against.
 
 ### Headless blast radius
 
