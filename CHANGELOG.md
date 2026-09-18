@@ -8,6 +8,71 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.26.0] - 2026-09-18
+
+Step 4 was seven words. Steps 5 through 9 were 4,422. This release gives the drafting step a contract, and moves one check out of prose into a script because prose could not perform it.
+
+The measurement that prompted it, over `usesignal/forge` (11 gated PRDs, 323 commits) and its 14 session transcripts: the median gap between a first draft being written and four adversarial readers being dispatched is **about two minutes**; **92% of every edit a PRD receives** lands after the panel is already reading it (54 document mutations before, 633 after); and of 236 `AskUserQuestion` calls in the corpus, **two** fire before drafting, both about repo layout.
+
+### Added — `workflow.md` step 4 takes an input contract and four ordered moves
+
+`GROUNDING_CONTEXT` becomes an explicit input, the way step 5 already carries six brief fields. Step 4 was the only step of nine with a contract on neither side: the reviewer is handed real code paths to verify the draft against, and the author who wrote it was never required to produce them.
+
+Then: **plan** (one line per section naming its artifacts and their `file:line`), **sweep** (nine categories marked `clear`/`partial`/`missing`, each gap taking a branch — state the default, or emit `[NEEDS CLARIFICATION: <gap> — <2-4 candidates>]` at the site), **clarify** (top three by impact × uncertainty, one question per call, each answer written before the next question is formed), **write**.
+
+The categories are enumerated because a model asked to find its own gaps finds few. Measured elsewhere: models judge ambiguity correctly 60–80% of the time when handed the category, and commit to an answer over 95% of the time when not — and supplying retrieved context *raises* accuracy while *lowering* the rate of asking, regardless of actual ambiguity. Step 2's grounding fan-out is exactly that condition.
+
+**Each answer is written in exactly one place.** The `## Clarifications` log records the question, the date and a pointer — never the answer's substance. An earlier revision wrote both, and three of its four preventable blockers were the two copies disagreeing.
+
+### Added — `scripts/prd-check.py`, and the coverage join leaves the template
+
+Ten checks, Python 3 stdlib, 51 tests of its own, installed by `init` (`partition.ts` carries the single file, not `scripts/**` — `scripts/upgrade.sh` stays project metadata). Required sections, registry names, gate schema, the §9-`Path`-to-gate-`tests` set equality, citation resolution, marketing words, Mermaid fences, propagation-span uniqueness, absence rows, and the coverage join over §4.2 branches, §5 error statuses and §6 constraints.
+
+The join is the reason the script exists. It shipped first as a template question — *"does every §4.2 branch have a row? name the row numbers"* — and in a measured run two independent reviewers found the answer wrong, with one noting the wrong answer **hid** an untested branch. A set join is decidable by a script and is not a judgement; asking a generative process to perform one returns a plausible wrong answer that the next reader trusts.
+
+### Added — `Observability` is a required section
+
+Unnumbered, after §10, so no section renumbers. The log line on success and on refusal, the number that says this is going wrong and at what value, and who reads it through what.
+
+It was optional. Across five documents written under the optional rule in two experiments, **five omitted it**; across two written under the required rule, both carried it, and the quality reviewer raised its absence as a blocker in both arms that lacked it. `prd-authoring.md` drops it from the optional list.
+
+### Changed — hard rules 1, 2, 3 and 9 are stated as commissions
+
+Omission constraints ("never do X") decay over a long agent run while commission constraints persist. Rule 1 becomes *every identifier is copied from a cited `file:line` or carries the tag `new`* — greppable in both legal forms. Rules 2, 3 and 9 likewise. **No rule is added, removed or renumbered**; the 67 `hard rule N` citations across the corpus, 28 of them in frozen PRDs, still resolve.
+
+### Changed — the template asks instead of labelling, and points at the worked example
+
+The 32 HTML comment blocks become visible per-section questions, deleted as each is answered, so an unanswered one is visible to a reviewer instead of invisible in a comment. §7 loses its escape hatch — ten of fourteen PRDs in this corpus took it, three with the same sentence — and gains *"what did you reject, and what would reopen it"*. §9 regains a type taxonomy including `conformance` and `wiring`, which the corpus used in 97 of 222 rows while the template had never heard of them. Step 4 and the template now both name `examples/prd-001-login-example.md`, which existed and was referenced from nowhere an author reads.
+
+`CONVENTIONS.md` § 13 was an eleven-item checklist that nothing invoked. It is now the pre-dispatch check step 4 runs, it emits a table rather than an assertion, and it covers only what the script cannot decide. Its load-bearing row is the citation one, and it asks for the claim rather than the anchor: verifying that a citation *resolves* is a script's job, and a citation landing on real code at the wrong place is invisible to every mechanical check.
+
+### Fixed — `examples/prd-001-login-example.md` carried two §9 rows that 0.25.0's rule forbids
+
+Rows 8 and 16 asserted an absence and named nothing they would fail against. The shipped worked example violated the rule shipped one version earlier. Both now name it. `prd-check.py` also skips the registry check under `examples/`, where placeholder sibling names are the point.
+
+### What was measured, and what was not
+
+Four arms over the real `usesignal/forge` corpus rewound to before PRD-008, headless and isolated, same request:
+
+| Arm | Version | This release's changes | Round-1 🔴 | Total 🔴 | Rounds |
+|---|---|---|---:|---:|---:|
+| A | 0.24.0 | no | 10 | 20 | 3 |
+| C | 0.24.0 | yes | 16 | 16 | 1 |
+| D | 0.25.0 | no | 14 | 20 | 2 |
+| E | 0.25.0 | yes | **10** | **10** | **1** |
+
+**Round one does not improve.** In one arm it is worse. What changes is that there is no second round: E's re-verification came back zero across three reviewers. An earlier experiment on a different corpus found the same shape — the research arm tied at 13 blockers against 13 and still converged a round earlier.
+
+**n = 1 per cell, and the noise is the size of the signal.** A and D differ by two rules and wrote 769 and 1,111 lines with the same §9 row count. The apparent interaction between the upgrade and these changes is the prettiest number here and the least supported.
+
+**Not shipped, deliberately**: moving steps 5–9 out of the always-loaded set. The destination is a skill, not the reviewer definitions, and a skill that fails to load costs the lead the whole back half of the workflow. It was excluded from the measurement rather than tested and rejected.
+
+### Headless blast radius
+
+**No behaviour change for a headless installation.** No decision point that `optional-rules/headless-session.md` covers moves — no option letter, no channel test, no escalation default. Step 4's clarification pass is new surface carrying its own in-line headless clause (asks nothing, every unasked marker into §11, proceeds), so it adds a default rather than changing one. A headless run does now emit `[NEEDS CLARIFICATION]` markers and §11 entries it did not emit before; nothing that previously worked stops.
+
+---
+
 ## [0.25.0] - 2026-09-11
 
 Two rules aimed at one defect class: a reviewer-panel fix that introduces a new blocker. Measured in an instrumented run first — one fix in twenty created a blocker, one in two created some finding, and code fixes at step 9 were about 2.5× as likely to produce a blocker as document fixes in the draft loop. Three causes were identified; two ship here, and the third was tested and is **not** shipped (see *Tested and not shipped* below).

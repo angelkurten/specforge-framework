@@ -18,13 +18,14 @@ Every PRD must contain these, in this order. Omitting any fails review.
 | 4 | **User Flows** *(if user-visible)* | Step-by-step scenarios. Mermaid sequence diagram for non-trivial flows. |
 | 5 | **API** | Endpoints, schemas, status codes, error responses, rate limits. |
 | 6 | **Data Model** | Tables, columns, constraints, indexes, migrations. Mermaid ERD for new or changed entities. |
-| 7 | **Architecture** | How components interact. Mermaid diagram when the flow spans more than two components. For single-component changes, one sentence is enough — do not omit the section. |
+| 7 | **Architecture** | How components interact, which one owns each piece of new state, and the shape you rejected to get here. Mermaid when the flow spans more than two components. A single-component change still rejected something, and naming it is what stops a later reader re-proposing it. |
 | 8 | **Security** | Threats, mitigations, auth, secrets, PII. **Never skip.** |
 | 9 | **Test Plan** | Table: `#` \| `Test` \| `Type` \| `Description` \| `Path`. The `Path` column names the concrete test file (relative to specforge dir, typically `../<sibling>/...`); it feeds the gate block's `tests` YAML list at promotion time. Cover happy path, edge cases, error branches, and regressions. **Never skip.** |
 | 10 | **Migration Plan** | Rollout order, rollback procedure, data backfill, feature flags, deploy sequence. **Never skip.** |
+| — | **Observability** (unnumbered, after § 10) | The log line on success and on refusal, the number that says this is going wrong and at what value, and who reads it through what. **Never skip.** A control nobody can see is a promise. |
 | 11 | **Open Questions** | Checkbox list. Must be empty or explicitly deferred before `Implemented`. |
 
-Optional sections (include when relevant): `Design Decisions`, `Performance`, `Observability`, `Accessibility`, `Frontend Spec`, `Rollout Plan`, `Cost Estimate`.
+Optional sections (include when relevant): `Design Decisions`, `Performance`, `Accessibility`, `Frontend Spec`, `Rollout Plan`, `Cost Estimate`.
 
 ### § 2 Goals — optional phrasing for reactive goals
 

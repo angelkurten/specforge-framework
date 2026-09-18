@@ -85,6 +85,9 @@ describe("prepublish: bundles the reduced framework set plus VERSION", () => {
       ...SUBAGENT_DEFINITIONS.map(
         (d) => `.claude/agents/specforge/${d.name}.md`,
       ),
+      // The pre-panel PRD validator: an adopter who never sees it in their own
+      // tree runs the reviewer panel over an unchecked document.
+      "scripts/prd-check.py",
     ]) {
       expect(bundled, `${rel} must be bundled`).toContain(rel);
     }
@@ -114,10 +117,11 @@ describe("prepublish: bundles the reduced framework set plus VERSION", () => {
     // there. PRD-010 § 6.2 row 8 adds two more subagent definitions
     // (specforge-backend-implementer, specforge-frontend-implementer),
     // moving the count from 33 to 35. PRD-012 phase 3 added the bundle-only
-    // headless rule, 35 to 36; PRD-024 retires it, 36 back to 35. Adding a
+    // headless rule, 35 to 36; PRD-024 retires it, 36 back to 35. The
+    // pre-panel validator `scripts/prd-check.py` moves it 35 to 36. Adding a
     // rule, template, definition, or example moves this number — update it
     // here and in § 5.1's successor rather than loosening the assertion.
-    expect(bundled).toHaveLength(35);
+    expect(bundled).toHaveLength(36);
   });
 });
 
@@ -324,6 +328,8 @@ describe("prepublish: a symlinked invocation is not silently skipped", () => {
         ".claude/agents/specforge/specforge-backend-reviewer.md",
         "templates/prd.md",
         "examples/prd-001-login-example.md",
+        // A plain file entry, not a `dir/**` base: still fatal when absent.
+        "scripts/prd-check.py",
         // PRD-024 § 9 row 42 retired the other bundle-only entry
         // (`optional-rules/headless-session.md`); `VERSION`, written above,
         // is now the only one, and a bundle-only entry is never excused when

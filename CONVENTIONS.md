@@ -358,18 +358,34 @@ Rules:
 
 ---
 
-## 13. Quick checklist before requesting review
+## 13. Pre-dispatch check
 
-Before sending a PRD to reviewers, the author (human or AI) confirms:
+Run after `scripts/prd-check.py` and before the reviewer panel. **It emits a table, not an
+assertion.** A row carries the evidence that satisfies it or the literal word `unanswered`;
+a check whose output is "verified" is the thing this section exists to replace, because an
+assertion costs nothing to produce and cannot be falsified. Every `unanswered` row is copied
+into § 11 before dispatch.
 
-- [ ] File name matches `NNN-kebab-case-title.md`.
-- [ ] Sequence number is the next available, not a reuse.
-- [ ] Header has Status, Date, Author, Priority, and (if applicable) Depends on / Supersedes.
-- [ ] `Impacted Projects` table is present, primary project bolded, impact column concrete.
-- [ ] All required sections (Problem, Goals, Non-Goals, API, Data Model, Security, Test Plan, Migration Plan, Open Questions) are present.
-- [ ] Every endpoint, table, function, and env var is either grounded in real code or marked `new`.
-- [ ] All diagrams are Mermaid. No ASCII art.
-- [ ] No marketing language.
-- [ ] No `> **Updated by PRD-N**` back-reference banners.
-- [ ] Open Questions are checkbox list, not prose.
-- [ ] `Status: Draft` — no gate fields populated yet.
+**This section covers only what a script cannot decide.** Required sections, gate schema,
+the §9-Path-to-gate-tests join, citation resolution, marketing words, Mermaid fences, span
+uniqueness and the §4.2/§5/§6 coverage join all belong to `scripts/prd-check.py`. Restating
+one of them here would put a decidable question back into a judgement.
+
+| # | Check | Evidence the row carries |
+|---|---|---|
+| 1 | **Every enumeration the document sweeps is counted, and each member accounted for** | the set's name, its size, and where each member landed |
+| 2 | **Every citation was read, and the row says what the cited line actually claims** | the claim in your own words, beside the anchor |
+| 3 | **Every fact the document restates is grepped across the whole file** | `grep -c` per restated token |
+| 4 | Every §9 row asserting an absence names the broken implementation it fails against | the row number and the named implementation |
+| 5 | Each `[NEEDS CLARIFICATION]` still standing appears in §11, and no answer appears twice | the marker count, and the §11 line for each |
+| 6 | §7 names what was rejected and what would reopen it | the rejected shape |
+| 7 | `Status: Draft`, gate fields still `[TBD]` | — |
+
+**Row 2 is the one that pays, and it is not the one you expect.** Verifying that a citation
+*resolves* is a script's job and the script does it. What no script can do is decide whether
+the line you cited says what you claimed it says. A citation that lands on real code at the
+wrong place is invisible to every mechanical check, and it is what reviewers have caught
+every time. So the row records the claim, not the anchor: *"`counters.py:62` — this SQL caps
+the counter on every claim"* is a row that can be refuted by reading. *"`counters.py:62` —
+verified"* is not.
+

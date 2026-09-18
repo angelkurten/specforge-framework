@@ -23,6 +23,11 @@ export const FRAMEWORK_FILES: ReadonlyArray<string> = [
   ".claude/agents/specforge/**",
   "templates/**",
   "examples/**",
+  // The pre-panel PRD validator. A single file, not `scripts/**`: the repo's
+  // own `scripts/upgrade.sh` is specforge project metadata that PRD-005
+  // deliberately stopped installing, and a directory pattern here would drag
+  // it back into every adopter's tree.
+  "scripts/prd-check.py",
 ];
 
 /**

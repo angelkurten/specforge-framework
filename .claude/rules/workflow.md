@@ -39,7 +39,46 @@ Before writing, decide:
 
 ### 4. Draft
 
-Write the PRD/ADR using `templates/prd.md` or `templates/adr.md`.
+**Input contract.** Step 4 takes `GROUNDING_CONTEXT` — step 2's findings per sibling: the files read, and for every component the change touches, the concrete `file:line` anchor the draft will cite. Carry it explicitly, the way step 5 carries its six brief fields.
+
+**Read `examples/prd-001-login-example.md` before you write.** It is a complete PRD of the shape this step produces, not a skeleton. The template supplies the questions; the example supplies answers that passed a panel. Match its density and its specificity.
+
+Then four moves, in order. **Write no prose until move 3 has closed.**
+
+**1. Plan.** One line per numbered section: the concrete artifacts it will contain, and the `file:line` from `GROUNDING_CONTEXT` grounding each one. A section whose line names no artifact has nothing to say — write that one sentence and move on, rather than filling it.
+
+**2. Sweep for gaps.** Walk this taxonomy and mark each category `clear`, `partial` or `missing` against the request and the grounding. The categories are enumerated because a model asked to find its own gaps finds few: it recognises ambiguity when handed the category and volunteers it almost never.
+
+| # | Category | Covers |
+|---|---|---|
+| 1 | Functional scope | goals, success criteria, what is explicitly out |
+| 2 | Domain and data | entities, identity and uniqueness, **lifecycle and state transitions**, volume |
+| 3 | Interaction | journeys, **error, empty and loading states** |
+| 4 | Non-functional | performance, reliability, **observability**, security, privacy, compliance |
+| 5 | Integration | external APIs, formats, protocols, versions |
+| 6 | Edge cases | negative paths, rate limits, conflict resolution |
+| 7 | Constraints | technical limits, rejected alternatives |
+| 8 | Terminology | the canonical word for each thing, and the synonyms you are not using |
+| 9 | Completion | what "done" asserts, and where |
+
+For every category marked `partial` or `missing`, take the branch:
+
+| Condition | Emit |
+|---|---|
+| A defensible default exists | State the default you took, in the section that owns it. |
+| No defensible default exists | `[NEEDS CLARIFICATION: <the gap> — <2-4 candidate answers>]` **at the site of the gap**. |
+
+The branch turns on whether a default exists, not on how certain you feel — that is what makes it auditable by someone other than you. A marker carries candidates, which is what makes it closable in one round instead of opening a conversation.
+
+**3. Clarify, one question at a time.** Rank the markers by impact × uncertainty and take the top 3 to `AskUserQuestion`: **one call, one question, and the answer is written into the document before the next question is formed.** Not three calls in a row, and not one call carrying three questions. A second unresolved gap roughly halves the chance the third resolves well, so the queue is drained one entry at a time rather than planned in advance.
+
+**Each answer is written in exactly one place: the section that owns it.** The `## Clarifications` log records the question, the date, and **a pointer to that section** — never the answer's substance. A fact written in two places is a fact that will disagree with itself, and that is the most-counted defect class this framework has.
+
+Markers left unasked stay in the document and are listed in §11. A session with no user asks nothing, lists every marker in §11, and proceeds.
+
+**4. Write**, using `templates/prd.md` or `templates/adr.md`.
+
+**Before dispatching the panel**, run `python3 scripts/prd-check.py <this PRD>` and fix what it reports, then run `CONVENTIONS.md` § 13 and emit its table. The script decides everything a join or a grep can decide; § 13 covers only what it cannot. Do not restate a check the script owns — a set join performed in prose by a generative process returns a plausible wrong answer and hides the gap it was meant to reveal.
 
 ### 5. Multi-reviewer critique
 

@@ -384,7 +384,7 @@ fragment, for debugging.
 | 5 | unknown email and wrong password take within 10% of the same wall-clock time | integration | timing side-channel check | `../api-service/tests/auth/timing_test.py` |
 | 6 | 11 logins from the same IP in 60s → 11th returns 429 | integration | | `../api-service/tests/auth/rate_limit_test.py` |
 | 7 | 6 logins for the same email in 60s → 6th returns 429 | integration | | `../api-service/tests/auth/rate_limit_test.py` |
-| 8 | rate limiter runs before DB lookup (assert no SELECT when rate-limited) | integration | | `../api-service/tests/auth/rate_limit_test.py` |
+| 8 | rate limiter runs before DB lookup (assert no SELECT when rate-limited) | integration | Fails against a handler that loads the user row first and consults the limiter afterwards — the shape that leaks account existence through timing while still returning 429. | `../api-service/tests/auth/rate_limit_test.py` |
 | 9 | refresh with valid refresh token returns new access token | integration | | `../api-service/tests/auth/refresh_test.py` |
 | 10 | refresh with expired refresh token returns 401 `token_expired` | integration | | `../api-service/tests/auth/refresh_test.py` |
 | 11 | refresh with access token (type != refresh) returns 401 | integration | | `../api-service/tests/auth/refresh_test.py` |
@@ -392,7 +392,7 @@ fragment, for debugging.
 | 13 | Argon2id verify rejects a password hashed with a different salt | unit | | `../api-service/tests/unit/auth/hasher_test.py` |
 | 14 | `users_email_lower_key` prevents inserting `ALICE@example.com` when `alice@example.com` exists | integration | | `../api-service/tests/auth/users_schema_test.py` |
 | 15 | `auth_events` row is written for every login attempt, success or failure | integration | | `../api-service/tests/auth/audit_test.py` |
-| 16 | passwords and tokens never appear in application logs during any flow | unit | log scrubber test | `../api-service/tests/unit/auth/log_scrub_test.py` |
+| 16 | passwords and tokens never appear in application logs during any flow | unit | Fails against a scrubber that redacts the `password` key by name and leaves `refresh_token` and the `Authorization` header intact. | `../api-service/tests/unit/auth/log_scrub_test.py` |
 | 17 | E2E: user logs in via web UI, reloads page, stays logged in | e2e | | `../web-client/tests/e2e/auth/login.spec.ts` |
 | 18 | E2E: user's access token expires, interceptor refreshes transparently | e2e | | `../web-client/tests/e2e/auth/refresh.spec.ts` |
 
