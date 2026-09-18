@@ -223,10 +223,16 @@ describe("PRD-016 phase 2 § 9 rows 12-13 — the release entry and the version 
       return next ? rest.slice(0, next.index + 1) : rest;
     };
     const body = entry(version);
+    // Until 0.26.0 this row required the entry to name
+    // `optional-rules/headless-session.md`. PRD-024 § 9 row 47 retired that
+    // file, and `VACATED` above bans the same token from every README — so the
+    // suite required in one place what it forbade in another, and every release
+    // since has cited a path that does not exist. The blast-radius statement is
+    // what row 12 is for; the filename was only ever how it pointed at it.
     expect(
       body.includes("optional-rules/headless-session.md"),
-      `the ${version} entry does not name optional-rules/headless-session.md`,
-    ).toBe(true);
+      `the ${version} entry cites the retired optional-rules/headless-session.md`,
+    ).toBe(false);
     // One of the two, stated in bold so it is not buried: the change breaks a
     // headless installation, or it demonstrably does not. Silence is what this
     // row exists to refuse.
@@ -466,7 +472,12 @@ describe("PRD-005 § 9 row 14 — no shipped framework file cites a vacated path
 
       const tree = specforgeSubtree(text);
       expect(/docs\//.test(tree), `${name} still lists docs/ under specforge/`).toBe(false);
-      for (const token of [...VACATED, "scripts/"]) {
+      // `VACATED` already carries `scripts/upgrade.sh`, which is the path PRD-005
+      // vacated and the only thing this row was ever aimed at. A blanket
+      // `scripts/` token banned the directory itself, so 0.26.0's
+      // `scripts/prd-check.py` — a file `init` does write — could not appear in
+      // the layout tree that tells an adopter what they have.
+      for (const token of VACATED) {
         expect(tree.includes(token), `${name} still lists ${token} under specforge/`).toBe(false);
       }
 

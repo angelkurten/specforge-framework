@@ -46,6 +46,12 @@ The 32 HTML comment blocks become visible per-section questions, deleted as each
 
 `CONVENTIONS.md` § 13 was an eleven-item checklist that nothing invoked. It is now the pre-dispatch check step 4 runs, it emits a table rather than an assertion, and it covers only what the script cannot decide. Its load-bearing row is the citation one, and it asks for the claim rather than the anchor: verifying that a citation *resolves* is a script's job, and a citation landing on real code at the wrong place is invisible to every mechanical check.
 
+### Fixed — the conformance suite required in one place what it forbade in another
+
+`framework.test.ts`'s README guard banned the bare token `scripts/` from the file-layout tree, on top of the `VACATED` list that already bans `scripts/upgrade.sh` — the path PRD-005 actually vacated and the only one that row was aimed at. The blanket token banned the *directory*, so a file `init` does write could not appear in the tree that tells an adopter what they have. Narrowed to `VACATED`, and the three READMEs now carry `scripts/prd-check.py`.
+
+Row 12 of PRD-016 § 9 required every release entry to name the optional headless rule file, which PRD-024 § 9 row 47 retired and which `VACATED` bans from every README. The row now asserts the entry does **not** cite it; the blast-radius statement it exists for is unchanged, and the four releases that cited the dead path are left as written, since they are history.
+
 ### Fixed — `examples/prd-001-login-example.md` carried two §9 rows that 0.25.0's rule forbids
 
 Rows 8 and 16 asserted an absence and named nothing they would fail against. The shipped worked example violated the rule shipped one version earlier. Both now name it. `prd-check.py` also skips the registry check under `examples/`, where placeholder sibling names are the point.
@@ -69,7 +75,9 @@ Four arms over the real `usesignal/forge` corpus rewound to before PRD-008, head
 
 ### Headless blast radius
 
-**No behaviour change for a headless installation.** No decision point that `optional-rules/headless-session.md` covers moves — no option letter, no channel test, no escalation default. Step 4's clarification pass is new surface carrying its own in-line headless clause (asks nothing, every unasked marker into §11, proceeds), so it adds a default rather than changing one. A headless run does now emit `[NEEDS CLARIFICATION]` markers and §11 entries it did not emit before; nothing that previously worked stops.
+**No behaviour change for a headless installation.** None of the ten in-line clauses 0.23.0 added to `workflow.md` moves — no option letter, no channel test, no escalation default — and PRD-024 § 9 rows 48-66, which assert them individually, pass unchanged and without a test edit. Step 4's clarification pass is new surface carrying its own in-line clause (asks nothing, every unasked marker into §11, proceeds), so it adds a default rather than changing one. A headless run does now emit `[NEEDS CLARIFICATION]` markers and §11 entries it did not emit before; nothing that previously worked stops.
+
+This entry is also the first that does **not** name the optional headless rule file PRD-024 § 9 row 47 retired. Row 12 of PRD-016 § 9 required that path until now, while `VACATED` in the same suite banned the same token from every README — so the suite required in one place what it forbade in another, and every release since the retirement has cited a path that does not exist. Row 12 now asserts the opposite, and the blast-radius statement it was always for is unchanged.
 
 ---
 

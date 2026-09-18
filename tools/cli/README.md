@@ -81,6 +81,8 @@ specforge is designed to live **as a sibling directory to the code repositories 
 │   ├── examples/
 │   │   ├── prd-001-login-example.md
 │   │   └── system-artifact-example.md   ← example SYSTEM_ARTIFACT for one sibling
+│   ├── scripts/
+│   │   └── prd-check.py            ← pre-panel PRD validator; workflow step 4 runs it
 │   ├── tests/
 │   │   └── roadmap/                ← 32 conformance walkthroughs for the roadmap cycle
 │   ├── NNN-your-prd.md             ← your PRDs live at the specforge root

@@ -81,6 +81,8 @@ specforge está diseñado para vivir **como un directorio hermano de los repos d
 │   ├── examples/
 │   │   ├── prd-001-login-example.md
 │   │   └── system-artifact-example.md   ← SYSTEM_ARTIFACT de ejemplo para UN sibling
+│   ├── scripts/
+│   │   └── prd-check.py            ← validador de PRD pre-panel; lo corre el paso 4
 │   ├── tests/
 │   │   └── roadmap/                ← 32 walkthroughs de conformance del ciclo de roadmap
 │   ├── NNN-tu-prd.md               ← tus PRDs viven en la raíz de specforge
