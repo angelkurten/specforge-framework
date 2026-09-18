@@ -16,3 +16,8 @@ venv/
 .idea/
 *.swp
 *.swo
+
+# Local research output — measurement runs, session extractions, reports.
+# Kept out of the repo: the raw extractions are large and the reports are a
+# record of how a release was measured, not framework files an adopter installs.
+research-*/
