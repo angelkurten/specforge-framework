@@ -16,7 +16,6 @@ import {
   readManifest,
   writeManifest,
 } from "../manifest.js";
-import { threeWayMerge } from "../merge.js";
 import { safeWriteFile } from "../safe-fs.js";
 import { sha256OfBytes, sha256OfFile } from "../sha.js";
 import { info, printError, summary } from "../output.js";
@@ -114,6 +113,27 @@ export async function runUpdate(opts: UpdateOptions): Promise<number> {
   // Dry-run is a pure preview — it must always exit 0 regardless of drift,
   // since the user is exactly asking "what would happen?" without committing.
   // The drift/no-strategy halt only applies to a write run.
+  // `merge` needs three inputs and this manifest stores two. PRD-003 § 6.1
+  // records `sha256_at_install`, never the installed bytes, so there is no base
+  // to diff against — and passing the bundle as base makes base === theirs,
+  // which diff3 reads as "theirs changed nothing" and answers with `ours`,
+  // byte for byte, every time. It then wrote the new `framework_version` to the
+  // manifest, leaving a corpus that reports a version whose rules it does not
+  // carry. Refusing is the honest answer until the base is stored.
+  if (drifted.length > 0 && opts.strategy === "merge") {
+    printError({
+      message:
+        "--strategy=merge cannot run: the installed bytes are not recorded, " +
+        "so there is no base to merge against",
+      remediation:
+        "use --strategy=theirs and re-apply the local change, --strategy=ours " +
+        "to keep it and take the rest, or upstream the local change so the " +
+        "file stops drifting",
+      exitCode: 1,
+    });
+    return 1;
+  }
+
   if (opts.dryRun) {
     info(opts, "dry-run: would perform the following operations:");
     for (const u of toUpdate) info(opts, `  write   ${u.rel}`);
@@ -127,12 +147,12 @@ export async function runUpdate(opts: UpdateOptions): Promise<number> {
     for (const d of drifted) summary(opts, `  drift  ${d.rel}`);
     printError({
       message: `${drifted.length} framework file(s) carry local modifications`,
-      remediation:
-        "pass --strategy=ours, --strategy=theirs, or --strategy=merge to resolve",
+      remediation: "pass --strategy=ours or --strategy=theirs to resolve",
       exitCode: 1,
     });
     return 1;
   }
+
 
   let lock;
   try {
@@ -149,9 +169,6 @@ export async function runUpdate(opts: UpdateOptions): Promise<number> {
     }
     throw e;
   }
-
-  let conflictedCount = 0;
-  const conflictedPaths: string[] = [];
 
   try {
     // Update non-drifted files.
@@ -172,34 +189,6 @@ export async function runUpdate(opts: UpdateOptions): Promise<number> {
       }
     } else if (opts.strategy === "ours") {
       for (const d of drifted) info(opts, `ours    ${d.rel} (preserved)`);
-    } else if (opts.strategy === "merge") {
-      for (const d of drifted) {
-        // base bytes are not stored (PRD-003 § 6.1 records only
-        // sha256_at_install). Using bundled bytes as base degrades a true
-        // 3-way merge to a 2-way overlay: diff3 sees only ours-vs-base
-        // changes and never produces conflict markers when base == theirs.
-        // Documented as a known limitation; see follow-up PRD (§ A).
-        const baseBytes = await fs.readFile(
-          bundleFileAbs(opts.importMetaUrl, d.rel),
-        );
-        const oursBytes = await fs.readFile(path.join(opts.cwd, d.rel));
-        const theirsBytes = await fs.readFile(
-          bundleFileAbs(opts.importMetaUrl, d.rel),
-        );
-        const merged = threeWayMerge(
-          baseBytes.toString("utf8"),
-          oursBytes.toString("utf8"),
-          theirsBytes.toString("utf8"),
-        );
-        await safeWriteFile(opts.cwd, d.rel, merged.text);
-        if (merged.conflicted) {
-          conflictedCount += 1;
-          conflictedPaths.push(d.rel);
-          info(opts, `merge!  ${d.rel} (conflicts present)`);
-        } else {
-          info(opts, `merge   ${d.rel}`);
-        }
-      }
     }
 
     // Rebuild manifest.
@@ -221,16 +210,6 @@ export async function runUpdate(opts: UpdateOptions): Promise<number> {
     });
     await writeManifest(opts.cwd, newManifest);
 
-    if (conflictedCount > 0) {
-      for (const p of conflictedPaths) process.stderr.write(`${p}\n`);
-      printError({
-        message: `${conflictedCount} file(s) contain unresolved <<<<<<< merge markers`,
-        remediation:
-          "resolve conflicts manually, then re-run `specforge update` (drift will be reconciled)",
-        exitCode: 3,
-      });
-      return 3;
-    }
 
     summary(opts, `update complete: ${toUpdate.length} files refreshed, ${drifted.length} drifted (strategy: ${opts.strategy ?? "none"})`);
     return 0;

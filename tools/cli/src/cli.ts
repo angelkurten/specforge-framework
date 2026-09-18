@@ -87,7 +87,7 @@ function printUsage(): void {
 Usage:
   specforge init    [--force] [--erase] [--no-git-safety]
                     [--dry-run] [--quiet]
-  specforge update  [--strategy=ours|theirs|merge] [--dry-run] [--quiet]
+  specforge update  [--strategy=ours|theirs] [--dry-run] [--quiet]
   specforge doctor  [--json] [--rule=<id>] [--ignore-sibling=<name>] [--quiet]
   specforge migrate [--apply] [--to=<version>] [--allow-downgrade]
                     [--acknowledge-security-rollback] [--json] [--dry-run] [--quiet]
@@ -139,7 +139,7 @@ async function main(argv: ReadonlyArray<string>): Promise<number> {
       if (strategy && !["ours", "theirs", "merge"].includes(strategy)) {
         printError({
           message: `invalid --strategy value: ${strategy}`,
-          remediation: "use --strategy=ours, --strategy=theirs, or --strategy=merge",
+          remediation: "use --strategy=ours or --strategy=theirs",
           exitCode: 2,
         });
         return 2;

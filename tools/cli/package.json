@@ -1,6 +1,6 @@
 {
   "name": "@angelkurten/specforge",
-  "version": "0.27.1",
+  "version": "0.27.2",
   "description": "CLI for installing, updating, validating, and migrating specforge framework layouts.",
   "license": "MIT",
   "repository": {
@@ -30,11 +30,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "diff3": "0.0.4",
     "yaml": "^2.5.0"
   },
   "bundleDependencies": [
-    "diff3",
     "yaml"
   ],
   "devDependencies": {

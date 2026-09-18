@@ -118,29 +118,23 @@ describe("update: --strategy=ours", () => {
   });
 });
 
-describe("update: --strategy=merge conflict", () => {
-  it("With ours, theirs, and bundled base all differing on the same line, merge runs deterministically", async () => {
-    // DEVIATION FROM BRIEF: PRD-003 § 6.1 does not store install-time bytes,
-    // only sha256_at_install. The implementation therefore uses bundled bytes
-    // as `base` (documented as tracked 🟡 in follow-up PRD-004 § A). With
-    // base == theirs, diff3 never produces a true 3-way conflict — when only
-    // `ours` differs, ours wins cleanly. We assert the deterministic behavior:
-    // merge applies cleanly, exit 0, ours' modification survives on disk.
-    //
-    // Three-way assertions (exit code 3, conflict markers <<<<<<<, >>>>>>>)
-    // become possible only once install-time bytes are recoverable; PRD-004 § A
-    // tracks that work.
+describe("update: --strategy=merge refuses", () => {
+  it("With a drifted file, merge refuses, writes nothing, and leaves the manifest version alone", async () => {
+    // Until 0.27.2 this branch passed the bundle as `base`, so base === theirs,
+    // which diff3 reads as "theirs changed nothing" and answers with `ours`
+    // byte for byte. It then wrote the new framework_version to the manifest —
+    // a corpus reporting a version whose rules it did not carry. PRD-003 § 6.1
+    // stores `sha256_at_install` and never the bytes, so the third input a
+    // three-way merge needs does not exist. Refusing is the honest answer.
     const importMetaUrl = await initTmpDir(tmpDir);
 
-    // Distinct multi-line content: modify a single line locally.
     const claudePath = path.join(tmpDir, "CLAUDE.md");
     const original = await fs.readFile(claudePath, "utf8");
-    const oursLines = original.split("\n");
-    if (oursLines.length < 2) {
-      oursLines.splice(1, 0, "EXTRA-LINE");
-    }
-    oursLines[0] = "# OURS — user modified line 0";
-    await fs.writeFile(claudePath, oursLines.join("\n"));
+    const ours = "# OURS — user modified line 0\n" + original;
+    await fs.writeFile(claudePath, ours);
+
+    const manifestPath = path.join(tmpDir, ".specforge", "manifest.json");
+    const before = JSON.parse(await fs.readFile(manifestPath, "utf8"));
 
     const exitCode = await runUpdate({
       cwd: tmpDir,
@@ -150,14 +144,41 @@ describe("update: --strategy=merge conflict", () => {
       importMetaUrl,
     });
 
-    // With base == theirs (architectural limitation), no conflict markers
-    // can fire. The merge applies ours' change cleanly.
+    expect(exitCode).toBe(1);
+    // The local change survives untouched, and no bundle byte landed.
+    expect(await fs.readFile(claudePath, "utf8")).toBe(ours);
+    // And the version is not bumped — the failure this fix exists for.
+    const after = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+    expect(after.framework_version).toBe(before.framework_version);
+    expect(after.last_updated_at).toBe(before.last_updated_at);
+  });
+
+  it("Refuses in --dry-run too, rather than promising a merge it cannot perform", async () => {
+    const importMetaUrl = await initTmpDir(tmpDir);
+    const claudePath = path.join(tmpDir, "CLAUDE.md");
+    await fs.writeFile(claudePath, "# OURS\n" + (await fs.readFile(claudePath, "utf8")));
+
+    const exitCode = await runUpdate({
+      cwd: tmpDir,
+      strategy: "merge",
+      dryRun: true,
+      quiet: true,
+      importMetaUrl,
+    });
+
+    expect(exitCode).toBe(1);
+  });
+
+  it("A corpus with no drift is unaffected by the strategy name", async () => {
+    const importMetaUrl = await initTmpDir(tmpDir);
+    const exitCode = await runUpdate({
+      cwd: tmpDir,
+      strategy: "merge",
+      dryRun: false,
+      quiet: true,
+      importMetaUrl,
+    });
     expect(exitCode).toBe(0);
-    const after = await fs.readFile(claudePath, "utf8");
-    expect(after).toContain("OURS — user modified line 0");
-    // Conflict markers must NOT be present (no true 3-way conflict possible).
-    expect(after).not.toContain("<<<<<<<");
-    expect(after).not.toContain(">>>>>>>");
   });
 });
 

@@ -8,6 +8,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.27.2] - 2026-09-18
+
+### Fixed — `update --strategy=merge` no longer claims a merge it cannot perform
+
+0.27.0 recorded this as a known defect. Here is the fix, and it is a refusal rather than a merge.
+
+A three-way merge needs base, ours and theirs. PRD-003 § 6.1 stores `sha256_at_install` and never the installed bytes, so **the base does not exist**. The implementation passed the bundle as base, which makes `base === theirs` — and `diff3` reads that as *theirs changed nothing* and answers with `ours`, byte for byte, unconditionally. Measured against an adopting corpus with eight drifted framework files: **zero lines changed in all eight**, and the new `framework_version` written to the manifest anyway. The corpus then reported a version whose rules it did not carry, which `doctor` and any reader would believe.
+
+The comment above that branch had named the limitation since it was written. What nothing named is that the version bump happened regardless, which is what turns a limitation into a trap.
+
+`--strategy=merge` now fails with exit 1, writes no file, and leaves the manifest untouched — in `--dry-run` too, rather than printing a plan it cannot execute. The message names the three routes that do work: `theirs` and re-apply, `ours` and keep the drift, or upstream the local change so the file stops drifting. A corpus with no drift is unaffected, since the strategy never applies.
+
+`src/merge.ts`, its unit test, the `diff3` dependency and its ambient declaration are removed: nothing called them once the branch went. The integration test that asserted the broken behaviour — *"the merge applies ours' change cleanly"* — now asserts the refusal, that the local edit survives byte for byte, and that `framework_version` and `last_updated_at` are unchanged.
+
+**A real three-way merge is still possible and is not in this release.** It needs the installed bytes recorded at `init` and refreshed at `update`, which is a storage-format change with its own migration, `doctor` integrity and `--erase` surface. The refusal is what makes the gap visible instead of silent until then.
+
+### Headless blast radius
+
+**No behaviour change for a headless installation.** `update` is an operator command outside the authoring workflow. No decision point moves: no option letter, no channel test, no escalation default.
+
+---
+
 ## [0.27.1] - 2026-09-18
 
 ### Fixed — `templates/agdr.md`'s link to its triggering PRD pointed outside the repo
