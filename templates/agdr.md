@@ -72,4 +72,4 @@
 
 ## Related Documents
 
-- <!-- [PRD-NNN: Title](../NNN-title.md) — the triggering PRD -->
+- <!-- [PRD-NNN: Title](NNN-title.md) — the triggering PRD -->

@@ -8,6 +8,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.27.1] - 2026-09-18
+
+### Fixed — `templates/agdr.md`'s link to its triggering PRD pointed outside the repo
+
+The Related Documents placeholder read `[PRD-NNN: Title](../NNN-title.md)`. AgDRs and PRDs both live at the specforge root — `prd-authoring.md` § Naming says so and every corpus does it — so the `../` resolves one level above the repository and the link is dead wherever it is followed. Now `NNN-title.md`.
+
+Found in an adopting team's corpus, which had already corrected it locally. Upstreamed so their next upgrade does not have to choose between the framework's version and their own.
+
+### Headless blast radius
+
+**No behaviour change for a headless installation.** A placeholder inside an HTML comment in an optional template. No decision point, no option letter, no default.
+
+---
+
 ## [0.27.0] - 2026-09-18
 
 One section, promoted from optional to required, on evidence from an adopting team rather than from this repo. Upstreamed so the team that paid for the lesson stops carrying it as local drift.
