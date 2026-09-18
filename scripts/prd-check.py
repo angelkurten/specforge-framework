@@ -331,6 +331,17 @@ def check_sections(doc: Doc, out: list[Finding]) -> None:
         else:
             order.append((f"section {n}", sec.line))
 
+    # The two unnumbered required sections. `Frontend Spec` sits after § 4 and
+    # `Observability` after § 10; both were optional once, and both were omitted
+    # by every document written while they were. A frozen PRD predates the
+    # requirement and hard rule 7 forbids amending it to comply, so skip it.
+    frozen = (doc.status or "").lower().startswith(("implemented", "superseded"))
+    if not frozen:
+        for title in ("Frontend Spec", "Observability"):
+            if re.search(r"^#{2,3}\s+" + re.escape(title) + r"\s*$", doc.text, re.M) is None:
+                out.append(Finding("sections", BLOCKER, doc.name, None,
+                                   f"missing required unnumbered section `{title}`"))
+
     gate = gate_section(doc)
     if gate is None:
         out.append(Finding("sections", BLOCKER, doc.name, None,

@@ -16,6 +16,7 @@ Every PRD must contain these, in this order. Omitting any fails review.
 | 2 | **Goals** | Concrete, measurable outcomes. Imperative verbs. Typically 3-7 items. |
 | 3 | **Non-Goals** | Things deliberately out of scope. Defends against scope creep. |
 | 4 | **User Flows** *(if user-visible)* | Step-by-step scenarios. Mermaid sequence diagram for non-trivial flows. |
+| — | **Frontend Spec** (unnumbered, after § 4) | Opens by naming the design it implements — file, artboard, or URL — or stating in one line that no design exists. Then component and page structure, states, and where the copy lives. **Never skip.** |
 | 5 | **API** | Endpoints, schemas, status codes, error responses, rate limits. |
 | 6 | **Data Model** | Tables, columns, constraints, indexes, migrations. Mermaid ERD for new or changed entities. |
 | 7 | **Architecture** | How components interact, which one owns each piece of new state, and the shape you rejected to get here. Mermaid when the flow spans more than two components. A single-component change still rejected something, and naming it is what stops a later reader re-proposing it. |
@@ -25,7 +26,28 @@ Every PRD must contain these, in this order. Omitting any fails review.
 | — | **Observability** (unnumbered, after § 10) | The log line on success and on refusal, the number that says this is going wrong and at what value, and who reads it through what. **Never skip.** A control nobody can see is a promise. |
 | 11 | **Open Questions** | Checkbox list. Must be empty or explicitly deferred before `Implemented`. |
 
-Optional sections (include when relevant): `Design Decisions`, `Performance`, `Accessibility`, `Frontend Spec`, `Rollout Plan`, `Cost Estimate`.
+Optional sections (include when relevant): `Design Decisions`, `Performance`, `Accessibility`, `Rollout Plan`, `Cost Estimate`.
+
+### Why `Frontend Spec` is required rather than optional
+
+It was optional until an adopting team shipped two screens under a PRD that carried no
+`Frontend Spec` and never referenced the design artboards that already existed for both.
+Nothing in the process caught it: § 4 described the flows correctly and contradicted nothing,
+the frontend reviewer read § 4 and had no design to compare it against, and the
+post-implementation panel checks the shipped code against the PRD — the document that was
+missing the design. The screens were rebuilt after the gate, against an artboard nobody had
+been asked to look for.
+
+Optional was the defect. A section a PRD may omit is a question nobody has to answer, and *is
+there already a design for this?* is a question whose wrong answer stays invisible until the
+screens ship. Required, it is answered in one line either way — and the line names an artifact
+the frontend reviewer can open, which is what makes it an answer rather than a claim. A PRD
+with no user-visible surface writes that one line and stops, exactly as a § 5 that adds no API
+does.
+
+The requirement binds PRDs authored from here on. A frozen PRD that predates it is not amended
+to add the section — hard rule 7 — and `scripts/prd-check.py` skips any PRD already at
+`Status: Implemented` or `Status: Superseded` for that reason.
 
 ### § 2 Goals — optional phrasing for reactive goals
 

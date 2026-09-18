@@ -94,6 +94,17 @@ flowchart LR
 > 5. Each dependency this flow calls, unavailable or slow.
 > 6. The actor leaves mid-flow and comes back.
 
+## Frontend Spec
+
+> **Required.** Its first line names the design this implements — a file, an artboard, or a
+> URL — or states in one line that no design exists. A PRD with no user-visible surface writes
+> that line and stops, exactly as a §5 that adds no API does.
+>
+> 1. Which design does this implement, and where is it?
+> 2. Component and page structure: what is new, what is changed, what is reused?
+> 3. Every state each screen can be in — loading, empty, partial, error, success.
+> 4. Where does the copy live, and who owns its wording?
+
 ## 5. API
 
 > Per new or changed endpoint: method and path; who may call it and **the `file:line` where

@@ -74,6 +74,10 @@ sequenceDiagram
 |--------|--------|------|
 | Malformed body | 400 | `{"error": "invalid_request"}` |
 
+## Frontend Spec
+
+No design exists; this change adds no user-visible surface.
+
 ## 5. API
 
 ### 5.1 `POST /widgets`
@@ -113,6 +117,10 @@ No new trust boundary.
 ## 10. Migration Plan
 
 Ship it.
+
+## Observability
+
+`widget.created` is logged on success; the 400 path increments `widget_rejected_total`. The on-call dashboard reads both.
 
 ## 11. Open Questions
 
@@ -176,6 +184,27 @@ class TestRequiredSections(Harness):
         body = GOOD.replace("## 6. Data Model", "## 6bis. Data Model")
         found = self.of(self.run_checks(body), "sections")
         self.assertTrue(any("missing section 6" in f.message for f in found), found)
+
+    def test_a_missing_unnumbered_section_reports(self):
+        for title in ("Frontend Spec", "Observability"):
+            body = GOOD.replace("## " + title, "## Something Else")
+            found = self.of(self.run_checks(body), "sections")
+            self.assertTrue(
+                any(("`" + title + "`") in f.message for f in found),
+                (title, found),
+            )
+
+    def test_a_frozen_prd_is_not_asked_for_the_unnumbered_sections(self):
+        # Both sections were optional once, and hard rule 7 forbids amending a
+        # frozen PRD to comply with a rule written after it was gated.
+        for status in ("Implemented", "Superseded by PRD-099"):
+            body = (GOOD.replace("## Frontend Spec", "## Something Else")
+                        .replace("## Observability", "## Something Else Again")
+                        .replace("**Status**: Draft", "**Status**: " + status))
+            found = self.of(self.run_checks(body), "sections")
+            self.assertEqual(
+                [f for f in found if "unnumbered" in f.message], [], (status, found),
+            )
 
     def test_a_missing_gate_heading_reports(self):
         body = GOOD.replace("## Gate: Promotion to `Implemented`", "## Wrap-up")

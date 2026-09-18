@@ -91,7 +91,7 @@ Launch reviewers **in parallel** via the `Agent` tool. Each reviewer is dispatch
 | Role | Dispatch when the change adds |
 |---|---|
 | `specforge-backend-reviewer` | an endpoint, table, column, index, migration, queue, or server-side logic, in §5 API or §6 Data Model. A §5 or §6 asserting the change adds none of these does not fire it, however much it says while asserting that. |
-| `specforge-frontend-reviewer` | something a person sees or does — §4 User Flows describes real user-visible behaviour, or the PRD carries a `Frontend Spec`. |
+| `specforge-frontend-reviewer` | something a person sees or does — §4 User Flows describes real user-visible behaviour, or the `Frontend Spec` names a design. **Carrying a `Frontend Spec` is not a trigger** — it is mandatory in every PRD, so its presence carries no signal; one stating that no design exists fires nothing, the same as a §5 that adds no API. |
 | `specforge-security-reviewer` | a trust boundary: authn/authz, secrets, PII, user input reaching storage or execution, a network-reachable surface, or a permission change. **§8 being present is not a trigger** — §8 is mandatory in every PRD, so its presence carries no signal. |
 | `specforge-quality-reviewer` | — always. §9 and §10 are mandatory in every PRD, and the operability read is the panel's floor. |
 

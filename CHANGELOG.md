@@ -8,6 +8,36 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.27.0] - 2026-09-18
+
+One section, promoted from optional to required, on evidence from an adopting team rather than from this repo. Upstreamed so the team that paid for the lesson stops carrying it as local drift.
+
+### Added — `Frontend Spec` is a required section
+
+An adopting team shipped two screens under a PRD that carried no `Frontend Spec` and never referenced the design artboards that already existed for both. Nothing in the process caught it: § 4 described the flows correctly and contradicted nothing, the frontend reviewer read § 4 and had no design to compare against, and the post-implementation panel checks shipped code against the PRD — the document that was missing the design. **The screens were rebuilt after the gate, against an artboard nobody had been asked to look for.**
+
+Optional was the defect. A section a PRD may omit is a question nobody has to answer, and *is there already a design for this?* is a question whose wrong answer stays invisible until the screens ship. Required, it is answered in one line either way, and the line names an artifact a reviewer can open.
+
+The section is unnumbered and sits after § 4, so nothing renumbers. `prd-authoring.md` carries the row and the reasoning, `templates/prd.md` gains the section with its four questions, hard rule 10 now names both unnumbered sections, and `workflow.md`'s frontend trigger moves from *presence* to *content*: carrying a `Frontend Spec` is no longer a signal, because every PRD carries one — what fires the reviewer is a spec that names a design.
+
+`scripts/prd-check.py` gains the check, and **skips any PRD already at `Status: Implemented` or `Status: Superseded`**: a frozen PRD predates the requirement and hard rule 7 forbids amending it to comply. Both branches carry a test — a check that cannot be made to fire reports clean for the wrong reason.
+
+This is the same shape 0.26.0's `Observability` took, and for the same reason: a section that may be omitted is omitted. The two now travel together in rule 10 and in the validator.
+
+### Known defect — `update --strategy=merge` does not merge
+
+Found while upgrading an adopting corpus with eight drifted framework files. `--strategy=merge` changed **zero lines** in every drifted file and still wrote the new `framework_version` to the manifest — behaviourally identical to `--strategy=ours`, but leaving a corpus that reports a version whose rules it does not carry. `--strategy=ours` at least reports what it did.
+
+The practical consequence for an adopter with local drift: neither `ours` nor `merge` delivers a release that touches a drifted file, and `theirs` delivers it by discarding their work. The route that works is the one this entry took — upstream the local change, then upgrade with no drift left to resolve.
+
+Not fixed here: the fix is in the CLI's update path, and this entry is a framework release. Recorded so the next adopter reads it before trusting the strategy name.
+
+### Headless blast radius
+
+**No behaviour change for a headless installation.** No decision point moves: no option letter, no channel test, no escalation default. A required section is written by whoever writes the document, with or without a user to ask — and a PRD with no user-visible surface answers it in one line, which is a statement a headless session makes as easily as an interactive one.
+
+---
+
 ## [0.26.0] - 2026-09-18
 
 Step 4 was seven words. Steps 5 through 9 were 4,422. This release gives the drafting step a contract, and moves one check out of prose into a script because prose could not perform it.
