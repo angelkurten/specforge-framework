@@ -44,7 +44,7 @@ CHECK_TITLES = {
     "siblings": "2. Impacted Projects names resolve in SIBLINGS.md",
     "gate": "3. Gate block schema",
     "gate-tests": "4. Section 9 Path column == gate `tests` list",
-    "coverage": "5. Coverage join: error branches / statuses / constraints vs Test Plan",
+    "coverage": "5. Coverage join: error branches / statuses / constraints / log events vs Test Plan",
     "citations": "6. Citation resolution (path:line)",
     "marketing": "7. Marketing language (hard rule 9)",
     "diagrams": "8. Mermaid only (hard rule 3)",
@@ -891,6 +891,87 @@ def collect_constraints(doc: Doc) -> list[Obligation]:
     return obligations
 
 
+# A log event is a snake_case name: `audit_answers_served`, not `audit.id` or
+# `OPERATOR_EMAIL`. Field names share the shape, so an event is only taken from
+# the places an Observability section names events — never from a Fields cell.
+EVENT_NAME_RE = re.compile(r"^[a-z][a-z0-9]*(?:_[a-z0-9]+)+$")
+# `Signal` and `Threshold` tables name the fields an alarm reads, not events.
+EVENT_HEADER_RE = re.compile(r"^(event|log)", re.I)
+LOG_WORD_RE = re.compile(r"\b(log|logs|logged|emit|emits|emitted|info|warning|error|debug)\b", re.I)
+BOLD_LABEL_RE = re.compile(r"^\s*[-*+]\s+\*\*[^*]+\*\*\s*:")
+LOGGER_CALL_RE = re.compile(r"\blog(?:ger)?\.\w+\(\s*[\"']([a-z][a-z0-9_]*)[\"']")
+
+
+def section_by_title(doc: Doc, title: str) -> Optional[Section]:
+    for s in doc.sections:
+        if s.title.strip().lower() == title.lower():
+            return s
+    return None
+
+
+def collect_log_events(doc: Doc) -> list[Obligation]:
+    """The log events the Observability section promises, each owed a row.
+
+    A replay of nine drafts found one miss recurring across runs: an event the
+    section names — often the one its alarm reads — with no Test Plan row that
+    asserts it is emitted. An alarm on a line nothing proves is written is a
+    promise, which is what the section exists to prevent.
+
+    Three shapes name an event, and nothing else is read: the first cell of a
+    table whose first column is an Event / Log column, a bullet opening with a
+    bold label on a line that says it logs (`- **On success**: `name` at INFO`),
+    and a logger call in a code span.
+    """
+    sec = section_by_title(doc, "Observability")
+    if sec is None:
+        return []
+    seen: set[str] = set()
+    out: list[Obligation] = []
+
+    def add(name: str, line: int) -> None:
+        if EVENT_NAME_RE.match(name) and name not in seen:
+            seen.add(name)
+            out.append(Obligation("log event", name, line, [], [name]))
+
+    table_lines: set[int] = set()
+    for t in find_tables(doc, sec.line, sec.end):
+        table_lines.update(line for line, _ in t.rows)
+        if not t.header or not EVENT_HEADER_RE.match(strip_md(t.header[0])):
+            continue
+        for line, cells in t.rows:
+            spans = re.findall(r"`([^`]+)`", cells[0]) if cells else []
+            if spans:
+                add(spans[0].strip(), line)
+    for i in range(sec.line, min(sec.end, len(doc.lines) + 1)):
+        if doc.in_fence[i - 1] or i in table_lines:
+            continue
+        text = doc.lines[i - 1]
+        for m in LOGGER_CALL_RE.finditer(text):
+            add(m.group(1), i)
+        # A bold-labelled bullet names an event only when it says it logs one;
+        # `**Who reads it**: the mail (`send_x_to_operator`)` names a function.
+        # PRD bodies hard-wrap, so the word that says the bullet logs may sit on
+        # a continuation line: read the bullet up to the next bullet or blank.
+        bullet = text
+        for j in range(i + 1, min(sec.end, len(doc.lines) + 1)):
+            nxt = doc.lines[j - 1]
+            if not nxt.strip() or re.match(r"^\s*(?:[-*+]|\d+\.)\s", nxt) or not nxt.startswith(" "):
+                break
+            bullet += " " + nxt.strip()
+        if BOLD_LABEL_RE.match(text):
+            rest = BOLD_LABEL_RE.sub("", bullet, count=1)
+            for sm in re.finditer(r"`([^`]+)`", rest):
+                if not EVENT_NAME_RE.match(sm.group(1).strip()):
+                    continue
+                # The log word must sit near the name: a `**Who reads it**`
+                # bullet naming a mail function says "log" three clauses later.
+                near = rest[max(0, sm.start() - 150): sm.end() + 150]
+                if LOG_WORD_RE.search(near):
+                    add(sm.group(1).strip(), i)
+                break
+    return out
+
+
 def test_plan_rows(doc: Doc) -> list[tuple[int, str]]:
     t = test_plan_table(doc)
     if t is None:
@@ -900,7 +981,7 @@ def test_plan_rows(doc: Doc) -> list[tuple[int, str]]:
 
 def check_coverage(doc: Doc, out: list[Finding]) -> None:
     obligations = (collect_error_branches(doc) + collect_statuses(doc)
-                   + collect_constraints(doc))
+                   + collect_constraints(doc) + collect_log_events(doc))
     if not obligations:
         return
     rows = test_plan_rows(doc)

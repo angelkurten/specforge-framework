@@ -358,6 +358,74 @@ class TestCoverageJoin(Harness):
         self.assertTrue(found[0].detail.startswith("closest row is line "), found[0].detail)
 
 
+class TestLogEventCoverage(Harness):
+    OBS = "`widget.created` is logged on success; the 400 path increments `widget_rejected_total`. The on-call dashboard reads both."
+
+    def with_observability(self, text):
+        return GOOD.replace(self.OBS, text)
+
+    def events(self, body):
+        return [f for f in self.of(self.run_checks(body), "coverage") if "log event" in f.message]
+
+    def test_an_event_table_row_with_no_test_row_reports(self):
+        body = self.with_observability(
+            "| Event | Fields |\n|---|---|\n| `widget_created` | `widget_id`, `owner_id` |")
+        found = self.events(body)
+        self.assertTrue(any("widget_created" in f.message for f in found), found)
+
+    def test_a_field_name_in_the_fields_column_is_not_an_event(self):
+        body = self.with_observability(
+            "| Event | Fields |\n|---|---|\n| `widget_created` | `widget_id`, `owner_id` |")
+        self.assertFalse(any("owner_id" in f.message for f in self.events(body)))
+
+    def test_a_bold_labelled_bullet_names_an_event(self):
+        body = self.with_observability(
+            "- **On refusal**: the `400` logs `widget_refused` with `reason`.")
+        found = self.events(body)
+        self.assertEqual([f.message.split("'")[1] for f in found], ["widget_refused"])
+
+    def test_a_wrapped_bullet_is_read_to_its_end(self):
+        # Fails against a rule that looks for the log word on the first line only.
+        body = self.with_observability(
+            "- **Per decision**: `widget_decided` `{kind, id}`, one of three outcomes,\n"
+            "  logged after the mark commits.")
+        self.assertTrue(any("widget_decided" in f.message for f in self.events(body)))
+
+    def test_a_bold_labelled_bullet_that_logs_nothing_names_no_event(self):
+        # Fails against a rule that takes the first snake_case span of any
+        # bold-labelled bullet: the mail function would report as an event.
+        body = self.with_observability(
+            "- **Who reads it**: the operator, through the mail (`send_widget_to_operator`, beside\n"
+            "  the existing sender in the mail module that the operator already watches daily\n"
+            "  for every other alarm this worker raises, and which reaches the owner's inbox\n"
+            "  within the minute). The rest have no reader today: they are log lines.")
+        self.assertEqual(self.events(body), [])
+
+    def test_a_threshold_table_names_no_events(self):
+        # Fails against an extractor that reads a Signal table's first column.
+        body = self.with_observability(
+            "| Signal | Threshold |\n|---|---|\n| `marks_capped` > 0 | any |")
+        self.assertEqual(self.events(body), [])
+
+    def test_a_logger_call_names_an_event(self):
+        body = self.with_observability(
+            'Success: `logger.info("widget_created", extra={...})`.')
+        self.assertTrue(any("widget_created" in f.message for f in self.events(body)))
+
+    def test_an_event_a_test_row_names_stays_silent(self):
+        body = self.with_observability(
+            "| Event | Fields |\n|---|---|\n| `widget_created` | `widget_id` |").replace(
+            "| 1 | malformed body returns 400 |",
+            "| 1 | malformed body returns 400, and `widget_created` is not logged |")
+        self.assertEqual(self.events(body), [])
+
+    def test_prose_mentions_are_not_read_as_events(self):
+        # Fails against an extractor that takes every snake_case span in the
+        # section: `widget_rejected_total` would report, and the clean fixture
+        # would stop being clean.
+        self.assertEqual(self.events(GOOD), [])
+
+
 class TestCitations(Harness):
     def test_a_citation_to_a_missing_file_reports(self):
         body = GOOD.replace("Something is wrong.", "Something is wrong (`src/ghost.ts:12`).")
