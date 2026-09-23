@@ -8,6 +8,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.27.3] - 2026-09-22
+
+### Added — the coverage join owes every Observability log event a Test Plan row
+
+`scripts/prd-check.py` check 5 now collects a fourth kind of obligation beside error branches, error statuses and constraints: **every log event the `Observability` section names**. An event no §9 row names reports at `look` severity, with the closest row, exactly like the other three.
+
+The evidence is a paired replay of two adopting-team PRDs through nine authoring sessions. A blind classification of the 143 🔴 and 🟡 their first-round panels raised — two independent coders, κ 0.96 on the defect type — found this one miss recurring across runs that a script can see: an event the section names, often the one its alarm reads, with no row asserting it is emitted. On the nine reconstructed drafts the check reports 12 events and catches **5 of the 6 findings the panels raised about it, all 4 blockers among them**. The one it misses names the event in a row testing a different branch, which a textual join cannot tell apart. One report is a false positive: a table row declaring that the event is *not* new.
+
+An event is read from **three shapes only**: the first cell of a table whose first column is an `Event` or `Log` column, a bullet opening with a bold label on a line that says it logs (`- **On success**: `name` at INFO`), and a logger call in a code span. Field names share the snake_case shape, so a `Fields` cell, a `Signal` / threshold table, and a bold-labelled bullet naming a mail function are never read as events; each exclusion has a test that names the broken extractor it fails against. Run over a real adopting corpus, most of which predates the `Observability` section, it reports nothing.
+
+**What this does not do.** The same classification put 62–67% of first-round findings at the drafting stage and 13% within reach of a script; this closes one scriptable class of about 3.5% of findings and 11% of blockers. It is not a lever on the number of review rounds.
+
+### Headless blast radius
+
+**No behaviour change for a headless installation.** `prd-check.py` findings at `look` are prompts to look, not blockers; step 4 already runs the script before the panel, and no decision point, option letter, channel test or escalation default moves.
+
+---
+
 ## [0.27.2] - 2026-09-18
 
 ### Fixed — `update --strategy=merge` no longer claims a merge it cannot perform
