@@ -20,6 +20,7 @@ import { classify } from "../partition.js";
 import { safeUnlink, safeWriteFile } from "../safe-fs.js";
 import { sha256OfFile } from "../sha.js";
 import { info, printError, summary } from "../output.js";
+import { SETTINGS_SNIPPET } from "../lock-guard.js";
 
 export interface InitOptions {
   cwd: string;
@@ -248,6 +249,12 @@ export async function runInit(opts: InitOptions): Promise<number> {
 
     summary(opts, `init complete: framework v${bundleVer} installed (${frameworkEntries.length} framework files)`);
     info(opts, "next steps: edit SIBLINGS.md and ROADMAP.md, then `specforge doctor`, `specforge update`, `specforge --help`");
+    // Settings are team data: never written, so the v2 lock guard's
+    // registration is printed for the team to paste.
+    summary(
+      opts,
+      `to enable the v2 lock guard, add this to .claude/settings.json (init never writes it):\n${SETTINGS_SNIPPET}`,
+    );
     if (eraseRefusals > 0) {
       // The framework install completed; the refused targets were already
       // printed one-by-one in the erase loop. Surface a summary warning too,

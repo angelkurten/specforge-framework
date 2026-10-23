@@ -28,6 +28,23 @@ export const FRAMEWORK_FILES: ReadonlyArray<string> = [
   // deliberately stopped installing, and a directory pattern here would drag
   // it back into every adopter's tree.
   "scripts/prd-check.py",
+  // v2 (changes/2026-10-23-init-installs-v2). The scripts are listed one by
+  // one for the same reason as prd-check.py: their tests (`*_test.py`) are
+  // specforge's own and must not be installed. The guard and the skills sit
+  // under the reserved `specforge` prefix, like `.claude/agents/specforge/`.
+  // The skills are listed one by one: prepublish resolves `**` only at the
+  // end of a pattern, and a list claims nothing it does not install.
+  "core/**",
+  "scripts/lock_tests.py",
+  "scripts/loop.py",
+  "scripts/review_prep.py",
+  "scripts/archive.py",
+  "scripts/compose_check.py",
+  ".claude/hooks/specforge_lock_guard.py",
+  ".claude/skills/specforge-classify/**",
+  ".claude/skills/specforge-loop/**",
+  ".claude/skills/specforge-review/**",
+  ".claude/skills/specforge-compose/**",
 ];
 
 /**
@@ -58,6 +75,8 @@ export const TEAM_DATA_PATTERNS: ReadonlyArray<string> = [
   ".specforge/**",
   ".specforge-source",
   ".github/workflows/*",             // team workflows other than the reserved ones
+  "changes/**",                      // v2 change folders, archived ones included
+  "DECISIONS.md",                    // v2 decision log
 ];
 
 /**

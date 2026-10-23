@@ -17,6 +17,7 @@ import { runDoctor } from "../../src/commands/doctor.js";
 import { runPrepublish } from "../../scripts/prepublish.js";
 import { sha256OfFile } from "../../src/sha.js";
 import { ALL_VALIDATORS } from "../../src/validators/index.js";
+import { SETTINGS_SNIPPET } from "../../src/lock-guard.js";
 
 let tmpDir: string;
 
@@ -330,6 +331,10 @@ describe("doctor: a pre-0.10.0 install carrying the vacated paths stays clean", 
         `${rel} must survive update`,
       ).resolves.toBeUndefined();
     }
+
+    // The team pasted the hook block init printed, as an install that followed
+    // init's instructions would; otherwise lock-guard-registered warns.
+    await fs.writeFile(path.join(tmpDir, ".claude", "settings.json"), SETTINGS_SNIPPET + "\n");
 
     const chunks: string[] = [];
     const origWrite = process.stdout.write.bind(process.stdout);

@@ -1,0 +1,3 @@
+37973778d076d71e1745f639c93e586afa03d899c25d6dae3e77538cb00a6782  tools/cli/tests/integration/init-v2.test.ts
+a190a74bb7357e1a664cfa6f661e918cfb288b19bf394355223bc5f10ece3821  tools/cli/tests/unit/partition-v2.test.ts
+284f89aa8409a3817076dad004ddce22ce3dcbb0f1e6953a546baaa9d155b7ef  tools/cli/tests/unit/validators/lock-guard-registered.test.ts

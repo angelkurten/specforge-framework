@@ -15,6 +15,7 @@ import { validator as roadmapEvidenceCategories } from "./roadmap-evidence-categ
 import { validator as roadmapPii } from "./roadmap-pii.js";
 import { validator as staleBriefings } from "./stale-briefings.js";
 import { validator as subagentFrontmatter } from "./subagent-frontmatter.js";
+import { validator as lockGuardRegistered } from "./lock-guard-registered.js";
 import type { Validator } from "./types.js";
 
 export const ALL_VALIDATORS: ReadonlyArray<Validator> = [
@@ -33,6 +34,7 @@ export const ALL_VALIDATORS: ReadonlyArray<Validator> = [
   roadmapPii,
   staleBriefings,
   subagentFrontmatter,
+  lockGuardRegistered,
 ];
 
 export const VALIDATOR_IDS: ReadonlyArray<string> = ALL_VALIDATORS.map(

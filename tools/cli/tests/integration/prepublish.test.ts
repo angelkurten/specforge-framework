@@ -122,8 +122,10 @@ describe("prepublish: bundles the reduced framework set plus VERSION", () => {
     // rule, template, definition, or example moves this number — update it
     // here and in § 5.1's successor rather than loosening the assertion.
     // v2 adds four templates (contract, evidence-report, decision-log,
-    // progress) and the specforge-reviewer definition: 36 to 41.
-    expect(bundled).toHaveLength(41);
+    // progress) and the specforge-reviewer definition: 36 to 41. v2 install
+    // (changes/2026-10-23-init-installs-v2) adds four core files, five
+    // scripts, the lock guard and four skills: 41 to 55.
+    expect(bundled).toHaveLength(55);
   });
 });
 
@@ -332,6 +334,18 @@ describe("prepublish: a symlinked invocation is not silently skipped", () => {
         "examples/prd-001-login-example.md",
         // A plain file entry, not a `dir/**` base: still fatal when absent.
         "scripts/prd-check.py",
+        // v2 (changes/2026-10-23-init-installs-v2): one file per entry.
+        "core/loop.md",
+        "scripts/lock_tests.py",
+        "scripts/loop.py",
+        "scripts/review_prep.py",
+        "scripts/archive.py",
+        "scripts/compose_check.py",
+        ".claude/hooks/specforge_lock_guard.py",
+        ".claude/skills/specforge-classify/SKILL.md",
+        ".claude/skills/specforge-loop/SKILL.md",
+        ".claude/skills/specforge-review/SKILL.md",
+        ".claude/skills/specforge-compose/SKILL.md",
         // PRD-024 § 9 row 42 retired the other bundle-only entry
         // (`optional-rules/headless-session.md`); `VERSION`, written above,
         // is now the only one, and a bundle-only entry is never excused when
