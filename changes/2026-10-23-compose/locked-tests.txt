@@ -1,1 +1,2 @@
+7c0afe5e8a3e209fe02214b2fe431f9569a82b8c9bd5d318398c368c32a628d0  scripts/compose_fix_test.py
 0f10d72d27b76f3697c54999a9dc072030f7fa1c1e2ba3990da747291de62802  scripts/compose_test.py

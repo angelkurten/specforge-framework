@@ -7,7 +7,7 @@ compose.md is one table, | Lesson | Rung | Artifact | Why not lower |, one row
 per lesson the change taught (core/compose.md). Refused, by row:
 
     a rung other than 1 test, 2 rule, 3 example, 4 instruction, 5 doc
-    an artifact path that does not exist
+    an artifact that is not a file inside the repository
     a rung above 1 with no reason the lower rungs are not enough
     a rung-1 artifact that is not a test file
     a rung-4 AGENTS.md or CLAUDE.md over 80 lines
@@ -52,9 +52,15 @@ def problems(change: Path, root: Path) -> list[str]:
         if rung not in RUNGS:
             found.append(f"{lesson}: rung {rung!r} is not one of {', '.join(sorted(RUNGS))}")
             continue
-        path = root / artifact
+        path = (root / artifact).resolve()
         if not artifact or not path.exists():
             found.append(f"{lesson}: artifact {artifact or '(none)'} does not exist")
+            continue
+        if root.resolve() not in path.parents:
+            found.append(f"{lesson}: artifact {artifact} is outside the repository")
+            continue
+        if not path.is_file():
+            found.append(f"{lesson}: artifact {artifact} is not a file")
             continue
         if rung != "1 test" and why in NO_REASON:
             found.append(f"{lesson}: rung {rung} needs a reason why lower rungs are not enough")

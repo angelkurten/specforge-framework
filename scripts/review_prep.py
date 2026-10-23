@@ -157,6 +157,8 @@ def review(change: Path, base: str) -> tuple[list[str], list[str]]:
                     )
                 else:
                     findings.append(f"blocker: {path}:{line} — test {name} removed")
+    if not files:
+        findings.append(f"blocker: {change / 'contract.md'}:1 — range {rng} is empty: nothing to review")
     for path in check_locked(change, Path.cwd()):
         findings.append(f"blocker: {path}:1 — locked test changed")
     findings += evidence_findings(change)
