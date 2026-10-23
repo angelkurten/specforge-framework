@@ -11,6 +11,7 @@
   - The reviewer could not re-run the seeded case's tests, because pytest is not installed in that environment. It said so under CHECKED.
   - `review_prep.py` on an empty range (base equals HEAD) exits 0 with no changed files and no warning. Found while building manual case 1, and left for a follow-up.
   - The Controlled-mode security checklist was not exercised.
+  - Run on this change itself (`review_prep.py … --base HEAD~1`), the script exits 1 with 15 findings, all false positives. Skip and stub markers are matched inside markdown (this contract, `tests/v2/review_cases.md`), inside the script's own regexes and inside its test fixtures. Three v1 CLI tests renamed from "fourteen" to "fifteen" are reported as removed. Left open for a human decision on how to narrow the patterns.
 - **Deviations from the contract**:
   - The stop condition fired: the new definition broke v1 CLI tests that count roles. A human chose to update the counts.
   - The same run showed that the first v2 commits had already broken 2 CLI tests (bundle file counts), unnoticed because only `doctor` was run. This change updates `tools/cli/tests/` (bundle count 36→41, manifest 35→40, definitions 14→15, and the three READMEs' deny snippets and counts), and excludes `specforge-reviewer` from the v1 `REVIEWERS` group.
