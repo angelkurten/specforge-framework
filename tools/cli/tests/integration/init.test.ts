@@ -485,8 +485,9 @@ describe("init / update / migrate on a prepublish-built bundle", () => {
     expect(manifest.framework_version).toBe(bundleVer);
     // PRD-010 § 6.2 row 9: the bundle regenerated with the two new
     // subagent definitions, so the installed manifest count moves 32 → 34.
-    // `scripts/prd-check.py` moves it 34 → 35.
-    expect(manifest.framework_files).toHaveLength(35);
+    // `scripts/prd-check.py` moves it 34 → 35. v2 adds four templates and
+    // the specforge-reviewer definition: 35 → 40.
+    expect(manifest.framework_files).toHaveLength(40);
     await expect(fs.access(path.join(tmpDir, "CLAUDE.md"))).resolves.toBeUndefined();
 
     // PRD-006 § 9 row 8: the 14 definitions land on disk and in the manifest.

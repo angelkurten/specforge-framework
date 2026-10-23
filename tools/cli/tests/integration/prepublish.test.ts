@@ -121,7 +121,9 @@ describe("prepublish: bundles the reduced framework set plus VERSION", () => {
     // pre-panel validator `scripts/prd-check.py` moves it 35 to 36. Adding a
     // rule, template, definition, or example moves this number — update it
     // here and in § 5.1's successor rather than loosening the assertion.
-    expect(bundled).toHaveLength(36);
+    // v2 adds four templates (contract, evidence-report, decision-log,
+    // progress) and the specforge-reviewer definition: 36 to 41.
+    expect(bundled).toHaveLength(41);
   });
 });
 

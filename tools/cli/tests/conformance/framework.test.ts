@@ -538,6 +538,9 @@ const DEFINITIONS: ReadonlyArray<{ name: string; model: string; tools: string }>
   { name: "specforge-security-reviewer", model: "opus", tools: "Read, Grep, Glob, Bash, WebFetch" },
   { name: "specforge-frontend-reviewer", model: "sonnet", tools: "Read, Grep, Glob, Bash, WebFetch" },
   { name: "specforge-quality-reviewer", model: "sonnet", tools: "Read, Grep, Glob, Bash, WebFetch" },
+  // v2 (changes/2026-10-23-adversarial-reviewer): one adversarial reviewer on
+  // the session's model, clean context, read-only Bash.
+  { name: "specforge-reviewer", model: "inherit", tools: "Read, Grep, Glob, Bash" },
   {
     name: "specforge-roadmap-market-generator",
     model: "sonnet",
@@ -582,7 +585,11 @@ const DEFINITIONS: ReadonlyArray<{ name: string; model: string; tools: string }>
   },
 ];
 
-const REVIEWERS = DEFINITIONS.filter((d) => d.name.endsWith("-reviewer")).map((d) => d.name);
+// The four v1 role reviewers. The v2 `specforge-reviewer` shares the suffix but
+// not the v1 brief (REVIEW_MODE, panel roles), so it is excluded here.
+const REVIEWERS = DEFINITIONS.filter(
+  (d) => d.name.endsWith("-reviewer") && d.name !== "specforge-reviewer",
+).map((d) => d.name);
 const ROADMAP_ROLES = DEFINITIONS.filter((d) => d.name.includes("-roadmap-")).map((d) => d.name);
 const IMPLEMENTERS = DEFINITIONS.filter((d) => d.name.endsWith("-implementer")).map((d) => d.name);
 
@@ -669,7 +676,7 @@ describe("PRD-006 § 9 row 14 — the missing-mode halt survives the conversion"
 });
 
 describe("PRD-006 § 9 row 15 — frontmatter matches the § 6.2 table", () => {
-  it("the namespace holds exactly the fourteen definitions", async () => {
+  it("the namespace holds exactly the fifteen definitions", async () => {
     const entries = (await fs.readdir(path.join(REPO, AGENTS_DIR))).filter((n) =>
       n.endsWith(".md"),
     );
@@ -724,7 +731,7 @@ describe("PRD-006 § 9 row 16 — no shipped file cites the vacated agents/ path
     ];
   });
 
-  it("resolves a non-trivial file set including the fourteen definitions", () => {
+  it("resolves a non-trivial file set including the fifteen definitions", () => {
     expect(files.length).toBeGreaterThan(20);
     for (const d of DEFINITIONS) {
       expect(files, `${d.name} missing from the swept set`).toContain(
@@ -1059,7 +1066,7 @@ describe("PRD-008 § 9 row 3 — the READMEs name the new capability", () => {
       expect(intro, "intro does not name WebFetch").toContain("`WebFetch`");
     });
 
-    it(`${rel}: the deny snippet still lists exactly the fourteen identities`, async () => {
+    it(`${rel}: the deny snippet still lists exactly the fifteen identities`, async () => {
       const text = await read(rel);
       const fence = text.lastIndexOf("```json", text.indexOf(DENY_MARKER));
       const block = text.slice(fence, text.indexOf("```", fence + "```json".length));
@@ -1169,7 +1176,7 @@ describe("PRD-010 § 9 row 4 — both new bodies extend the WebFetch hardening t
   }
 });
 
-describe("PRD-010 § 9 row 6 — README prose counts state 14, not 12", () => {
+describe("PRD-010 § 9 row 6 — README prose counts state 15 (v2 adds specforge-reviewer), not 12", () => {
   // New assertion: framework.test.ts's DEFINITIONS-derived checks (row 5,
   // above) cover the deny snippet automatically, but nothing pins the
   // surrounding prose numerals — a partial edit that only fixes the snippet
@@ -1179,27 +1186,27 @@ describe("PRD-010 § 9 row 6 — README prose counts state 14, not 12", () => {
   const DENY_MARKER = '"Agent(specforge-backend-reviewer)"';
 
   for (const rel of READMES) {
-    it(`${rel}: the file-layout tree line states 14 with the +2 implementers breakdown`, async () => {
+    it(`${rel}: the file-layout tree line states 15 with the +2 implementers breakdown`, async () => {
       const text = await read(rel);
       const line = text.split("\n").find((l) => /agents\/specforge\/\s*←/.test(l));
       expect(line, "no subagent-count tree line found").toBeDefined();
-      expect(line, "tree line still states the old count").toMatch(/\b14\b/);
+      expect(line, "tree line still states the old count").toMatch(/\b15\b/);
       expect(
         line,
         "tree line does not name the 2 implementers in the breakdown",
       ).toMatch(/2\s+implement(er|ador)/i);
     });
 
-    it(`${rel}: the restart-caveat sentence states 14`, async () => {
+    it(`${rel}: the restart-caveat sentence states 15`, async () => {
       const text = await read(rel);
-      const m = /registra[s]? las? (12|14) definiciones|registers the (12|14) definitions/i.exec(
+      const m = /registra[s]? las? (12|14|15) definiciones|registers the (12|14|15) definitions/i.exec(
         text,
       );
       expect(m, "no restart-once caveat found").not.toBeNull();
-      expect(m![0], "restart caveat still states the old count").toMatch(/\b14\b/);
+      expect(m![0], "restart caveat still states the old count").toMatch(/\b15\b/);
     });
 
-    it(`${rel}: the framing sentence right before the deny snippet states 14`, async () => {
+    it(`${rel}: the framing sentence right before the deny snippet states 15`, async () => {
       const text = await read(rel);
       const at = text.indexOf(DENY_MARKER);
       expect(at, "the permissions.deny snippet is missing").toBeGreaterThan(-1);
@@ -1210,7 +1217,7 @@ describe("PRD-010 § 9 row 6 — README prose counts state 14, not 12", () => {
         .split(/\n\s*\n/)
         .filter((p) => p.trim())
         .pop()!;
-      expect(intro, "framing sentence still states the old count").toMatch(/\b14\b/);
+      expect(intro, "framing sentence still states the old count").toMatch(/\b15\b/);
     });
   }
 });
@@ -2144,8 +2151,9 @@ describe("PRD-012 (specforge) § 9 row 11 — the implementers' prohibition surv
     });
   }
 
-  it("DEFINITIONS still enumerates exactly 14 files with unchanged model and tools", () => {
-    expect(DEFINITIONS).toHaveLength(14);
+  // v2 adds specforge-reviewer (changes/2026-10-23-adversarial-reviewer): 14 to 15.
+  it("DEFINITIONS still enumerates exactly 15 files with unchanged model and tools", () => {
+    expect(DEFINITIONS).toHaveLength(15);
     for (const d of DEFINITIONS) {
       const fm = frontmatter(bodies.get(d.name)!);
       expect(fm.model, `${d.name} model drifted`).toBe(d.model);
@@ -2449,8 +2457,8 @@ describe("PRD-012 (specforge) § 9 row 14 — docs, READMEs and the headless rul
     expect(fences[2], "tools/cli/README.md's deny array drifted").toBe(fences[0]);
     expect(
       [...fences[0]!.matchAll(/"Agent\(specforge-/g)],
-      "the deny array is no longer the fourteen Agent entries",
-    ).toHaveLength(14);
+      "the deny array is no longer the fifteen Agent entries (v2 adds specforge-reviewer)",
+    ).toHaveLength(15);
     // § 3 records the `Bash(specforge init:*)` entry an earlier draft
     // appended and why it was withdrawn: § 8's control constrains the
     // destination instead, and lives in workflow.md where `update`

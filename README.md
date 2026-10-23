@@ -67,7 +67,7 @@ specforge is designed to live **as a sibling directory to the code repositories 
 │   │   │   ├── roadmap.md          ← roadmap cycle + evidence + PII carve-out (unscoped)
 │   │   │   ├── adr-specific.md     ← loads only on ADR-*.md
 │   │   │   └── framework-maintenance.md  ← loads only on framework files
-│   │   └── agents/specforge/       ← 14 subagent definitions: 4 reviewers + 4 roadmap generators + 4 critics + 2 implementers
+│   │   └── agents/specforge/       ← 15 subagent definitions: 4 reviewers + 4 roadmap generators + 4 critics + 2 implementers + 1 v2 reviewer
 │   ├── CONVENTIONS.md              ← format reference: shapes, naming, diagrams
 │   ├── SIBLINGS.md                 ← team-mutable registry of sibling projects (fill in on day 1)
 │   ├── ROADMAP.md                  ← team-mutable product-level intent (one global file, living)
@@ -138,11 +138,11 @@ If you see that, repeat the request on every prompt with a `UserPromptSubmit` ho
 
 `init` does not write this file and `update` never touches it — settings are team data, not framework data. Naming a reviewer explicitly at the prompt (`@"specforge-backend-reviewer (agent)"`) is deterministic too, but it only covers that one prompt.
 
-**Restart once after the first install.** If your repo had no `.claude/agents/` directory before, Claude Code registers the 14 definitions only after one session restart. Later edits to them hot-reload; this caveat applies to the first creation of the directory only.
+**Restart once after the first install.** If your repo had no `.claude/agents/` directory before, Claude Code registers the 15 definitions only after one session restart. Later edits to them hot-reload; this caveat applies to the first creation of the directory only.
 
 ## Turning the panels off
 
-The 14 definitions are registered subagents the host model can delegate to on its own, outside the workflow — the four reviewers hold `Bash` so they can walk a diff and `WebFetch` so they can check a changelog or advisory against its live source, and the two implementers hold `Edit` and `Write` on top of that same `Bash`/`WebFetch` pair, since an implementer changes a sibling's code rather than only reading it. A mis-delegated reviewer therefore holds shell access and live network access at once; a mis-delegated implementer holds those plus the ability to edit and write a sibling's repo outside any reviewed workflow step — strictly worse. There is no frontmatter off-switch; `permissions.deny` is the only capability-level control. **If you do not run the review or roadmap panels, deny them**, and if you want to keep running the panels but block auto-delegation to the implementer roles specifically, deny just the two `*-implementer` entries below — in `.claude/settings.json` (or `~/.claude/settings.json`), dropping whichever entries you do run:
+The 15 definitions are registered subagents the host model can delegate to on its own, outside the workflow — the four reviewers hold `Bash` so they can walk a diff and `WebFetch` so they can check a changelog or advisory against its live source, and the two implementers hold `Edit` and `Write` on top of that same `Bash`/`WebFetch` pair, since an implementer changes a sibling's code rather than only reading it. A mis-delegated reviewer therefore holds shell access and live network access at once; a mis-delegated implementer holds those plus the ability to edit and write a sibling's repo outside any reviewed workflow step — strictly worse. There is no frontmatter off-switch; `permissions.deny` is the only capability-level control. **If you do not run the review or roadmap panels, deny them**, and if you want to keep running the panels but block auto-delegation to the implementer roles specifically, deny just the two `*-implementer` entries below — in `.claude/settings.json` (or `~/.claude/settings.json`), dropping whichever entries you do run:
 
 ```json
 {
@@ -152,6 +152,7 @@ The 14 definitions are registered subagents the host model can delegate to on it
       "Agent(specforge-frontend-reviewer)",
       "Agent(specforge-security-reviewer)",
       "Agent(specforge-quality-reviewer)",
+      "Agent(specforge-reviewer)",
       "Agent(specforge-roadmap-market-generator)",
       "Agent(specforge-roadmap-ux-generator)",
       "Agent(specforge-roadmap-product-generator)",

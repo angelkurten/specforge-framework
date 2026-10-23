@@ -67,7 +67,7 @@ specforge está diseñado para vivir **como un directorio hermano de los repos d
 │   │   │   ├── roadmap.md          ← ciclo de roadmap + evidencia + PII carve-out (unscoped)
 │   │   │   ├── adr-specific.md     ← carga solo al editar ADR-*.md
 │   │   │   └── framework-maintenance.md  ← carga solo al editar framework files
-│   │   └── agents/specforge/       ← 14 definiciones de subagentes: 4 revisores + 4 generadores de roadmap + 4 críticos + 2 implementadores
+│   │   └── agents/specforge/       ← 15 definiciones de subagentes: 4 revisores + 4 generadores de roadmap + 4 críticos + 2 implementadores + 1 revisor v2
 │   ├── CONVENTIONS.md              ← referencia de formato: shapes, naming, diagramas
 │   ├── SIBLINGS.md                 ← registry mutable por el equipo de sibling projects (llenalo el día 1)
 │   ├── ROADMAP.md                  ← intento producto mutable por el equipo (un archivo global, vivo)
@@ -138,11 +138,11 @@ Si lo ves, repetí el pedido en cada prompt con un hook `UserPromptSubmit` — e
 
 `init` no escribe este archivo y `update` nunca lo toca — los settings son data de equipo, no data del framework. Nombrar un revisor explícitamente en el prompt (`@"specforge-backend-reviewer (agent)"`) también es determinista, pero cubre solo ese prompt.
 
-**Reiniciá una vez después de la primera instalación.** Si tu repo no tenía un directorio `.claude/agents/` antes, Claude Code registra las 14 definiciones recién después de un restart de sesión. Las ediciones posteriores se recargan en caliente; este caveat aplica solo a la primera creación del directorio.
+**Reiniciá una vez después de la primera instalación.** Si tu repo no tenía un directorio `.claude/agents/` antes, Claude Code registra las 15 definiciones recién después de un restart de sesión. Las ediciones posteriores se recargan en caliente; este caveat aplica solo a la primera creación del directorio.
 
 ## Apagar los paneles
 
-Las 14 definiciones son subagentes registrados a los que el modelo host puede delegar por su cuenta, fuera del workflow — los cuatro revisores tienen `Bash` para poder recorrer un diff y `WebFetch` para poder chequear un changelog o un advisory contra su fuente viva, y los dos implementadores tienen `Edit` y `Write` además de ese mismo par `Bash`/`WebFetch`, porque un implementador modifica el código de un sibling en vez de solo leerlo. Un revisor mal delegado tiene entonces acceso a shell y a red en simultáneo; un implementador mal delegado tiene eso más la capacidad de editar y escribir en el repo de un sibling por fuera de cualquier paso del workflow revisado — estrictamente peor. No hay off-switch en el frontmatter; `permissions.deny` es el único control a nivel de capacidad. **Si no corrés los paneles de review ni los de roadmap, denegalos**, y si querés seguir corriendo los paneles pero bloquear la auto-delegación a los roles de implementador específicamente, denegá solo las dos entradas `*-implementer` de abajo — en `.claude/settings.json` (o `~/.claude/settings.json`), borrando las entradas que sí corrés:
+Las 15 definiciones son subagentes registrados a los que el modelo host puede delegar por su cuenta, fuera del workflow — los cuatro revisores tienen `Bash` para poder recorrer un diff y `WebFetch` para poder chequear un changelog o un advisory contra su fuente viva, y los dos implementadores tienen `Edit` y `Write` además de ese mismo par `Bash`/`WebFetch`, porque un implementador modifica el código de un sibling en vez de solo leerlo. Un revisor mal delegado tiene entonces acceso a shell y a red en simultáneo; un implementador mal delegado tiene eso más la capacidad de editar y escribir en el repo de un sibling por fuera de cualquier paso del workflow revisado — estrictamente peor. No hay off-switch en el frontmatter; `permissions.deny` es el único control a nivel de capacidad. **Si no corrés los paneles de review ni los de roadmap, denegalos**, y si querés seguir corriendo los paneles pero bloquear la auto-delegación a los roles de implementador específicamente, denegá solo las dos entradas `*-implementer` de abajo — en `.claude/settings.json` (o `~/.claude/settings.json`), borrando las entradas que sí corrés:
 
 ```json
 {
@@ -152,6 +152,7 @@ Las 14 definiciones son subagentes registrados a los que el modelo host puede de
       "Agent(specforge-frontend-reviewer)",
       "Agent(specforge-security-reviewer)",
       "Agent(specforge-quality-reviewer)",
+      "Agent(specforge-reviewer)",
       "Agent(specforge-roadmap-market-generator)",
       "Agent(specforge-roadmap-ux-generator)",
       "Agent(specforge-roadmap-product-generator)",
