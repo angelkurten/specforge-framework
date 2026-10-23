@@ -1,0 +1,66 @@
+# Decisions
+
+Append-only log of decisions with future value. Shape: [`templates/decision-log.md`](templates/decision-log.md). Newest last.
+
+## 2026-10-23 — Build v2 on a separate branch, outside the v1 workflow
+
+**Context**: v1 rules make any framework change a PRD with a reviewer panel, gate and re-review — the ceremony v2 removes.
+**Decision**: v2 is built on the `v2` branch, each piece driven by a v2 change contract under `changes/`.
+**Rejected**: a PRD-015 through the v1 workflow, which would spend v1's full process to replace it.
+**Revisit if**: v2 is merged to `main`; from then on its own cycle governs framework changes.
+
+## 2026-10-23 — Mode is proposed by the agent and confirmed by a human
+
+**Context**: every change is classified on risk and uncertainty before work starts.
+**Decision**: the agent proposes the mode; the human confirms or corrects it.
+**Rejected**: a fully automatic classifier, and a human-only choice.
+**Revisit if**: the pilot shows humans override the proposal on most changes.
+
+## 2026-10-23 — The progress file lives with the contract
+
+**Context**: each loop iteration starts from a clean context and needs its state on disk.
+**Decision**: the progress file sits next to the contract in the change folder and is archived with it on merge.
+**Rejected**: a global progress file, and state kept in the session history.
+**Revisit if**: concurrent changes need to share progress.
+
+## 2026-10-23 — One adversarial reviewer, including in Controlled mode
+
+**Context**: v1 dispatched up to four role reviewers per round. v2 keeps review separate from implementation.
+**Decision**: one reviewer, same model, clean context; independence comes from the separate context. In Controlled mode it always loads the security checklist instead of a second reviewer.
+**Rejected**: the v1 role panel; a separate security reviewer in Controlled mode.
+**Revisit if**: the pilot shows defects escaping Controlled-mode review.
+
+## 2026-10-23 — Tool-agnostic core with an optional Claude Code adapter
+
+**Context**: v1 is bound to `.claude/rules` and `.claude/agents`.
+**Decision**: templates, rules and scripts form an agnostic core; hooks and skills ship as an optional Claude Code adapter.
+**Rejected**: staying Claude Code–only.
+**Revisit if**: the adapter grows logic the core cannot run without.
+
+## 2026-10-23 — Brownfield adoption writes contracts only for the area being changed
+
+**Context**: existing projects have no contracts.
+**Decision**: a contract is written only for the code a change touches; nothing is specified retroactively.
+**Rejected**: retroactive specs for the whole system.
+**Revisit if**: never, unless a regulated project demands full traceability.
+
+## 2026-10-23 — Remove the roadmap from v2
+
+**Context**: `roadmap.md`, `ROADMAP.md` and eight generator/critic agents operate at product level, not change level, and the v2 brief does not use them.
+**Decision**: v2 removes the rule, the template, `ROADMAP.md`, the eight agents, the three `roadmap-*` validators and the roadmap auto-update on promotion.
+**Rejected**: keeping it as an optional module; keeping it unchanged outside the cycle.
+**Revisit if**: a team needs product-level planning inside specforge again.
+
+## 2026-10-23 — `SYSTEM_ARTIFACT.md` only in Controlled mode
+
+**Context**: v2 treats code and tests as the description of reality; v1 required a living state document per sibling on every ship.
+**Decision**: `SYSTEM_ARTIFACT.md` is required only in Controlled mode, for traceability.
+**Rejected**: removing it entirely; replacing it with an index generated from code.
+**Revisit if**: Controlled-mode teams stop reading it.
+
+## 2026-10-23 — Contracts live in a per-change folder with no global number
+
+**Context**: v1 numbers PRDs `NNN-` at the repo root.
+**Decision**: each contract lives in `changes/<YYYY-MM-DD>-<slug>/` next to its progress file. The `prd-numbering` validator goes.
+**Rejected**: global `NNN-` numbering at the root.
+**Revisit if**: cross-references between changes need stable short ids.
