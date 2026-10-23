@@ -1,4 +1,4 @@
-// The v2 lock guard (changes/2026-10-23-init-installs-v2). `init` installs the
+// The v2 lock guard (specforge/changes/2026-10-23-specforge-namespace). `init` installs the
 // hook script but never writes .claude/settings.json, which is team data; it
 // prints this block for the team to paste instead.
 

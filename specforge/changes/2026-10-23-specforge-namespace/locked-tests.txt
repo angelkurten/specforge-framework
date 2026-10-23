@@ -8,4 +8,5 @@ e0182e1d721b23abc2ad4cc05c96b23077d9d5bcece26fbaa0ec16c4c55dabcb  scripts/review
 875696f6cc96158fd28734ec390c65dcf540c137df734109b5859f6919d6cb2b  scripts/review_test.py
 1e349da718a0838680370e3215679e6da1b710ac2d98e6e423295548944fbee1  tools/cli/tests/integration/init-v2.test.ts
 2ba4378d5a157079b1a1109edc3ec083cd6b6fee829339ddc40f24181e159af9  tools/cli/tests/unit/partition-v2.test.ts
+89841227812b1e781d221cf137818528092a366808208ccf640a7a888a7bf537  tools/cli/tests/unit/validators/lock-guard-registered-fix.test.ts
 4418f6bc8e58e95dc4bd0c880a38f5b9a07d253472c0757608a4a6d5aa77ebe9  tools/cli/tests/unit/validators/lock-guard-registered.test.ts

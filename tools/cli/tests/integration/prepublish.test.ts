@@ -123,7 +123,7 @@ describe("prepublish: bundles the reduced framework set plus VERSION", () => {
     // here and in § 5.1's successor rather than loosening the assertion.
     // v2 adds four templates (contract, evidence-report, decision-log,
     // progress) and the specforge-reviewer definition: 36 to 41. v2 install
-    // (specforge/changes/archive/2026-10-23-specforge-namespace) adds four
+    // (specforge/changes/2026-10-23-specforge-namespace) adds four
     // core files, five scripts, the lock guard and four skills: 41 to 55.
     expect(bundled).toHaveLength(55);
   });

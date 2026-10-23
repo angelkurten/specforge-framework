@@ -1,4 +1,4 @@
-// changes/2026-10-23-init-installs-v2: lock-guard-registered.
+// specforge/changes/2026-10-23-specforge-namespace: lock-guard-registered.
 // The guard script is installed but only runs once a settings file registers
 // it. A warning, never an error: the loop's hash check works without it.
 
@@ -35,6 +35,7 @@ export const validator: Validator = {
       return [];
     }
     const findings: Finding[] = [];
+    let registered = false;
     for (const rel of SETTINGS) {
       let text: string;
       try {
@@ -54,8 +55,10 @@ export const validator: Validator = {
         });
         continue;
       }
-      if (registers(parsed)) return [];
+      if (registers(parsed)) registered = true;
     }
+    // A registration in one file never hides a malformed other one.
+    if (registered) return findings;
     findings.push({
       rule: id,
       severity: "warning",

@@ -1,6 +1,6 @@
 # Decisions
 
-Append-only log of decisions with future value. Shape: [`templates/decision-log.md`](templates/decision-log.md). Newest last.
+Append-only log of decisions with future value. Shape: [`templates/decision-log.md`](../templates/decision-log.md). Newest last.
 
 ## 2026-10-23 — Build v2 on a separate branch, outside the v1 workflow
 

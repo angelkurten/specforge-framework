@@ -28,7 +28,7 @@ export const FRAMEWORK_FILES: ReadonlyArray<string> = [
   // deliberately stopped installing, and a directory pattern here would drag
   // it back into every adopter's tree.
   "scripts/prd-check.py",
-  // v2 (specforge/changes/archive/2026-10-23-specforge-namespace). Everything
+  // v2 (specforge/changes/2026-10-23-specforge-namespace). Everything
   // v2 lives under one `specforge/` folder, so it never claims a project's own
   // `core/`, `scripts/` or `changes/`. The guard and the skills sit under the
   // reserved `specforge` prefix, like `.claude/agents/specforge/`; the skills
