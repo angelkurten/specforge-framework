@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """Run an agent on a change, one clean-context process per iteration.
 
-    python3 scripts/loop.py changes/<change>
-    python3 scripts/loop.py changes/<change> --agent "claude -p --output-format json"
+    python3 specforge/scripts/loop.py specforge/changes/<change>
+    python3 specforge/scripts/loop.py specforge/changes/<change> --agent "claude -p --output-format json"
 
 Each iteration starts a fresh agent process with the same prompt: read the
 contract and progress.md, take the next unticked task, tick it, log it, exit.
 State lives on disk, never in the agent's history. After every iteration the
 loop checks, in this order, and stops on the first that holds:
 
-    exit 4  an approved test changed        (scripts/lock_tests.py check),
-            or the change folder moved      (scripts/archive.py mid-run)
+    exit 4  an approved test changed        (specforge/scripts/lock_tests.py check),
+            or the change folder moved      (specforge/scripts/archive.py mid-run)
     exit 5  the agent wrote a BLOCKED: line  (progress.md § Blocked)
     exit 0  every task is ticked
     exit 3  the cost cap is passed           (summed total_cost_usd)

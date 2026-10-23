@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Archive a finished change: move its folder to changes/archive/.
+"""Archive a finished change: move its folder to specforge/changes/archive/.
 
-    python3 scripts/archive.py changes/<change>
+    python3 specforge/scripts/archive.py specforge/changes/<change>
 
 Run by a human, or by the agent at a human's request, as the last commit
 before the change merges. An archived change locks nothing, so the command

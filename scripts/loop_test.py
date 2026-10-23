@@ -4,7 +4,7 @@
     python3 scripts/loop_test.py          # from the specforge directory
 
 One test per acceptance scenario in
-changes/2026-10-23-execution-loop/contract.md, numbered the same way. The
+specforge/changes/archive/2026-10-23-execution-loop/contract.md, numbered the same way. The
 driver is exercised against a fake agent, a short Python script that edits the
 progress file the way a real agent would, so nothing here needs a model.
 """
@@ -19,9 +19,10 @@ import unittest
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+SCRIPTS = HERE.parent / "specforge" / "scripts"
 REPO = HERE.parent
-LOCK = HERE / "lock_tests.py"
-LOOP = HERE / "loop.py"
+LOCK = SCRIPTS / "lock_tests.py"
+LOOP = SCRIPTS / "loop.py"
 GUARD = REPO / ".claude" / "hooks" / "specforge_lock_guard.py"
 
 PROGRESS = """\
@@ -71,7 +72,7 @@ class Fixture(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
-        self.change = self.root / "changes" / "2026-10-23-demo"
+        self.change = self.root / "specforge" / "changes" / "2026-10-23-demo"
         self.change.mkdir(parents=True)
         self.test_file = self.root / "tests" / "demo_test.py"
         self.test_file.parent.mkdir()

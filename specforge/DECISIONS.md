@@ -64,3 +64,10 @@ Append-only log of decisions with future value. Shape: [`templates/decision-log.
 **Decision**: each contract lives in `changes/<YYYY-MM-DD>-<slug>/` next to its progress file. The `prd-numbering` validator goes.
 **Rejected**: global `NNN-` numbering at the root.
 **Revisit if**: cross-references between changes need stable short ids.
+
+## 2026-10-23 — Everything v2 under specforge/
+
+**Context**: the first v2 install used unprefixed names (`core/`, `scripts/archive.py`, `changes/`, `DECISIONS.md`). The review reproduced `init --force --erase` deleting a project's own files, and `update` overwriting a project's own `scripts/archive.py`.
+**Decision**: v2 lives under one `specforge/` folder: `specforge/core/`, `specforge/scripts/`, `specforge/changes/` and `specforge/DECISIONS.md`. Only the guard and the skills sit outside it, under the reserved `specforge` prefix.
+**Rejected**: prefixing each name in place; making `init` and `update` collision-proof against the manifest, which would change v1 CLI semantics.
+**Revisit if**: the v1 files that predate v2 (`templates/`, `examples/`, `scripts/prd-check.py`) are migrated, at which point they should move under `specforge/` too.

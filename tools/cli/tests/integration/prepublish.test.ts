@@ -123,8 +123,8 @@ describe("prepublish: bundles the reduced framework set plus VERSION", () => {
     // here and in § 5.1's successor rather than loosening the assertion.
     // v2 adds four templates (contract, evidence-report, decision-log,
     // progress) and the specforge-reviewer definition: 36 to 41. v2 install
-    // (changes/2026-10-23-init-installs-v2) adds four core files, five
-    // scripts, the lock guard and four skills: 41 to 55.
+    // (specforge/changes/archive/2026-10-23-specforge-namespace) adds four
+    // core files, five scripts, the lock guard and four skills: 41 to 55.
     expect(bundled).toHaveLength(55);
   });
 });
@@ -334,13 +334,13 @@ describe("prepublish: a symlinked invocation is not silently skipped", () => {
         "examples/prd-001-login-example.md",
         // A plain file entry, not a `dir/**` base: still fatal when absent.
         "scripts/prd-check.py",
-        // v2 (changes/2026-10-23-init-installs-v2): one file per entry.
-        "core/loop.md",
-        "scripts/lock_tests.py",
-        "scripts/loop.py",
-        "scripts/review_prep.py",
-        "scripts/archive.py",
-        "scripts/compose_check.py",
+        // v2, under specforge/ (specforge-namespace): a `dir/**` base must exist.
+        "specforge/core/loop.md",
+        "specforge/scripts/lock_tests.py",
+        "specforge/scripts/loop.py",
+        "specforge/scripts/review_prep.py",
+        "specforge/scripts/archive.py",
+        "specforge/scripts/compose_check.py",
         ".claude/hooks/specforge_lock_guard.py",
         ".claude/skills/specforge-classify/SKILL.md",
         ".claude/skills/specforge-loop/SKILL.md",

@@ -28,18 +28,20 @@ export const FRAMEWORK_FILES: ReadonlyArray<string> = [
   // deliberately stopped installing, and a directory pattern here would drag
   // it back into every adopter's tree.
   "scripts/prd-check.py",
-  // v2 (changes/2026-10-23-init-installs-v2). The scripts are listed one by
-  // one for the same reason as prd-check.py: their tests (`*_test.py`) are
-  // specforge's own and must not be installed. The guard and the skills sit
-  // under the reserved `specforge` prefix, like `.claude/agents/specforge/`.
-  // The skills are listed one by one: prepublish resolves `**` only at the
-  // end of a pattern, and a list claims nothing it does not install.
-  "core/**",
-  "scripts/lock_tests.py",
-  "scripts/loop.py",
-  "scripts/review_prep.py",
-  "scripts/archive.py",
-  "scripts/compose_check.py",
+  // v2 (specforge/changes/archive/2026-10-23-specforge-namespace). Everything
+  // v2 lives under one `specforge/` folder, so it never claims a project's own
+  // `core/`, `scripts/` or `changes/`. The guard and the skills sit under the
+  // reserved `specforge` prefix, like `.claude/agents/specforge/`; the skills
+  // are listed one by one because prepublish resolves `**` only at the end of
+  // a pattern, and a list claims nothing it does not install.
+  "specforge/core/**",
+  // One by one, not `specforge/scripts/**`: prepublish walks the disk, so a
+  // directory pattern would also bundle a local `__pycache__/`.
+  "specforge/scripts/lock_tests.py",
+  "specforge/scripts/loop.py",
+  "specforge/scripts/review_prep.py",
+  "specforge/scripts/archive.py",
+  "specforge/scripts/compose_check.py",
   ".claude/hooks/specforge_lock_guard.py",
   ".claude/skills/specforge-classify/**",
   ".claude/skills/specforge-loop/**",
@@ -75,8 +77,8 @@ export const TEAM_DATA_PATTERNS: ReadonlyArray<string> = [
   ".specforge/**",
   ".specforge-source",
   ".github/workflows/*",             // team workflows other than the reserved ones
-  "changes/**",                      // v2 change folders, archived ones included
-  "DECISIONS.md",                    // v2 decision log
+  "specforge/changes/**",            // v2 change folders, archived ones included
+  "specforge/DECISIONS.md",          // v2 decision log
 ];
 
 /**

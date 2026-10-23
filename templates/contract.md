@@ -8,7 +8,7 @@
   line saying so and move on.
 
   It lives in the change's own folder, next to the progress file, with no
-  global number: changes/<YYYY-MM-DD>-<slug>/contract.md. It is archived with
+  global number: specforge/changes/<YYYY-MM-DD>-<slug>/contract.md. It is archived with
   the change when it merges.
 
   Direct mode writes no contract. Explore mode writes one after the

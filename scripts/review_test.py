@@ -4,7 +4,7 @@
     python3 scripts/review_test.py          # from the specforge directory
 
 One test per acceptance scenario in
-changes/2026-10-23-adversarial-reviewer/contract.md, numbered the same way.
+specforge/changes/archive/2026-10-23-adversarial-reviewer/contract.md, numbered the same way.
 Each builds a throwaway git repository with a base commit, applies one change
 on top, commits it, and runs the script against that range.
 """
@@ -16,10 +16,11 @@ import unittest
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-PREP = HERE / "review_prep.py"
-LOCK = HERE / "lock_tests.py"
+SCRIPTS = HERE.parent / "specforge" / "scripts"
+PREP = SCRIPTS / "review_prep.py"
+LOCK = SCRIPTS / "lock_tests.py"
 
-CHANGE = "changes/2026-10-23-demo"
+CHANGE = "specforge/changes/2026-10-23-demo"
 
 BASE_FILES = {
     "src/app.py": "def total(xs):\n    return sum(xs)\n",

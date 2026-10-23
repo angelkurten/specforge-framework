@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Check a change's compose.md: every lesson on one rung, with a real artifact.
 
-    python3 scripts/compose_check.py changes/<change>
+    python3 specforge/scripts/compose_check.py specforge/changes/<change>
 
 compose.md is one table, | Lesson | Rung | Artifact | Why not lower |, one row
-per lesson the change taught (core/compose.md). Refused, by row:
+per lesson the change taught (specforge/core/compose.md). Refused, by row:
 
     a rung other than 1 test, 2 rule, 3 example, 4 instruction, 5 doc
     an artifact that is not a file inside the repository

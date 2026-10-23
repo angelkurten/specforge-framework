@@ -4,7 +4,7 @@ After the loop finishes, a reviewer that did not write the change looks for ways
 
 ## Two halves
 
-1. **The script decides what a pattern can.** `python3 scripts/review_prep.py <change> --base <ref>` reports added skip markers, deleted test files, removed test functions, changed locked tests and an incomplete evidence report as blockers, and added stubs as should-fix. It prints a packet for the reviewer, and exits 1 on any blocker.
+1. **The script decides what a pattern can.** `python3 specforge/scripts/review_prep.py <change> --base <ref>` reports added skip markers, deleted test files, removed test functions, changed locked tests and an incomplete evidence report as blockers, and added stubs as should-fix. It prints a packet for the reviewer, and exits 1 on any blocker.
 2. **The reviewer reads for what a pattern cannot.** It starts from the packet and treats the script's findings as settled. It never re-reports them, and never argues one away.
 
 ## What the reviewer checks

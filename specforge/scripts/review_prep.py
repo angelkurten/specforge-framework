@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Mechanical review of a change, and the packet the adversarial reviewer reads.
 
-    python3 scripts/review_prep.py changes/<change> --base main
+    python3 specforge/scripts/review_prep.py specforge/changes/<change> --base main
 
 Diffs `<base>...HEAD` and reports what a pattern can decide on its own:
 
@@ -17,7 +17,7 @@ likely rename, at should-fix.
 
 Everything that needs judgement — scope creep, acceptance evidence no test
 covers, trivial tests, claims the evidence does not back — is left to the
-reviewer agent, which reads the packet this script prints (core/review.md).
+reviewer agent, which reads the packet this script prints (specforge/core/review.md).
 
 Exit code 0 when no blocker, 1 when any blocker, 2 on usage error. The packet
 prints either way. Python 3 standard library and git only.
@@ -184,7 +184,7 @@ def packet(change: Path, base: str, files: list[str], findings: list[str]) -> st
             "",
             "## For the reviewer",
             "",
-            "Read core/review.md, then the contract, the evidence report and the diff "
+            "Read specforge/core/review.md, then the contract, the evidence report and the diff "
             f"(git diff {base}...HEAD). The findings above are settled; look for what a "
             "pattern cannot see.",
         ]

@@ -4,8 +4,8 @@
 Reads the hook payload on stdin. Exits 2 with the reason on stderr when an
 Edit, Write, MultiEdit or NotebookEdit targets a locked test or a change's
 locked-tests.txt, or when a Bash command writes to one, or removes or moves a
-folder holding one; exits 0 otherwise. `scripts/lock_tests.py approve` and
-`scripts/archive.py` are how a human changes the lock on purpose.
+folder holding one; exits 0 otherwise. `specforge/scripts/lock_tests.py approve` and
+`specforge/scripts/archive.py` are how a human changes the lock on purpose.
 
 The Bash check matches common write forms only — redirection, in-place edits,
 tee, rm, mv, cp, truncate and git checkout/restore. It is a guide, not a
@@ -33,7 +33,7 @@ GIT_WRITE = re.compile(r"\bgit\s+(checkout|restore|rm|mv)\b")
 def load_locked(root: Path) -> tuple[set[Path], set[Path]]:
     """Locked tests plus the lock files themselves, and the lock files alone."""
     # The project's own copy first, then the framework copy beside this hook.
-    sys.path[:0] = [str(root / "scripts"), str(Path(__file__).resolve().parents[2] / "scripts")]
+    sys.path[:0] = [str(root / "specforge" / "scripts"), str(Path(__file__).resolve().parents[2] / "specforge" / "scripts")]
     try:
         from lock_tests import lock_files, locked_paths
     except ImportError:

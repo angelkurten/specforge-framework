@@ -1,7 +1,7 @@
 ## YYYY-MM-DD — <!-- decision -->
 
 <!--
-  One entry per decision with future value, appended to DECISIONS.md at the
+  One entry per decision with future value, appended to specforge/DECISIONS.md at the
   repo root. Written by a human or the agent, reviewed by a human. Entries
   are permanent; a reversed decision gets a new entry, not an edit.
 -->

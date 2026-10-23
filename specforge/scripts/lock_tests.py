@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Approve red tests for a change, and check later that nobody changed them.
 
-    python3 scripts/lock_tests.py approve changes/<change> tests/a_test.py ...
-    python3 scripts/lock_tests.py check changes/<change>
+    python3 specforge/scripts/lock_tests.py approve specforge/changes/<change> tests/a_test.py ...
+    python3 specforge/scripts/lock_tests.py check specforge/changes/<change>
 
 `approve` records one `<sha256>  <path>` line per test in
 `<change>/locked-tests.txt`; approving a path again replaces its line. `check`
@@ -63,8 +63,8 @@ def check(change: Path, root: Path) -> list[str]:
 
 
 def active_changes(root: Path) -> list[Path]:
-    """Change folders that lock tests: directly under changes/, not archived."""
-    changes = root / "changes"
+    """Change folders that lock tests: directly under specforge/changes/, not archived."""
+    changes = root / "specforge" / "changes"
     if not changes.is_dir():
         return []
     return [c for c in changes.iterdir() if c.is_dir() and (c / LOCK_FILE).is_file()]

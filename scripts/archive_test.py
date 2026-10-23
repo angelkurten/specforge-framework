@@ -4,7 +4,7 @@
     python3 scripts/archive_test.py          # from the specforge directory
 
 One test per acceptance scenario in
-changes/2026-10-23-archive-on-merge/contract.md, numbered the same way. Each
+specforge/changes/archive/2026-10-23-archive-on-merge/contract.md, numbered the same way. Each
 runs in a throwaway git repository holding one finished change.
 """
 
@@ -18,15 +18,16 @@ import unittest
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+SCRIPTS = HERE.parent / "specforge" / "scripts"
 REPO = HERE.parent
-ARCHIVE = HERE / "archive.py"
-LOCK = HERE / "lock_tests.py"
-LOOP = HERE / "loop.py"
+ARCHIVE = SCRIPTS / "archive.py"
+LOCK = SCRIPTS / "lock_tests.py"
+LOOP = SCRIPTS / "loop.py"
 GUARD = REPO / ".claude" / "hooks" / "specforge_lock_guard.py"
 
 NAME = "2026-10-23-demo"
-CHANGE = f"changes/{NAME}"
-ARCHIVED = f"changes/archive/{NAME}"
+CHANGE = f"specforge/changes/{NAME}"
+ARCHIVED = f"specforge/changes/archive/{NAME}"
 
 EVIDENCE = """\
 ## Evidence

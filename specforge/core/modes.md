@@ -26,7 +26,7 @@ Uncertainty is **high** when any of the following holds, and **low** otherwise:
 | More than one approach is plausible and nobody knows which works | two candidate libraries, untried |
 | The change depends on behaviour nobody has observed yet | a third-party API not called before, a data source nobody has queried |
 
-An unspecified method with known, proven options (MFA by TOTP, SMS or passkeys) is **not** "nobody knows which works": the choice is made in the contract's Constraints or in `DECISIONS.md`. It counts only when nobody knows whether any option works for this case.
+An unspecified method with known, proven options (MFA by TOTP, SMS or passkeys) is **not** "nobody knows which works": the choice is made in the contract's Constraints or in `specforge/DECISIONS.md`. It counts only when nobody knows whether any option works for this case.
 
 A data source counts as "nobody has queried" only when no code in the repository reads it yet; the agent checks by searching the code. An internal source the code already reads is low uncertainty, even if this change reads it for a new purpose.
 
@@ -66,4 +66,4 @@ Mode: Contract
 - A field the agent cannot decide from the request and the code is reported as `unsure`, with what it would need to decide.
 - When any field is `unsure`, the `Mode` line gives the mode with every `unsure` field resolved to high and to yes, and says so.
 - **With no human to confirm**, that resolved mode is the one used, and the contract records the proposal as unconfirmed under its `Mode` line.
-- On confirmation of Contract or Controlled, the change gets a folder `changes/<YYYY-MM-DD>-<slug>/` with a contract copied from `templates/contract.md`. Direct gets nothing; Explore gets its contract after the prototype.
+- On confirmation of Contract or Controlled, the change gets a folder `specforge/changes/<YYYY-MM-DD>-<slug>/` with a contract copied from `templates/contract.md`. Direct gets nothing; Explore gets its contract after the prototype.

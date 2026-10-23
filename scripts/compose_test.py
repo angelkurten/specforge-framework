@@ -4,7 +4,7 @@
     python3 scripts/compose_test.py          # from the specforge directory
 
 One test per acceptance scenario in
-changes/2026-10-23-compose/contract.md, numbered the same way.
+specforge/changes/archive/2026-10-23-compose/contract.md, numbered the same way.
 """
 
 import subprocess
@@ -14,8 +14,9 @@ import unittest
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-CHECK = HERE / "compose_check.py"
-CHANGE = "changes/2026-10-23-demo"
+SCRIPTS = HERE.parent / "specforge" / "scripts"
+CHECK = SCRIPTS / "compose_check.py"
+CHANGE = "specforge/changes/2026-10-23-demo"
 
 HEADER = "# Compose\n\n| Lesson | Rung | Artifact | Why not lower |\n|---|---|---|---|\n"
 

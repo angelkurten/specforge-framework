@@ -12,6 +12,20 @@ export const id = "lock-guard-registered";
 const SETTINGS = [".claude/settings.json", ".claude/settings.local.json"];
 const GUARD_NAME = path.basename(GUARD_PATH);
 
+/** True when a PreToolUse hook's command names the guard; a mention anywhere
+ *  else (another event, a matcher) is not a registration. */
+function registers(settings: unknown): boolean {
+  const pre = (settings as { hooks?: { PreToolUse?: unknown } } | null)?.hooks?.PreToolUse;
+  if (!Array.isArray(pre)) return false;
+  return pre.some((entry) =>
+    Array.isArray((entry as { hooks?: unknown })?.hooks) &&
+    (entry as { hooks: unknown[] }).hooks.some(
+      (h) => typeof (h as { command?: unknown })?.command === "string" &&
+        ((h as { command: string }).command).includes(GUARD_NAME),
+    ),
+  );
+}
+
 export const validator: Validator = {
   id,
   async run(cwd: string): Promise<Finding[]> {
@@ -28,9 +42,9 @@ export const validator: Validator = {
       } catch {
         continue;
       }
-      let hooks: unknown;
+      let parsed: unknown;
       try {
-        hooks = (JSON.parse(text) as { hooks?: unknown }).hooks;
+        parsed = JSON.parse(text);
       } catch {
         findings.push({
           rule: id,
@@ -40,7 +54,7 @@ export const validator: Validator = {
         });
         continue;
       }
-      if (JSON.stringify(hooks ?? null).includes(GUARD_NAME)) return [];
+      if (registers(parsed)) return [];
     }
     findings.push({
       rule: id,

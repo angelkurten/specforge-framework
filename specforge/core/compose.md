@@ -4,7 +4,7 @@ A change is not closed until what it taught is in the harness. Composing turns e
 
 ## When
 
-After review and before `scripts/archive.py`. The inputs are the change's own record:
+After review and before `specforge/scripts/archive.py`. The inputs are the change's own record:
 - the evidence report's Not checked items, deviations and review tables;
 - any `BLOCKED:` line and loop stop reason;
 - every finding the reviewer raised.
@@ -31,7 +31,7 @@ Climbing above rung 1 takes one line saying why the lower rungs cannot catch it.
 | Lesson | Rung | Artifact | Why not lower |
 ```
 
-`python3 scripts/compose_check.py <change>` refuses the record if:
+`python3 specforge/scripts/compose_check.py <change>` refuses the record if:
 - a rung is not one of the five;
 - an artifact does not exist;
 - a climb carries no reason;

@@ -3,7 +3,7 @@
 
     python3 scripts/guard_git_test.py          # from the specforge directory
 
-The re-verification of changes/2026-10-23-archive-on-merge found that the fix
+The re-verification of specforge/changes/archive/2026-10-23-archive-on-merge found that the fix
 narrowing the guard to lock-holding folders dropped the git forms. Reuses the
 fixture from scripts/archive_test.py, which is locked.
 """
@@ -19,7 +19,7 @@ from archive_test import CHANGE, Repo  # noqa: E402
 class GitFormsTests(Repo):
     def test_git_rm_and_git_mv_of_a_lock_or_its_folder_are_refused(self):
         lock = f"{CHANGE}/locked-tests.txt"
-        for cmd in (f"git rm -r {CHANGE}", f"git mv {CHANGE} /tmp/x", f"git rm {lock}", f"git mv {lock} /tmp/x", "git rm -r changes"):
+        for cmd in (f"git rm -r {CHANGE}", f"git mv {CHANGE} /tmp/x", f"git rm {lock}", f"git mv {lock} /tmp/x", "git rm -r specforge/changes"):
             r = self.guard("Bash", {"command": cmd})
             self.assertEqual(r.returncode, 2, cmd)
 

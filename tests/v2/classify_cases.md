@@ -1,6 +1,6 @@
 # Mode classifier cases
 
-**Execution**: manual — needs an agent in the loop. Give a clean-context agent `core/modes.md` and one request at a time; its mode must match the expected one, and each axis must cite the listed signal.
+**Execution**: manual — needs an agent in the loop. Give a clean-context agent `specforge/core/modes.md` and one request at a time; its mode must match the expected one, and each axis must cite the listed signal.
 
 | # | Request | Risk (signal) | Uncertainty (signal) | Controlled flag | Expected mode |
 |---|---|---|---|---|---|

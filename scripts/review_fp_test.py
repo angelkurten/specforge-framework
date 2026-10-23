@@ -4,7 +4,7 @@
     python3 scripts/review_fp_test.py          # from the specforge directory
 
 One test per acceptance scenario in
-changes/2026-10-23-review-false-positives/contract.md, numbered the same way.
+specforge/changes/archive/2026-10-23-review-false-positives/contract.md, numbered the same way.
 Reuses the throwaway-repository fixture from scripts/review_test.py, which is
 locked and is not edited here.
 """

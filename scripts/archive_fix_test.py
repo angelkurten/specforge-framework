@@ -5,7 +5,7 @@
 
 Reuses the fixture from scripts/archive_test.py, which is locked and is not
 edited here. Findings are those in
-changes/2026-10-23-archive-on-merge/evidence.md, Review.
+specforge/changes/archive/2026-10-23-archive-on-merge/evidence.md, Review.
 """
 
 import subprocess
@@ -42,7 +42,7 @@ class ReviewFixTests(Repo):
 
     def test_b_archive_refuses_a_lock_file_rewritten_since_the_last_commit(self):
         self.write("tests/demo_test.py", "def test_one():\n    pass\n")
-        subprocess.run([sys.executable, str(Path(__file__).resolve().parent / "lock_tests.py"),
+        subprocess.run([sys.executable, str(Path(__file__).resolve().parent.parent / "specforge" / "scripts" / "lock_tests.py"),
                         "approve", CHANGE, "tests/demo_test.py"], cwd=self.root, check=True)
         r = self.archive()
         self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
@@ -53,7 +53,7 @@ class ReviewFixTests(Repo):
         for cmd in ("mv README.md .", "cp /dev/null tests/", "rm -r tests/__pycache__"):
             r = self.guard("Bash", {"command": cmd})
             self.assertEqual(r.returncode, 0, f"{cmd}: {r.stderr}")
-        for cmd in (f"rm -r {CHANGE}", "rm -r changes", f"mv {CHANGE} /tmp/x"):
+        for cmd in (f"rm -r {CHANGE}", "rm -r specforge/changes", f"mv {CHANGE} /tmp/x"):
             r = self.guard("Bash", {"command": cmd})
             self.assertEqual(r.returncode, 2, cmd)
 
