@@ -26,11 +26,15 @@ Uncertainty is **high** when any of the following holds, and **low** otherwise:
 | More than one approach is plausible and nobody knows which works | two candidate libraries, untried |
 | The change depends on behaviour nobody has observed yet | a third-party API not called before, a data source nobody has queried |
 
+An unspecified method with known, proven options (MFA by TOTP, SMS or passkeys) is **not** "nobody knows which works": the choice is made in the contract's Constraints or in `DECISIONS.md`. It counts only when nobody knows whether any option works for this case.
+
+A data source counts as "nobody has queried" only when no code in the repository reads it yet; the agent checks by searching the code. An internal source the code already reads is low uncertainty, even if this change reads it for a new purpose.
+
 A behaviour-preserving refactor is **low** uncertainty when its scope is stated: its outcome is that the existing tests still pass. A request with no stated scope ("clean up the billing module") is `unsure` until a one-sentence scope is given.
 
 ## Controlled flag
 
-A third field, decided apart from the two axes: the change is **regulated** (subject to an external compliance regime the team names, such as PCI DSS, HIPAA or SOX) or **crosses teams** (needs code or approval from more than one team). Either makes the flag **yes**. It can be `unsure`, like the axes.
+A third field, decided apart from the two axes: the change is **regulated** (subject to an external compliance regime the team names, such as PCI DSS, HIPAA or SOX) or **crosses teams** (needs code or approval from more than one team). Either makes the flag **yes**. When neither the request nor the code names a regime or a second team, the flag is **no**, not `unsure`: Controlled is for changes someone has said are regulated or shared. It is `unsure` only when a regime or a second team is mentioned but its reach is unclear.
 
 ## Mode
 
