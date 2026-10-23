@@ -12,7 +12,7 @@
 - **Deviations from the contract**:
   - The review fix round changed `scripts/review_prep.py`, which now blocks on an empty range. That file is outside Scope; the change is the artifact for the empty-range lesson.
   - Composing today's lessons added two artifacts the Scope did not list: `.github/workflows/v2-ci.yml` and a fourth step in `.claude/skills/specforge-review/SKILL.md`. They are the first use's output, and they are recorded here as deviations from Scope.
-  - `scripts/prd_check_test.py`, which failed 2 tests earlier today on both `v2` and `origin/main`, passes now on the same code. The failure depended on the environment and was not explained. It now runs in `v2-ci`, so any recurrence is caught by CI and does not rest on a claim.
+  - `scripts/prd_check_test.py` failed 2 tests earlier today and later passed on the same code. Its first run in `v2-ci` (run 2, on `03f430d`) failed the same 2 tests, and that showed the cause. Both tests read `tools/cli/framework/examples/prd-001-login-example.md`, an untracked copy that exists only after the CLI is built. They passed only in a checkout where the CLI had been built. They now read the identical tracked file `examples/prd-001-login-example.md`. This is a fix to a v1 test file, outside Scope.
 
 ## Review
 

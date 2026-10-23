@@ -602,12 +602,14 @@ class TestCommandLine(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("clean.", result.stdout)
 
+    # The tracked example at the repo root, not the copy under
+    # tools/cli/framework/, which exists only after the CLI is built.
     def test_a_dirty_file_exits_one(self):
-        result = self.run_cli(str(REPO / "tools/cli/framework/examples/prd-001-login-example.md"))
+        result = self.run_cli(str(REPO / "examples/prd-001-login-example.md"))
         self.assertEqual(result.returncode, 1, result.stdout[:400])
 
     def test_json_mode_emits_the_same_findings(self):
-        target = str(REPO / "tools/cli/framework/examples/prd-001-login-example.md")
+        target = str(REPO / "examples/prd-001-login-example.md")
         text = self.run_cli(target)
         payload = json.loads(self.run_cli("--json", target).stdout)
         self.assertEqual(payload["counts"]["total"],
