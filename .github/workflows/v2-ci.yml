@@ -1,0 +1,28 @@
+name: v2-ci
+
+# Runs the v2 Python suites on every push and PR. cli-ci.yml covers the CLI;
+# nothing ran these, so a regression in the loop, the lock guard, the review
+# script, archiving or compose could land unseen (changes/2026-10-23-compose).
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Python suites
+        run: |
+          for suite in loop_test review_test review_fp_test archive_test archive_fix_test guard_git_test compose_test; do
+            echo "::group::$suite"
+            python3 scripts/$suite.py
+            echo "::endgroup::"
+          done
