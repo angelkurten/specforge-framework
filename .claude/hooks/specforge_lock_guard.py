@@ -9,8 +9,8 @@ folder holding one; exits 0 otherwise. `scripts/lock_tests.py approve` and
 
 The Bash check matches common write forms only — redirection, in-place edits,
 tee, rm, mv, cp, truncate and git checkout/restore. It is a guide, not a
-guarantee: `scripts/lock_tests.py check`, which the loop runs after every
-iteration, is what catches a write this hook misses.
+guarantee: the loop compares every locked test against the hashes approved
+before its first iteration, and that is what catches a write this hook misses.
 """
 
 from __future__ import annotations
@@ -70,16 +70,18 @@ def bash_writes(command: str, locked: set[Path], locks: set[Path], root: Path) -
             or GIT_WRITE.search(segment)
         )
         if writer:
-            args = [w for w in words[1:] if not w.startswith("-")]
+            # `git rm` and `git mv` act like rm and mv.
+            verb, rest = (words[1], words[2:]) if words[0] == "git" and len(words) > 1 else (words[0], words[1:])
+            args = [w for w in rest if not w.startswith("-")]
             # mv and cp write to their last argument and only read or move the
             # rest; every other writer writes to all of its arguments.
-            moves = words[0] in {"mv", "cp"} and len(args) > 1
+            moves = verb in {"mv", "cp"} and len(args) > 1
             for i, word in enumerate(args):
                 target = resolve(word, root)
                 destination = moves and i == len(args) - 1
                 if target in locked:
                     return target
-                if not destination and words[0] in {"rm", "mv"} and removes_lock(target, locks):
+                if not destination and verb in {"rm", "mv"} and removes_lock(target, locks):
                     return target
     return None
 

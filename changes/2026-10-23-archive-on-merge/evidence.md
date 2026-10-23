@@ -22,3 +22,14 @@
 | R4 | `evidence.md`: "Deviations: none" was wrong | Corrected above |
 | R5 | `scripts/archive_test.py:128`: scenario 6 checks the rename of one of the four files | Not fixed: the test is locked. Recorded here |
 | nit | `scripts/archive.py` assumes the repository root as cwd | Stated in its docstring |
+
+### Re-verification
+
+The reviewer re-checked `90a57bd`: R1, R2, R3, R4 and the nit are fixed, and R5 is not (locked). Its new findings:
+
+| # | Finding | Resolution |
+|---|---|---|
+| R6 | The R3 fix let `git rm -r` and `git mv` of a change folder through: a regression from that fix | The guard treats `git rm` and `git mv` as `rm` and `mv`. Test-first in `scripts/guard_git_test.py` (2 tests approved red and locked) |
+| R7 | `scripts/archive.py` compares the lock with HEAD only, so a re-approval that was committed archives, and an untracked lock is not compared at all | Not fixable in the script: a committed re-approval is a legitimate human act. The Outcome's absolute claim is narrowed in `core/loop.md` § Archiving to what the code does. A committed re-approval shows in the diff and is caught at review. Outside git, nothing is compared |
+| nit | The guard docstring still said the loop runs `lock_tests.py check` | Corrected |
+
