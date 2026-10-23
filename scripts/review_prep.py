@@ -10,6 +10,11 @@ Diffs `<base>...HEAD` and reports what a pattern can decide on its own:
                 empty field
     should-fix  a stub added: TODO, FIXME, NotImplementedError, "not implemented"
 
+A pattern written as data is not reported: prose files (.md, .txt, .rst,
+.adoc), string literals, and lines inside a triple-quoted string added in the
+same hunk. A test removed from a file that adds another test is reported as a
+likely rename, at should-fix.
+
 Everything that needs judgement — scope creep, acceptance evidence no test
 covers, trivial tests, claims the evidence does not back — is left to the
 reviewer agent, which reads the packet this script prints (core/review.md).
@@ -35,7 +40,13 @@ TEST_FILE = re.compile(
 SKIP = re.compile(
     r"@pytest\.mark\.skip|\bunittest\.skip\b|\.skip\(|\bxit\(|\bxdescribe\(|\bt\.Skip\(|@Disabled\b|@Ignore\b"
 )
-STUB = re.compile(r"\bTODO\b|\bFIXME\b|NotImplementedError|not implemented", re.IGNORECASE)
+STUB = re.compile(r"\bTODO\b|\bFIXME\b|NotImplementedError")
+# The one stub that lives inside a string: a throw or raise whose message says
+# so. Matched on the raw line, since stripping strings would hide it.
+THROWN_STUB = re.compile(r"\b(?:throw|raise)\b.*not\s+implemented", re.IGNORECASE)
+PROSE = re.compile(r"\.(md|markdown|txt|rst|adoc)$")
+STRING = re.compile(r"""[rRbBfFuU]*("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)""")
+TRIPLE = re.compile(r'"""|\'\'\'')
 TEST_NAME = re.compile(
     r"^\s*def (test\w*)\(|^func (Test\w+)\(|\b(?:it|test)\(\s*['\"]([^'\"]+)['\"]",
     re.MULTILINE,
@@ -50,6 +61,34 @@ def git(*args: str) -> str:
 def changed_files(rng: str) -> list[tuple[str, str]]:
     out = git("diff", "--no-renames", "--name-status", rng)
     return [tuple(line.split("\t", 1)) for line in out.splitlines() if line]
+
+
+def code_lines(added: list[tuple[str, int, str]]) -> list[tuple[str, int, str, str]]:
+    """Each added code line as (path, line, raw text, text with strings removed).
+
+    Prose files are dropped, and so is every line inside a triple-quoted string
+    that opens in the same hunk. The state resets wherever line numbers jump,
+    because a new hunk may start anywhere.
+    """
+    out = []
+    path_seen, last, inside = None, 0, None
+    for path, number, text in added:
+        if PROSE.search(path):
+            continue
+        if path != path_seen or number != last + 1:
+            inside = None
+        path_seen, last = path, number
+        if inside:
+            if inside in text:
+                inside = None
+            continue
+        code = re.sub(r'""".*?"""|\'\'\'.*?\'\'\'', '""', text)
+        opener = TRIPLE.search(code)
+        if opener:
+            inside = opener.group(0)
+            code = code[: opener.start()]
+        out.append((path, number, text, STRING.sub('""', code)))
+    return out
 
 
 def added_lines(rng: str) -> list[tuple[str, int, str]]:
@@ -94,10 +133,10 @@ def review(change: Path, base: str) -> tuple[list[str], list[str]]:
     rng = f"{base}...HEAD"
     files = changed_files(rng)
     findings = []
-    for path, number, text in added_lines(rng):
-        if SKIP.search(text):
+    for path, number, text, code in code_lines(added_lines(rng)):
+        if SKIP.search(code):
             findings.append(f"blocker: {path}:{number} — skip marker added: {text.strip()}")
-        if STUB.search(text):
+        if STUB.search(code) or THROWN_STUB.search(text):
             findings.append(f"should-fix: {path}:{number} — stub added: {text.strip()}")
     for status, path in files:
         if not TEST_FILE.search(path):
@@ -107,8 +146,16 @@ def review(change: Path, base: str) -> tuple[list[str], list[str]]:
         elif status == "M":
             before = test_names(git("show", f"{base}:{path}"))
             after = test_names(Path(path).read_text())
+            added = [name for name in after if name not in before]
             for name, line in before.items():
-                if name not in after:
+                if name in after:
+                    continue
+                if added:
+                    findings.append(
+                        f"should-fix: {path}:{line} — test {name} removed and "
+                        f"{', '.join(added)} added: renamed?"
+                    )
+                else:
                     findings.append(f"blocker: {path}:{line} — test {name} removed")
     for path in check_locked(change, Path.cwd()):
         findings.append(f"blocker: {path}:1 — locked test changed")
