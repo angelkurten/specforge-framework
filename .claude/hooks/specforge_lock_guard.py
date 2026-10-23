@@ -30,20 +30,21 @@ IN_PLACE = re.compile(r"\b(sed|perl|ruby)\b[^|;&]*\s-[a-zA-Z]*i")
 GIT_WRITE = re.compile(r"\bgit\s+(checkout|restore|rm|mv)\b")
 
 
-def load_locked(root: Path) -> set[Path]:
-    """Locked tests plus the lock files themselves."""
+def load_locked(root: Path) -> tuple[set[Path], set[Path]]:
+    """Locked tests plus the lock files themselves, and the lock files alone."""
     # The project's own copy first, then the framework copy beside this hook.
     sys.path[:0] = [str(root / "scripts"), str(Path(__file__).resolve().parents[2] / "scripts")]
     try:
         from lock_tests import lock_files, locked_paths
     except ImportError:
-        return set()
-    return locked_paths(root) | lock_files(root)
+        return set(), set()
+    locks = lock_files(root)
+    return locked_paths(root) | locks, locks
 
 
-def protected(target: Path, locked: set[Path]) -> bool:
-    """A protected file, or a folder holding one."""
-    return target in locked or any(target in p.parents for p in locked)
+def removes_lock(target: Path, locks: set[Path]) -> bool:
+    """Removing or moving away a lock file, or a folder that holds one."""
+    return target in locks or any(target in lock.parents for lock in locks)
 
 
 def resolve(path: str, root: Path) -> Path:
@@ -51,7 +52,7 @@ def resolve(path: str, root: Path) -> Path:
     return (p if p.is_absolute() else root / p).resolve()
 
 
-def bash_writes(command: str, locked: set[Path], root: Path) -> Path | None:
+def bash_writes(command: str, locked: set[Path], locks: set[Path], root: Path) -> Path | None:
     for segment in re.split(r"\|\||&&|[;|\n]", command):
         try:
             words = shlex.split(segment)
@@ -69,16 +70,24 @@ def bash_writes(command: str, locked: set[Path], root: Path) -> Path | None:
             or GIT_WRITE.search(segment)
         )
         if writer:
-            for word in words[1:]:
-                if not word.startswith("-") and protected(resolve(word, root), locked):
-                    return resolve(word, root)
+            args = [w for w in words[1:] if not w.startswith("-")]
+            # mv and cp write to their last argument and only read or move the
+            # rest; every other writer writes to all of its arguments.
+            moves = words[0] in {"mv", "cp"} and len(args) > 1
+            for i, word in enumerate(args):
+                target = resolve(word, root)
+                destination = moves and i == len(args) - 1
+                if target in locked:
+                    return target
+                if not destination and words[0] in {"rm", "mv"} and removes_lock(target, locks):
+                    return target
     return None
 
 
 def main() -> int:
     payload = json.load(sys.stdin)
     root = Path(os.environ.get("CLAUDE_PROJECT_DIR") or payload.get("cwd") or ".").resolve()
-    locked = load_locked(root)
+    locked, locks = load_locked(root)
     if not locked:
         return 0
     tool = payload.get("tool_name", "")
@@ -88,7 +97,7 @@ def main() -> int:
         target = resolve(args[FILE_TOOLS[tool]], root)
         hit = target if target in locked else None
     elif tool == "Bash" and args.get("command"):
-        hit = bash_writes(args["command"], locked, root)
+        hit = bash_writes(args["command"], locked, locks, root)
     if hit is None:
         return 0
     print(
