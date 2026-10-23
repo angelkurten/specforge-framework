@@ -4,7 +4,8 @@
   - `python3 scripts/loop_test.py` before implementation: 11 of 11 failed (red). A human approved them; their hash was recorded, then locked with `scripts/lock_tests.py approve`.
   - `python3 scripts/loop_test.py` after implementation: 11 of 11 pass. The locked hash is unchanged (`785cdd4b…`); `lock_tests.py check` exits 0.
   - Live hook check in this repository's own Claude Code session: an Edit to the locked `scripts/loop_test.py` was refused with the hook's reason, and the file stayed unchanged.
-  - `node tools/cli/dist/src/cli.js doctor`: 0 findings. `python3 scripts/prd_check_test.py`: passes.
+  - `node tools/cli/dist/src/cli.js doctor`: 0 findings.
+  - `python3 scripts/prd_check_test.py`: 2 tests fail (`test_a_dirty_file_exits_one`, `test_json_mode_emits_the_same_findings`, both exit 2). They fail identically on `origin/main` at `8eed94c`, so this change did not cause them; not investigated here.
 - **Result**: pass. The green phase took 2 iterations. The first left 2 hook tests failing, because the hook looked for `lock_tests.py` only in the project's `scripts/`; it now also falls back to the framework copy beside the hook.
 - **Not checked**:
   - `scripts/loop.py` against a real model (`claude -p`). Every driver scenario ran against a fake agent. A real run costs money and is left for the first pilot change.
