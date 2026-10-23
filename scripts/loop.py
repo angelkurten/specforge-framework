@@ -9,7 +9,8 @@ contract and progress.md, take the next unticked task, tick it, log it, exit.
 State lives on disk, never in the agent's history. After every iteration the
 loop checks, in this order, and stops on the first that holds:
 
-    exit 4  an approved test changed        (scripts/lock_tests.py check)
+    exit 4  an approved test changed        (scripts/lock_tests.py check),
+            or the change folder moved      (scripts/archive.py mid-run)
     exit 5  the agent wrote a BLOCKED: line  (progress.md § Blocked)
     exit 0  every task is ticked
     exit 3  the cost cap is passed           (summed total_cost_usd)
@@ -108,6 +109,8 @@ def run(change: Path, agent: str, max_iterations: int | None, max_cost: float | 
             env=env,
         )
         spent += cost_of(result.stdout)
+        if not progress_file.is_file():
+            return stop(4, f"change folder moved: {change} no longer holds progress.md")
         progress = progress_file.read_text()
         done, total = ticked(progress)
         print(f"loop: iteration {iteration} — {done}/{total} tasks, {spent:.2f} USD, agent exit {result.returncode}")

@@ -62,17 +62,22 @@ def check(change: Path, root: Path) -> list[str]:
     return changed
 
 
-def locked_paths(root: Path) -> set[Path]:
-    """Every test locked by an active change: one directly under changes/."""
+def active_changes(root: Path) -> list[Path]:
+    """Change folders that lock tests: directly under changes/, not archived."""
     changes = root / "changes"
     if not changes.is_dir():
-        return set()
-    return {
-        (root / path).resolve()
-        for change in changes.iterdir()
-        if change.is_dir()
-        for path in read_lock(change)
-    }
+        return []
+    return [c for c in changes.iterdir() if c.is_dir() and (c / LOCK_FILE).is_file()]
+
+
+def locked_paths(root: Path) -> set[Path]:
+    """Every test locked by an active change."""
+    return {(root / path).resolve() for change in active_changes(root) for path in read_lock(change)}
+
+
+def lock_files(root: Path) -> set[Path]:
+    """The locked-tests.txt of every active change."""
+    return {(change / LOCK_FILE).resolve() for change in active_changes(root)}
 
 
 def main(argv: list[str]) -> int:

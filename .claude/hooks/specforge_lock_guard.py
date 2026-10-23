@@ -2,8 +2,10 @@
 """Claude Code PreToolUse hook: refuse edits to tests a human approved.
 
 Reads the hook payload on stdin. Exits 2 with the reason on stderr when an
-Edit, Write, MultiEdit or NotebookEdit targets a locked test, or when a Bash
-command writes to one; exits 0 otherwise.
+Edit, Write, MultiEdit or NotebookEdit targets a locked test or a change's
+locked-tests.txt, or when a Bash command writes to one, or removes or moves a
+folder holding one; exits 0 otherwise. `scripts/lock_tests.py approve` and
+`scripts/archive.py` are how a human changes the lock on purpose.
 
 The Bash check matches common write forms only — redirection, in-place edits,
 tee, rm, mv, cp, truncate and git checkout/restore. It is a guide, not a
@@ -29,13 +31,19 @@ GIT_WRITE = re.compile(r"\bgit\s+(checkout|restore|rm|mv)\b")
 
 
 def load_locked(root: Path) -> set[Path]:
+    """Locked tests plus the lock files themselves."""
     # The project's own copy first, then the framework copy beside this hook.
     sys.path[:0] = [str(root / "scripts"), str(Path(__file__).resolve().parents[2] / "scripts")]
     try:
-        from lock_tests import locked_paths
+        from lock_tests import lock_files, locked_paths
     except ImportError:
         return set()
-    return locked_paths(root)
+    return locked_paths(root) | lock_files(root)
+
+
+def protected(target: Path, locked: set[Path]) -> bool:
+    """A protected file, or a folder holding one."""
+    return target in locked or any(target in p.parents for p in locked)
 
 
 def resolve(path: str, root: Path) -> Path:
@@ -62,7 +70,7 @@ def bash_writes(command: str, locked: set[Path], root: Path) -> Path | None:
         )
         if writer:
             for word in words[1:]:
-                if not word.startswith("-") and resolve(word, root) in locked:
+                if not word.startswith("-") and protected(resolve(word, root), locked):
                     return resolve(word, root)
     return None
 
@@ -84,9 +92,9 @@ def main() -> int:
     if hit is None:
         return 0
     print(
-        f"{hit.relative_to(root)} is a locked test: a human approved it red, and "
-        "the implementation may not change it. If you think the test is wrong, "
-        "stop and write a BLOCKED: line in progress.md instead.",
+        f"{hit.relative_to(root)} is locked: a human approved these tests red, and "
+        "the implementation may not change them or their lock. If you think a test "
+        "is wrong, stop and write a BLOCKED: line in progress.md instead.",
         file=sys.stderr,
     )
     return 2

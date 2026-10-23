@@ -41,3 +41,9 @@ A run with no iteration cap does not start. The cap comes from the `**Budget**:`
 ## No cheating
 
 The implementer never disables tests, linters or rules, never leaves stubs, and never edits or deletes an approved test. If it believes a test is wrong, or that reality contradicts the contract, it writes `BLOCKED:` and stops. A human then either fixes the contract and re-approves the tests, or tells the agent it is wrong.
+
+## Archiving
+
+When a change is done, `python3 scripts/archive.py <change>` moves its folder to `changes/archive/`, as the last commit before merge. The human runs it, or asks the agent to. An archived change locks nothing.
+
+The command refuses, and changes nothing, while the evidence report has an empty field or a locked test differs from what was approved. An archive therefore never unlocks a test that was tampered with. The Claude Code guard also protects `locked-tests.txt` and the folders holding one, so the only ways to change a lock are `lock_tests.py approve` and `archive.py`. A loop whose change folder moves mid-run stops with exit 4.
