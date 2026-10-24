@@ -52,8 +52,9 @@ TEST_NAME = re.compile(
     re.MULTILINE,
 )
 EVIDENCE_FIELDS = ("Ran", "Result", "CI", "Not checked", "Deviations from the contract")
-# A CI value that names no run: the omission written as a word.
-PLACEHOLDER = re.compile(r"^(pending|tbd|\[tbd\]|todo|not run|n/?a|none)(?=\W|$)|^[-.]+$", re.IGNORECASE)
+# A CI value must name a run: a run number or a commit, so at least one digit.
+# Any placeholder, wrapped or not (`pending`, **TBD**, "green"), names none.
+NAMES_A_RUN = re.compile(r"\d")
 
 
 def git(*args: str) -> str:
@@ -199,13 +200,13 @@ def evidence_findings(change: Path) -> list[str]:
     for field in EVIDENCE_FIELDS:
         # A field's value is its own line plus indented continuation lines, so
         # an empty field never borrows the text of a following section.
-        match = re.search(rf"^- \*\*{re.escape(field)}\*\*:(.*(?:\n[ \t]+\S.*)*)", text, re.MULTILINE)
+        match = re.search(rf"^- \*\*{re.escape(field)}\*\*:(.*(?:\n(?:[ \t]*\n)*[ \t]+\S.*)*)", text, re.MULTILINE)
         line = text.count("\n", 0, match.start()) + 1 if match else 1
         value = match.group(1).strip() if match else ""
         if not value:
             findings.append(f"blocker: {evidence}:{line} — evidence field '{field}' is empty")
-        elif field == "CI" and PLACEHOLDER.match(value):
-            findings.append(f"blocker: {evidence}:{line} — evidence field 'CI' says nothing: {value[:40]}")
+        elif field == "CI" and not NAMES_A_RUN.search(value):
+            findings.append(f"blocker: {evidence}:{line} — evidence field 'CI' names no run: {value[:40]}")
     return findings
 
 

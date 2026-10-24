@@ -24,7 +24,7 @@ Out:
 
 ## Constraints
 
-- The field is checked for presence and non-emptiness only. Whether the runs it names are green is the reviewer's job (`specforge/core/review.md` § Evidence).
+- The script checks that the field is present and names at least one run: it must contain a number, a run number or a commit. Whether the runs it names exist and are green is the reviewer's job (`specforge/core/review.md` § Evidence). This Constraint was widened after the second review; see the evidence's Deviations.
 
 ## Acceptance evidence
 
@@ -41,6 +41,11 @@ Added after review (`scripts/evidence_ci_fix_test.py`):
 6. An empty `CI` field followed by a blank line and a section is a blocker. A field's value is its own line plus indented continuation lines only.
 7. A placeholder `CI` value is a blocker: `pending`, `TBD`, `[TBD]`, `n/a`, `-`, `not run` or `none`.
 8. A multi-line `CI` value passes, and `none` stays valid for fields where it is an answer.
+
+Added after re-verification (`scripts/evidence_ci_fix2_test.py`):
+
+9. A `CI` value that names no run is a blocker, however it is wrapped: `` `pending` ``, `**pending**`, `_TBD_`, `(pending)`, `—`, `CI pending`, `green`, `see Review`.
+10. Sub-bullets separated from their field by a blank line belong to the field.
 
 ## Stop and escalate
 

@@ -12,7 +12,7 @@ After the loop finishes, a reviewer that did not write the change looks for ways
 - **Contract.** Every scenario in Acceptance evidence has a test that would fail without the change. Nothing in the diff falls outside Scope. Every Constraint holds.
 - **Tests.** No test passes trivially (`assert True`, a mock asserted to return what it was told to). No test is tied to the implementation instead of the behaviour: private internals, an exact call order the contract does not state. A test asserting an absence names the broken implementation it would fail against.
 - **Cheating a pattern misses.** Assertions weakened in tests that were not locked. Exceptions swallowed. Expected values special-cased in the code.
-- **Evidence.** The reviewer re-runs the commands under Ran and compares the output with Result. It reads the CI runs the `CI` field names, on the pushed head: a missing, red or unnamed run is a blocker. Not checked is plausible, and nothing that was skipped is claimed as checked. Every deviation from the contract is recorded.
+- **Evidence.** The reviewer re-runs the commands under Ran and compares the output with Result. It reads the CI runs the `CI` field names. They must be the runs on the last commit that changed code or tests, since a report cannot name the runs of the commit that holds it. It also reads the runs on the pushed head directly, so an evidence-only follow-up is covered too. A missing, red or unnamed run is a blocker. Not checked is plausible, and nothing that was skipped is claimed as checked. Every deviation from the contract is recorded.
 
 **Controlled mode** adds the security checklist:
 - authentication and authorization on every new entry point;
