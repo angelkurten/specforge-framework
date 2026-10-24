@@ -6,7 +6,10 @@
 
 Each iteration starts a fresh agent process with the same prompt: read the
 contract and progress.md, take the next unticked task, tick it, log it, exit.
-State lives on disk, never in the agent's history. After every iteration the
+State lives on disk, never in the agent's history. Before the first iteration
+(and after the lock checks) the contract's `## Premises` must each be checked:
+a missing section, an unchecked premise or one marked `→ fails:` stops the run
+with exit 2. After every iteration the
 loop checks, in this order, and stops on the first that holds:
 
     exit 4  an approved test changed        (specforge/scripts/lock_tests.py check),
@@ -42,6 +45,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lock_tests import LOCK_FILE, UNLOCKED, MalformedLock, digest, read_lock  # noqa: E402
 
 NO_PROGRESS_LIMIT = 3
+# A result counts only right after a non-empty backticked command.
+CHECKED = re.compile(r"`[^`]+` → (holds($|[:.])|fails: \S)")
 DEFAULT_AGENT = "claude -p --output-format json"
 
 PROMPT = """\
@@ -114,13 +119,14 @@ def run(change: Path, agent: str, max_iterations: int | None, max_cost: float | 
     heading = re.search(r"^## Premises\b.*$", text, re.M)
     if not heading:
         return stop(2, f"{contract} has no ## Premises section: check the premises, or write `- none` and why")
-    section = text[heading.end():].split("\n## ", 1)[0]
-    if not any(line.startswith("- ") for line in section.splitlines()):
+    section = re.sub(r"<!--.*?-->", "", text[heading.end():].split("\n## ", 1)[0], flags=re.S)
+    bullets = [line.strip() for line in section.splitlines() if re.match(r"\s*[-*+] ", line)]
+    if not bullets:
         return stop(2, f"{contract} has a ## Premises heading but no premise: check the premises, or write `- none` and why")
-    for line in section.splitlines():
-        if line.startswith("- ") and not re.match(r"- none — \S", line) and "→ holds" not in line and "→ fails:" not in line:
+    for line in bullets:
+        if not re.match(r"- none — \S", line) and not CHECKED.search(line):
             return stop(2, f"premise not checked, run its command and record `→ holds` or `→ fails:`: {line}")
-        if line.startswith("- ") and "→ fails:" in line:
+        if "→ fails:" in line:
             return stop(2, f"premise failed, re-classify the change (usually to Explore): {line}")
     spent = 0.0
     idle = 0
@@ -148,7 +154,7 @@ def run(change: Path, agent: str, max_iterations: int | None, max_cost: float | 
         progress = progress_file.read_text()
         done, total = ticked(progress)
         print(f"loop: iteration {iteration} — {done}/{total} tasks, {spent:.2f} USD, agent exit {result.returncode}")
-        if result.returncode:
+        if result.returncode and result.stderr.strip():
             print(result.stderr[-500:].rstrip(), file=sys.stderr)
         reason = blocked(progress)
         if reason is not None:

@@ -24,12 +24,12 @@ Fix round after review (VERDICT: BLOCK — `## Premises` is found by substring, 
 
 Third round after the second review (PASS with a should-fix: `→ holds` is read without its backticked command; other bullet shapes slip past):
 
-- [ ] scripts/premise_challenge_fix2_test.py test_13_a_result_needs_a_backticked_command_right_before_it
-- [ ] scripts/premise_challenge_fix2_test.py test_15_a_bullet_in_another_shape_does_not_slip_past
-- [ ] scripts/premise_challenge_fix2_test.py test_14 and test_16 (pass today; must still pass)
-- [ ] scripts/premise_challenge_fix2_test.py test_17_a_failing_agent_with_no_stderr_prints_no_blank_line
-- [ ] scripts/premise_challenge_fix2_test.py test_18_the_docstring_names_the_premise_refusal
-- [ ] Add premise_challenge_fix2_test to the suite list in .github/workflows/v2-ci.yml, every suite there passes, and `loop.py` on this change's own contract gets past the premise check
+- [x] scripts/premise_challenge_fix2_test.py test_13_a_result_needs_a_backticked_command_right_before_it
+- [x] scripts/premise_challenge_fix2_test.py test_15_a_bullet_in_another_shape_does_not_slip_past
+- [x] scripts/premise_challenge_fix2_test.py test_14 and test_16 (pass today; must still pass)
+- [x] scripts/premise_challenge_fix2_test.py test_17_a_failing_agent_with_no_stderr_prints_no_blank_line
+- [x] scripts/premise_challenge_fix2_test.py test_18_the_docstring_names_the_premise_refusal
+- [x] Add premise_challenge_fix2_test to the suite list in .github/workflows/v2-ci.yml, every suite there passes, and `loop.py` on this change's own contract gets past the premise check
 
 ## Blocked
 
@@ -48,3 +48,9 @@ Third round after the second review (PASS with a should-fix: `→ holds` is read
 - test_11: `loop.py` solo acepta `- none — <motivo>` (regex `- none — \S`) como sin premisa; `python3 scripts/premise_challenge_fix_test.py` → 4 OK, solo falla test_12 (tarea siguiente); `premise_challenge_test.py` → 7 tests OK.
 - test_12: la plantilla templates/contract.md dice que cada premisa cabe en una línea; `python3 scripts/premise_challenge_fix_test.py` → 5 tests OK.
 - ci2: añadí premise_challenge_fix_test a la lista de v2-ci.yml; las 21 suites de la lista con `python3 scripts/<suite>.py` → todas OK; `loop.py <este cambio> --agent true --max-iterations 1` → pasa la comprobación de premisas (sale 3 por presupuesto, no 2).
+- test_13: `loop.py` exige un comando entre backticks justo antes de `→ holds`/`→ fails: <detalle>` (regex `CHECKED`); `premise_challenge_fix2_test.py test_13` → OK; el resto de suites de scripts/ (sin fix2) → todas OK; fallan solo 15, 17 y 18 (tareas siguientes).
+- test_15: `loop.py` quita los comentarios HTML de la sección y lee viñetas `-`, `*`, `+` o con sangría; `python3 scripts/premise_challenge_fix2_test.py` → pasan 13-16, fallan solo 17 y 18 (tareas siguientes); premise_challenge_test, premise_challenge_fix_test y loop_test → OK.
+- test_14/16: sin cambios de código; `python3 scripts/premise_challenge_fix2_test.py -v` → 13-16 OK, fallan solo 17 y 18 (tareas siguientes).
+- test_17: `loop.py` imprime el stderr del agente solo si no está vacío tras `strip()`; `python3 scripts/premise_challenge_fix2_test.py` → pasan 13-17, falla solo 18 (tarea siguiente); premise_challenge_test y loop_test → OK.
+- test_18: el docstring de `specforge/scripts/loop.py` nombra el rechazo por `## Premises` (exit 2); `python3 scripts/premise_challenge_fix2_test.py` → 6 tests OK; premise_challenge_test y loop_test → OK.
+- ci3: añadí premise_challenge_fix2_test a la lista de v2-ci.yml; las 22 suites de la lista con `python3 scripts/<suite>.py` → todas OK; `loop.py <este cambio> --agent true --max-iterations 1` → pasa la comprobación de premisas (sale 3 por presupuesto, no 2).
