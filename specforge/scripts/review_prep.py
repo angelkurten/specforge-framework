@@ -181,11 +181,13 @@ def _lock_modes(ref: str) -> dict[str, str]:
 def _mode_findings(before: dict[str, str], after: dict[str, str]) -> list[str]:
     """A lock that is not a regular file, or changed type in the range, is a blocker."""
     out = []
+    paired = {_canonical(p): mode for p, mode in before.items()}
     for p, mode in after.items():
+        old = paired.get(_canonical(p))
         if mode not in REGULAR:
             out.append(f"blocker: {p}:1 — lock is not a regular file (symlink or other, mode {mode}), it can hide a re-approval")
-        elif p in before and before[p] not in REGULAR:
-            out.append(f"blocker: {p}:1 — lock changed type in the range (mode {before[p]} -> {mode}), confirm it")
+        elif old is not None and old not in REGULAR:
+            out.append(f"blocker: {p}:1 — lock changed type in the range (mode {old} -> {mode}), confirm it")
     return out
 
 

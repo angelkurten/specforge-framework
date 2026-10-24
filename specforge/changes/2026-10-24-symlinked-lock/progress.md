@@ -12,11 +12,11 @@
 
 Fix round after review (VERDICT: BLOCK — the symlink refusal lives only in `main()`; `archive.py` calls `check()` and `loop.py` calls `read_lock()`):
 
-- [ ] scripts/symlinked_lock_fix_test.py test_5_archive_refuses_a_symlinked_lock
-- [ ] scripts/symlinked_lock_fix_test.py test_6_the_loop_does_not_start_on_a_symlinked_lock
-- [ ] scripts/symlinked_lock_fix_test.py test_8_a_type_change_with_an_archive_move_is_a_blocker
-- [ ] scripts/symlinked_lock_fix_test.py test_7 and test_9 (pass today; must still pass)
-- [ ] Add symlinked_lock_fix_test to the suite list in .github/workflows/v2-ci.yml, and every suite there passes
+- [x] scripts/symlinked_lock_fix_test.py test_5_archive_refuses_a_symlinked_lock
+- [x] scripts/symlinked_lock_fix_test.py test_6_the_loop_does_not_start_on_a_symlinked_lock
+- [x] scripts/symlinked_lock_fix_test.py test_8_a_type_change_with_an_archive_move_is_a_blocker
+- [x] scripts/symlinked_lock_fix_test.py test_7 and test_9 (pass today; must still pass)
+- [x] Add symlinked_lock_fix_test to the suite list in .github/workflows/v2-ci.yml, and every suite there passes
 
 ## Blocked
 
@@ -26,3 +26,8 @@ Fix round after review (VERDICT: BLOCK — the symlink refusal lives only in `ma
 - Task 3: `lock_tests.py check` returns 1 and names `symlink` when `locked-tests.txt` is a symlink (check in `main`). `python3 scripts/symlinked_lock_test.py` → Ran 4 tests, OK; reapprove_test, archive_test, loop_test → OK.
 - Task 4: no code needed. `python3 scripts/symlinked_lock_test.py -k test_3` → Ran 1 test, OK; full file → Ran 4 tests, OK.
 - Task 5: added `symlinked_lock_test` to the suite list in v2-ci.yml. Ran all 18 suites from that list with `python3 scripts/<suite>.py` → all exit 0, OK.
+- Fix task 1: `_lines` in lock_tests.py now raises MalformedLock for a symlinked lock, so `check` (archive) and `read_lock` (loop) both refuse it. `python3 scripts/symlinked_lock_fix_test.py -k test_5` → OK; full fix file → 4 of 5 pass (test_8 still fails, next task); symlinked_lock_test, archive_test, loop_test, reapprove_test → OK.
+- Fix task 2: no code needed, the `_lines` guard from fix task 1 already stops the loop on a symlinked lock. `python3 scripts/symlinked_lock_fix_test.py -k test_6` → Ran 1 test, OK.
+- Fix task 3: `_mode_findings` in review_prep.py now pairs base and HEAD lock modes by `_canonical` path, so a type change plus archive move is a blocker. `python3 scripts/symlinked_lock_fix_test.py` → Ran 5 tests, OK (test_7 and test_9 also pass); symlinked_lock_test, review_test, reapprove_test, review_fp_test, archive_test, loop_test → OK.
+- Fix task 4: no code needed. `python3 scripts/symlinked_lock_fix_test.py -k test_7` and `-k test_9` → Ran 1 test, OK each.
+- Fix task 5: added `symlinked_lock_fix_test` to the suite list in v2-ci.yml. Ran all 19 suites from that list with `python3 scripts/<suite>.py` → all exit 0.

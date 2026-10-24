@@ -64,6 +64,8 @@ def read_lock(change: Path) -> dict[str, str]:
 
 def _lines(change: Path) -> list[str]:
     lock = change / LOCK_FILE
+    if lock.is_symlink():
+        raise MalformedLock(f"{lock} is a symlink: a lock must be a regular file")
     return lock.read_text().splitlines() if lock.is_file() else []
 
 
