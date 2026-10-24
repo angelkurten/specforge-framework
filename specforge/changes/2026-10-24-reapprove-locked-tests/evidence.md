@@ -41,3 +41,16 @@ The reviewer re-ran B1–B4 against `af04104`: all fixed under the amended guara
 
 Done test-first in `scripts/reapprove_fix2_test.py`: 4 tests, red, approved and locked. This was the third and last iteration of the budget.
 
+### Extra round
+
+The budget ran out with findings still open on `f3b361d`. The human chose one extra round, with no further round after it. The reviewer found N1–N4 and the Scope deviation fixed, and the `core/review.md` claim still false. It reported:
+
+| # | Finding | Resolution |
+|---|---|---|
+| A | blocker: locks were keyed by folder name in a dict, so a same-named decoy lock hid a re-approval | Locks pair by canonical path, every copy is compared, and more than one lock for a change is reported (scenario 19) |
+| L | blocker: git quoted non-ASCII paths, so their locks were never compared | Every git call in `review_prep.py` runs with `core.quotePath=false`, and `ls-tree` runs with `-z` (20) |
+| D | should-fix: history was compared as a set, so a duplicated line went unreported | History is compared by count (21) |
+| S1 | `core/review.md` overclaimed | Reworded to state what the comparison now does |
+
+Done test-first in `scripts/reapprove_fix3_test.py`: 3 tests, red, approved and locked. All thirteen `v2-ci.yml` suites pass.
+

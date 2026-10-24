@@ -77,6 +77,12 @@ Added after re-verification (`scripts/reapprove_fix2_test.py`). `review_prep.py`
 17. A committed re-approval is reported even when the working tree holds the old lock.
 18. A re-approval and an `archive.py` move in the same range is reported.
 
+Added in the extra round the human granted after the budget ran out (`scripts/reapprove_fix3_test.py`):
+
+19. A second, unchanged lock under another folder with the same change name does not hide a re-approval; the duplicate is reported too.
+20. A re-approval in a change whose path has non-ASCII characters is reported.
+21. A duplicated history line, added or removed, is reported.
+
 ## Stop and escalate
 
 Stop if `ask` cannot be produced without changing how the guard refuses today. Budget: 3 iterations.

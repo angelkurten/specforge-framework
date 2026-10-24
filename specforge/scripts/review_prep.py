@@ -55,7 +55,9 @@ EVIDENCE_FIELDS = ("Ran", "Result", "Not checked", "Deviations from the contract
 
 
 def git(*args: str) -> str:
-    return subprocess.run(["git", *args], capture_output=True, text=True, check=True).stdout
+    # quotePath=false: a non-ASCII path is printed as itself, not "d\\303\\251mo",
+    # so every path test below sees the real name.
+    return subprocess.run(["git", "-c", "core.quotePath=false", *args], capture_output=True, text=True, check=True).stdout
 
 
 def changed_files(rng: str) -> list[tuple[str, str]]:
@@ -119,54 +121,67 @@ def lock_findings(base: str, files: list[tuple[str, str]], added: list[tuple[str
     """Every change to an approved test's lock in the range, unattributed: the diff cannot say who.
 
     Compares every lock at the base with every lock at HEAD, both read from git
-    and paired by change name, so a dirty working tree cannot hide a committed
-    change and an archive move cannot unpair a lock. Reports removed locks,
-    removed entries, changed hashes, and added or removed history lines; a
-    human confirms each (specforge/core/review.md)."""
+    and paired by canonical path, where `changes/archive/<name>/` counts as
+    `changes/<name>/`. A dirty working tree cannot hide a committed change, an
+    archive move cannot unpair a lock, and a second lock for the same change is
+    itself reported. History lines are compared by count. A human confirms each
+    finding (specforge/core/review.md)."""
     before, after = _locks_at(base), _locks_at("HEAD")
     out = []
-    for name, (path, text) in before.items():
-        old_entries, old_history = _parse_lock(text)
-        if name not in after:
-            for entry, (_, number) in old_entries.items():
-                out.append(f"should-fix: {path}:{number} — lock removed in the range, confirm it: {entry}")
-            continue
-        new_path, new_text = after[name]
-        new_entries, new_history = _parse_lock(new_text)
-        for entry, (sha, number) in old_entries.items():
-            if entry not in new_entries:
-                out.append(f"should-fix: {path}:{number} — approved entry removed, confirm it: {entry}")
-            elif new_entries[entry][0] not in (sha, "UNLOCKED"):
-                out.append(f"should-fix: {new_path}:{new_entries[entry][1]} — approved hash changed (re-approved), confirm it: {entry}")
-        for line, number in old_history.items():
-            if line not in new_history:
-                out.append(f"should-fix: {path}:{number} — lock history removed, confirm it: {line}")
-        for line, number in new_history.items():
-            if line not in old_history:
-                out.append(f"should-fix: {new_path}:{number} — lock history added, confirm it: {line}")
-    for name, (path, text) in after.items():
-        if name not in before:
-            for line, number in _parse_lock(text)[1].items():
-                out.append(f"should-fix: {path}:{number} — lock history added, confirm it: {line}")
+    for key, copies in after.items():
+        if len(copies) > 1:
+            paths = ", ".join(p for p, _ in copies)
+            out.append(f"should-fix: {copies[0][0]}:1 — more than one lock for this change, confirm it: {paths}")
+    for key, copies in before.items():
+        for path, text in copies:
+            old_entries, old_history = _parse_lock(text)
+            if key not in after:
+                for entry, (_, number) in old_entries.items():
+                    out.append(f"should-fix: {path}:{number} — lock removed in the range, confirm it: {entry}")
+                continue
+            for new_path, new_text in after[key]:
+                new_entries, new_history = _parse_lock(new_text)
+                for entry, (sha, number) in old_entries.items():
+                    if entry not in new_entries:
+                        out.append(f"should-fix: {path}:{number} — approved entry removed, confirm it: {entry}")
+                    elif new_entries[entry][0] not in (sha, "UNLOCKED"):
+                        out.append(f"should-fix: {new_path}:{new_entries[entry][1]} — approved hash changed (re-approved), confirm it: {entry}")
+                for line, numbers in old_history.items():
+                    for number in numbers[len(new_history.get(line, [])):]:
+                        out.append(f"should-fix: {path}:{number} — lock history removed, confirm it: {line}")
+                for line, numbers in new_history.items():
+                    for number in numbers[len(old_history.get(line, [])):]:
+                        out.append(f"should-fix: {new_path}:{number} — lock history added, confirm it: {line}")
+    for key, copies in after.items():
+        if key not in before:
+            for path, text in copies:
+                for line, numbers in _parse_lock(text)[1].items():
+                    for number in numbers:
+                        out.append(f"should-fix: {path}:{number} — lock history added, confirm it: {line}")
     return out
 
 
-def _locks_at(ref: str) -> dict[str, tuple[str, str]]:
-    """Each change's lock at ref, keyed by change folder name."""
-    listing = git("ls-tree", "-r", "--name-only", ref).splitlines()
-    return {
-        Path(p).parent.name: (p, git("show", f"{ref}:{p}"))
-        for p in listing
-        if p.endswith("/locked-tests.txt")
-    }
+def _canonical(path: str) -> str:
+    """A lock's change, wherever it sits: archive/<name>/ counts as <name>/."""
+    return re.sub(r"/archive/([^/]+/locked-tests\.txt)$", r"/\1", path)
 
 
-def _parse_lock(text: str) -> tuple[dict[str, tuple[str, int]], dict[str, int]]:
-    """(entry -> (sha, line), history line -> line) from a lock's text."""
+def _locks_at(ref: str) -> dict[str, list[tuple[str, str]]]:
+    """Every lock at ref, grouped by canonical path; more than one per key is reported."""
+    listing = git("ls-tree", "-r", "-z", "--name-only", ref).split("\0")
+    locks: dict[str, list[tuple[str, str]]] = {}
+    for p in listing:
+        if p.endswith("/locked-tests.txt"):
+            locks.setdefault(_canonical(p), []).append((p, git("show", f"{ref}:{p}")))
+    return locks
+
+
+def _parse_lock(text: str) -> tuple[dict[str, tuple[str, int]], dict[str, list[int]]]:
+    """(entry -> (sha, line), history line -> every line it appears on)."""
     entries, history = {}, {}
     for number, line in enumerate(text.splitlines(), 1):
         if line.startswith("#"):
-            history.setdefault(line, number)
+            history.setdefault(line, []).append(number)
         elif "  " in line:
             sha, entry = line.split("  ", 1)
             entries[entry] = (sha, number)
