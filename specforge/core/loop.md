@@ -17,7 +17,13 @@ Every iteration is a fresh agent process that reads `contract.md` and `progress.
 ## Phases
 
 1. **Red.** One context writes tests from the contract's Acceptance evidence. They must fail. A human reviews them before any implementation exists, then locks them: `python3 specforge/scripts/lock_tests.py approve <change> <test files>`. The tests become the tasks in `progress.md`, in the order they should pass.
-2. **Green.** `python3 specforge/scripts/loop.py <change>` runs the implementer: one task per iteration, the least code that makes it pass, the task ticked and logged before exiting.
+2. **Green.** `python3 specforge/scripts/loop.py <change>` runs the implementer: one task per iteration, the least code that makes it pass, the task ticked and logged before exiting. An agent command that ran a real change end to end (`specforge/changes/archive/2026-10-24-symlinked-lock`):
+
+   ```
+   python3 specforge/scripts/loop.py <change> --agent 'claude -p --output-format json --model sonnet --permission-mode acceptEdits "--allowedTools=Bash(python3 *),Bash(git diff *),Bash(git status *),Bash(git log *)"'
+   ```
+
+   Write `--allowedTools=` with an `=` and commas. The space-separated form takes every later argument as a tool, including the prompt `loop.py` appends last, and each iteration exits 1 having done nothing.
 3. **Refactor.** Structural changes land in commits separate from behaviour changes.
 4. **Review.** A separate reviewer checks the diff against the contract, and checks that the tests are not trivial or tied to the implementation. Controlled mode adds a sample of mutation testing.
 

@@ -86,3 +86,10 @@ Append-only log of decisions with future value. Shape: [`templates/decision-log.
 **Rejected**: a further fix round on this change; splitting it into a follow-up change now.
 **Revisit if**: the pilot starts — cover it there, or earlier if a symlinked lock appears in any real change.
 
+## 2026-10-24 — Close the symlinked-lock gap
+
+**Context**: Fase 0 of the pilot fixed the gap accepted in the entry above, as the first real change run end to end by `loop.py` with `claude -p` (`specforge/changes/archive/2026-10-24-symlinked-lock`).
+**Decision**: the gap is closed. `review_prep.py` blocks a lock that is not a regular file or changed type in the range, paired by canonical path; `lock_tests.py` refuses a symlinked lock in `_lines()`, which `check()` and `read_lock()` share. The accepted risk above no longer stands.
+**Rejected**: keeping the reviewer's manual typechange check as the only control.
+**Revisit if**: a lock reaches a reader through a path that does not go through `_lines()` or `git ls-tree`.
+
