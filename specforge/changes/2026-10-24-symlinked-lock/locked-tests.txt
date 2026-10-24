@@ -1,1 +1,2 @@
+a6bb7c4da48c727a80964c2bc98b9f997a70b1f33f3ede7e0d132ecff09c8469  scripts/symlinked_lock_fix_test.py
 75a5780ad653437afcfddba97ccbdc38a97dea01597cde81bbfb3a6f11e0fd02  scripts/symlinked_lock_test.py

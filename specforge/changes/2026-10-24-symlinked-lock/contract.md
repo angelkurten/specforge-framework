@@ -39,6 +39,14 @@ Out:
 3. A regular-file lock, re-approved in the range, gets its usual should-fix and no `symlink` blocker. Fails against an implementation that flags every lock.
 4. `lock_tests.py check` on a change whose `locked-tests.txt` is a symlink exits 1 and names `symlink`.
 
+Added after review (`scripts/symlinked_lock_fix_test.py`):
+
+5. `archive.py` refuses a change whose committed `locked-tests.txt` is a symlink to a valid lock, names `symlink`, and moves nothing.
+6. `loop.py` on a change whose lock is a symlink to a valid lock stops with exit 4 naming `symlink`, before the agent runs.
+7. A lock that was a symlink at the base and is a regular file at HEAD is a blocker naming `type`.
+8. The same type change combined with an archive move is a blocker on the archived lock path: locks are paired by canonical path.
+9. A regular lock re-approved in the range gets its should-fix, no lock blocker of any kind, and exit 0.
+
 ## Stop and escalate
 
 Stop if the fix needs a change to an approved test of another change, or if detecting the mode needs anything beyond `git ls-tree`. Budget: 10 iterations, 5 USD.

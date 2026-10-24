@@ -10,6 +10,14 @@
 - [x] scripts/symlinked_lock_test.py test_3_a_regular_lock_reapproval_is_not_reported_as_a_symlink (passes today; must still pass)
 - [x] Add symlinked_lock_test to the suite list in .github/workflows/v2-ci.yml, and every suite there passes
 
+Fix round after review (VERDICT: BLOCK — the symlink refusal lives only in `main()`; `archive.py` calls `check()` and `loop.py` calls `read_lock()`):
+
+- [ ] scripts/symlinked_lock_fix_test.py test_5_archive_refuses_a_symlinked_lock
+- [ ] scripts/symlinked_lock_fix_test.py test_6_the_loop_does_not_start_on_a_symlinked_lock
+- [ ] scripts/symlinked_lock_fix_test.py test_8_a_type_change_with_an_archive_move_is_a_blocker
+- [ ] scripts/symlinked_lock_fix_test.py test_7 and test_9 (pass today; must still pass)
+- [ ] Add symlinked_lock_fix_test to the suite list in .github/workflows/v2-ci.yml, and every suite there passes
+
 ## Blocked
 
 ## Log
