@@ -71,3 +71,18 @@ Append-only log of decisions with future value. Shape: [`templates/decision-log.
 **Decision**: v2 lives under one `specforge/` folder: `specforge/core/`, `specforge/scripts/`, `specforge/changes/` and `specforge/DECISIONS.md`. Only the guard and the skills sit outside it, under the reserved `specforge` prefix.
 **Rejected**: prefixing each name in place; making `init` and `update` collision-proof against the manifest, which would change v1 CLI semantics.
 **Revisit if**: the v1 files that predate v2 (`templates/`, `examples/`, `scripts/prd-check.py`) are migrated, at which point they should move under `specforge/` too.
+
+## 2026-10-24 — Guarantees about locked tests rest on the reviewed diff, not on hooks
+
+**Context**: three adversarial review rounds of `specforge/changes/archive/2026-10-24-reapprove-locked-tests` showed that a PreToolUse hook cannot stop an agent that has a shell. Any command has another spelling, and the hook can be made to crash open.
+**Decision**: the guarantee is that no change to an approved test or its lock reaches merge without appearing in review for a human to confirm. `review_prep.py` compares every lock between base and HEAD from git. The guard's refusals and its `ask` on `unlock` are aids, not the guarantee.
+**Rejected**: claiming the hook prevents an agent from unlocking.
+**Revisit if**: a host offers a write barrier an agent's shell cannot route around.
+
+## 2026-10-24 — Accept the symlinked-lock gap until the pilot
+
+**Context**: the final re-verification found that a `locked-tests.txt` committed as a symlink is compared as its link text, which can hide a re-approval. The fix budget and the one extra round were spent.
+**Decision**: the human accepted the risk, with the reason "it will be covered in the pilot". `specforge/core/review.md` names the gap, and reviewers check for a typechange on any lock.
+**Rejected**: a further fix round on this change; splitting it into a follow-up change now.
+**Revisit if**: the pilot starts — cover it there, or earlier if a symlinked lock appears in any real change.
+

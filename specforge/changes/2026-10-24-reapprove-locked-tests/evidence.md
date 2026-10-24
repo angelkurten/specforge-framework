@@ -54,3 +54,11 @@ The budget ran out with findings still open on `f3b361d`. The human chose one ex
 
 Done test-first in `scripts/reapprove_fix3_test.py`: 3 tests, red, approved and locked. All thirteen `v2-ci.yml` suites pass.
 
+### Final re-verification and accepted risk
+
+The reviewer re-checked `bb9a77d`: A, L, D and S1 are fixed. CI is green: `v2-ci` run 14 and `cli-ci` run 85.
+
+One new finding remains open. It is a blocker against the amended guarantee. A `locked-tests.txt` committed as a symlink is read by `review_prep.py` as its link text, so a link whose target name spells the base lock text hides a re-approval of a weakened test. `lock_tests.py check` and `review_prep.py` both pass. The diff shows a typechange (`T`) on `locked-tests.txt` and an added file with a multi-line name, but the script does not flag them.
+
+The budget and the one extra round were spent. On 2026-10-24 the human accepted this risk, with the reason: **it will be covered in the pilot**. It is not fixed in this change. `specforge/core/review.md` names the gap and tells the reviewer to check for a typechange on any lock, and `specforge/DECISIONS.md` records the decision with the pilot as its review point.
+
