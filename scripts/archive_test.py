@@ -47,7 +47,7 @@ class Repo(unittest.TestCase):
         self.git("init", "-q", "-b", "main")
         self.git("config", "user.email", "t@example.com")
         self.git("config", "user.name", "t")
-        self.write(f"{CHANGE}/contract.md", "# Demo\n\n**Mode**: Contract\n")
+        self.write(f"{CHANGE}/contract.md", "# Demo\n\n**Mode**: Contract\n\n## Premises\n\n- none — fixture\n")
         self.write(f"{CHANGE}/progress.md", "# Progress\n\n**Budget**: 5 iterations\n\n## Tasks\n\n- [ ] test_one\n\n## Blocked\n\n## Log\n")
         self.write(f"{CHANGE}/evidence.md", EVIDENCE)
         self.write("tests/demo_test.py", "def test_one():\n    assert 1 + 1 == 2\n")
@@ -121,7 +121,7 @@ class ArchiveTests(Repo):
         self.write(f"{CHANGE}/evidence.md", EVIDENCE)
         r = self.archive()
         self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
-        self.assertEqual((self.root / ARCHIVED / "contract.md").read_text(), "# Demo\n\n**Mode**: Contract\n")
+        self.assertEqual((self.root / ARCHIVED / "contract.md").read_text(), "# Demo\n\n**Mode**: Contract\n\n## Premises\n\n- none — fixture\n")
         self.assertTrue((self.root / CHANGE / "contract.md").is_file())
 
     def test_6_a_tracked_folder_moves_with_git_mv(self):

@@ -31,6 +31,21 @@
 
 <!-- Compatibility, security, performance, patterns to respect. -->
 
+## Premises
+
+<!--
+  The beliefs whose failure would make this change wrong, each with the
+  cheapest command that checks it and what it returned. One bullet per
+  premise, in exactly this format, so loop.py can read it:
+
+  - <premise> — `<command>` → holds
+  - <premise> — `<command>` → fails: <what it returned>
+  - none — <the reason there is no premise>
+
+  The loop does not start while a premise has no result or a failed one.
+  A failed premise sends the change back to Classify.
+-->
+
 ## Acceptance evidence
 
 <!--

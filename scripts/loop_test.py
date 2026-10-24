@@ -89,6 +89,7 @@ class Fixture(unittest.TestCase):
 
     def loop(self, mode, budget="10 iterations", extra=()):
         (self.change / "progress.md").write_text(PROGRESS.format(budget=budget))
+        (self.change / "contract.md").write_text("# Demo\n\n## Premises\n\n- none — fixture\n")
         env = dict(os.environ, FAKE_MODE=mode, FAKE_TEST=str(self.test_file))
         return run(
             [LOOP, self.change, "--agent", f"{sys.executable} {self.agent}", *extra],

@@ -109,6 +109,16 @@ def run(change: Path, agent: str, max_iterations: int | None, max_cost: float | 
         return stop(4, f"locked test unlocked, awaiting re-approval: {', '.join(unlocked)}")
     lock_file = change / LOCK_FILE
     lock_bytes = lock_file.read_bytes() if lock_file.is_file() else None
+    contract = change / "contract.md"
+    text = contract.read_text() if contract.is_file() else ""
+    if "## Premises" not in text:
+        return stop(2, f"{contract} has no ## Premises section: check the premises, or write `- none` and why")
+    section = text.split("## Premises", 1)[1].split("\n## ", 1)[0]
+    for line in section.splitlines():
+        if line.startswith("- ") and not line.startswith("- none") and "→ holds" not in line and "→ fails:" not in line:
+            return stop(2, f"premise not checked, run its command and record `→ holds` or `→ fails:`: {line}")
+        if line.startswith("- ") and "→ fails:" in line:
+            return stop(2, f"premise failed, re-classify the change (usually to Explore): {line}")
     spent = 0.0
     idle = 0
     iteration = 0
@@ -135,6 +145,8 @@ def run(change: Path, agent: str, max_iterations: int | None, max_cost: float | 
         progress = progress_file.read_text()
         done, total = ticked(progress)
         print(f"loop: iteration {iteration} — {done}/{total} tasks, {spent:.2f} USD, agent exit {result.returncode}")
+        if result.returncode:
+            print(result.stderr[-500:].rstrip(), file=sys.stderr)
         reason = blocked(progress)
         if reason is not None:
             return stop(5, f"blocked: {reason}")
