@@ -39,7 +39,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lock_tests import digest, read_lock  # noqa: E402
+from lock_tests import LOCK_FILE, UNLOCKED, MalformedLock, digest, read_lock  # noqa: E402
 
 NO_PROGRESS_LIMIT = 3
 DEFAULT_AGENT = "claude -p --output-format json"
@@ -99,7 +99,16 @@ def run(change: Path, agent: str, max_iterations: int | None, max_cost: float | 
     # The approved hashes as they stood before the first iteration. Checked
     # against these, not the lock file on disk, so neither moving the folder
     # nor rewriting the lock hides an edited test.
-    approved = read_lock(change)
+    try:
+        approved = read_lock(change)
+    except MalformedLock as e:
+        return stop(4, f"malformed lock line {e}")
+    unlocked = [path for path, sha in approved.items() if sha == UNLOCKED]
+    if unlocked:
+        # Never hand the agent a test a human opened for re-approval.
+        return stop(4, f"locked test unlocked, awaiting re-approval: {', '.join(unlocked)}")
+    lock_file = change / LOCK_FILE
+    lock_bytes = lock_file.read_bytes() if lock_file.is_file() else None
     spent = 0.0
     idle = 0
     iteration = 0
@@ -121,6 +130,8 @@ def run(change: Path, agent: str, max_iterations: int | None, max_cost: float | 
             return stop(4, f"locked test changed: {', '.join(changed)}")
         if not progress_file.is_file():
             return stop(4, f"change folder moved: {change} no longer holds progress.md")
+        if (lock_file.read_bytes() if lock_file.is_file() else None) != lock_bytes:
+            return stop(4, f"lock file changed during the loop: {lock_file}")
         progress = progress_file.read_text()
         done, total = ticked(progress)
         print(f"loop: iteration {iteration} — {done}/{total} tasks, {spent:.2f} USD, agent exit {result.returncode}")

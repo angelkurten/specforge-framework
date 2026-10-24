@@ -29,12 +29,18 @@ Python 3 standard library only.
 from __future__ import annotations
 
 import hashlib
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 LOCK_FILE = "locked-tests.txt"
 UNLOCKED = "UNLOCKED"
+ENTRY = re.compile(r"^([0-9a-f]{64}|UNLOCKED)  (\S.*)$")
+
+
+class MalformedLock(ValueError):
+    """A lock line that is neither an entry, a # history line, nor blank."""
 
 
 def digest(path: Path) -> str:
@@ -42,12 +48,17 @@ def digest(path: Path) -> str:
 
 
 def read_lock(change: Path) -> dict[str, str]:
-    """Map each approved path to its approved hash, or UNLOCKED."""
+    """Map each approved path to its approved hash, or UNLOCKED.
+
+    Raises MalformedLock on any other line, so every reader fails closed."""
     entries = {}
-    for line in _lines(change):
-        if line.strip() and not line.startswith("#"):
-            sha, path = line.split("  ", 1)
-            entries[path] = sha
+    for number, line in enumerate(_lines(change), 1):
+        if not line.strip() or line.startswith("#"):
+            continue
+        match = ENTRY.match(line)
+        if not match:
+            raise MalformedLock(f"{change / LOCK_FILE}:{number}: {line[:60]}")
+        entries[match.group(2)] = match.group(1)
     return entries
 
 
@@ -92,7 +103,11 @@ def unlock(change: Path, paths: list[str], reason: str) -> list[str]:
 def check(change: Path, root: Path) -> list[str]:
     """Return every approved path that is missing or no longer matches."""
     changed = []
-    for path, sha in read_lock(change).items():
+    try:
+        entries = read_lock(change)
+    except MalformedLock as e:
+        return [f"malformed lock line {e}"]
+    for path, sha in entries.items():
         file = root / path
         if not file.is_file() or digest(file) != sha:
             changed.append(path)
@@ -135,6 +150,9 @@ def main(argv: list[str]) -> int:
         if not reason.strip() or not args:
             print("unlock needs --reason \"<why the approved test must change>\" and at least one path", file=sys.stderr)
             return 2
+        if "\n" in reason or "\r" in reason:
+            print("unlock --reason must be one line: a newline would forge lock lines", file=sys.stderr)
+            return 2
         refused = unlock(Path(argv[1]), args, reason.strip())
         for path in refused:
             print(f"not locked, nothing to unlock: {path}")
@@ -142,9 +160,14 @@ def main(argv: list[str]) -> int:
     if len(argv) == 2 and argv[0] == "check":
         change = Path(argv[1])
         changed = check(change, Path.cwd())
-        unlocked = {p for p, sha in read_lock(change).items() if sha == UNLOCKED}
+        try:
+            unlocked = {p for p, sha in read_lock(change).items() if sha == UNLOCKED}
+        except MalformedLock:
+            unlocked = set()
         for path in changed:
-            if path in unlocked:
+            if path.startswith("malformed lock line"):
+                print(path)
+            elif path in unlocked:
                 print(f"locked test unlocked, awaiting re-approval: {path}")
             else:
                 print(f"locked test changed: {path}")

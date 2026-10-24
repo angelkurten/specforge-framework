@@ -34,3 +34,8 @@ CHECKED: <one line per check above: what was read or run>
 - A finding without a `file:line` is dropped.
 - The verdict is BLOCK when the reviewer or the script reports any blocker.
 - `CHECKED` is never empty. A PASS has to say what it looked at.
+
+## Lock changes
+
+`review_prep.py` reports every change to a `locked-tests.txt` it diffs as should-fix: a new history line, a changed hash or a removed entry. It does not attribute them; a diff cannot say who ran a command. The reviewer lists each one, and the human confirms each before a PASS stands. An approved test that changed without a human confirming it is the one defect this framework exists to catch.
+

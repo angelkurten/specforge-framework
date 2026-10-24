@@ -28,6 +28,7 @@ FILE_TOOLS = {"Edit": "file_path", "Write": "file_path", "MultiEdit": "file_path
 WRITERS = {"rm", "mv", "cp", "tee", "truncate", "dd"}
 IN_PLACE = re.compile(r"\b(sed|perl|ruby)\b[^|;&]*\s-[a-zA-Z]*i")
 GIT_WRITE = re.compile(r"\bgit\s+(checkout|restore|rm|mv)\b")
+WRITE_SHAPE = re.compile(r">|\b(rm|mv|cp|tee|truncate|dd)\b|\b(sed|perl|ruby)\b[^|;&]*\s-[a-zA-Z]*i|\bgit\s+(checkout|restore|rm|mv)\b")
 UNLOCK = re.compile(r"lock_tests\.py\b[^;&|]*\bunlock\b")
 
 
@@ -40,6 +41,7 @@ def load_locked(root: Path) -> tuple[set[Path], set[Path]]:
     except ImportError:
         return set(), set()
     locks = lock_files(root)
+    # A malformed lock raises here; main() fails closed on it.
     return locked_paths(root) | locks, locks
 
 
@@ -90,11 +92,17 @@ def bash_writes(command: str, locked: set[Path], locks: set[Path], root: Path) -
 def main() -> int:
     payload = json.load(sys.stdin)
     root = Path(os.environ.get("CLAUDE_PROJECT_DIR") or payload.get("cwd") or ".").resolve()
-    locked, locks = load_locked(root)
-    if not locked:
-        return 0
     tool = payload.get("tool_name", "")
     args = payload.get("tool_input") or {}
+    try:
+        locked, locks = load_locked(root)
+    except Exception as e:  # fail closed: an unreadable lock protects everything
+        if tool in FILE_TOOLS or (tool == "Bash" and WRITE_SHAPE.search(args.get("command") or "")):
+            print(f"a lock file cannot be read ({e}); every write is refused until it is fixed", file=sys.stderr)
+            return 2
+        return 0
+    if not locked:
+        return 0
     hit = None
     if tool in FILE_TOOLS and args.get(FILE_TOOLS[tool]):
         target = resolve(args[FILE_TOOLS[tool]], root)

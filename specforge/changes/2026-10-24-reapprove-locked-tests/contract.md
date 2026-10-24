@@ -9,7 +9,9 @@ When a human changes a design that approved tests encode, there is one sanctione
 2. Edit the test.
 3. `lock_tests.py approve` again.
 
-Every step is recorded in the lock file, so it shows up in the diff and in review. Until the test is re-approved, nothing downstream proceeds: the loop does not run, and the change does not archive. In Claude Code the guard routes `unlock` to a human confirmation prompt, so an agent cannot unlock on its own.
+Every step is recorded in the lock file, so it shows up in the diff and in review. Until the test is re-approved, nothing downstream proceeds: the loop does not run, and the change does not archive.
+
+**The guarantee** (amended after review, by the human): no change to an approved test or to its lock reaches merge without appearing in review for a human to confirm. A hook cannot stop an agent that has a shell, since any command has another spelling. The guarantee therefore rests on the git diff, which cannot be spelled around. In Claude Code the guard also routes `unlock` to a human confirmation prompt. That prompt is an aid, not the guarantee.
 
 ## Scope
 
@@ -36,6 +38,9 @@ Out: any change to how first approvals work.
 - An unlocked entry counts as changed for `check`. So `archive.py` refuses, and `loop.py` stops at its first iteration.
 - History lines start with `#` and are never removed by `approve`.
 - Not verified: how `ask` behaves under `bypassPermissions`. There the hash check and review remain the controls.
+- A reason is one line. A newline in it would forge lock or history lines.
+- The guard fails closed. If a lock file cannot be read, every write is refused until the lock is fixed.
+- `review_prep.py` never attributes a lock change to anyone. It reports every change to an existing lock line, and `specforge/core/review.md` requires a human to confirm each one before a PASS.
 
 ## Acceptance evidence
 
@@ -52,6 +57,18 @@ Out: any change to how first approvals work.
 6. `loop.py` started with an unlocked entry stops at iteration 1 with exit 4.
 7. The guard answers a Bash `lock_tests.py unlock` command with exit 0 and an `ask` decision on stdout. It still refuses with exit 2 when the same command also writes to a locked test.
 8. `review_prep.py` reports an unlock in the range as should-fix, naming the test and the reason.
+
+Added after review (`scripts/reapprove_fix_test.py`):
+
+9. `review_prep.py` reports, as should-fix and without naming who did it:
+   - an `approve` over a locked entry with no `unlock` (a changed hash);
+   - a removed entry;
+   - an added `# reapproved` line.
+10. `loop.py` started with an unlocked entry never invokes the agent.
+11. `loop.py` stops with exit 4 when an iteration changes the lock file, even if no test changed.
+12. `unlock` refuses a reason containing a newline, with exit 2, and the lock is unchanged.
+13. With an unreadable lock file, the guard refuses an Edit with exit 2, both to a test and to any other file.
+14. `check` reports a malformed lock line with exit 1, so `archive.py` refuses.
 
 ## Stop and escalate
 

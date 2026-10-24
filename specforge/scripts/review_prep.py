@@ -115,6 +115,37 @@ def test_names(text: str) -> dict[str, int]:
     return names
 
 
+def lock_findings(base: str, files: list[tuple[str, str]], added: list[tuple[str, int, str]]) -> list[str]:
+    """Every change to an approved test's lock, unattributed: the diff cannot say who.
+
+    New history lines, changed hashes and removed entries are each reported, so a
+    human confirms every one (specforge/core/review.md). A lock first added in
+    the range is a first approval and is not reported here."""
+    out = []
+    for path, number, text in added:
+        if path.endswith("/locked-tests.txt") and text.startswith("#"):
+            out.append(f"should-fix: {path}:{number} — lock history added, confirm it: {text}")
+    for status, path in files:
+        if status != "M" or not path.endswith("/locked-tests.txt"):
+            continue
+        before = {}
+        for number, line in enumerate(git("show", f"{base}:{path}").splitlines(), 1):
+            if line.strip() and not line.startswith("#") and "  " in line:
+                sha, entry = line.split("  ", 1)
+                before[entry] = (sha, number)
+        after = {}
+        for line in Path(path).read_text().splitlines():
+            if line.strip() and not line.startswith("#") and "  " in line:
+                sha, entry = line.split("  ", 1)
+                after[entry] = sha
+        for entry, (sha, number) in before.items():
+            if entry not in after:
+                out.append(f"should-fix: {path}:{number} — approved entry removed, confirm it: {entry}")
+            elif after[entry] != sha and after[entry] != "UNLOCKED":
+                out.append(f"should-fix: {path}:{number} — approved hash changed (re-approved), confirm it: {entry}")
+    return out
+
+
 def evidence_findings(change: Path) -> list[str]:
     evidence = change / "evidence.md"
     if not evidence.is_file():
@@ -134,9 +165,7 @@ def review(change: Path, base: str) -> tuple[list[str], list[str]]:
     files = changed_files(rng)
     findings = []
     added = added_lines(rng)
-    for path, number, text in added:
-        if path.endswith("/locked-tests.txt") and text.startswith("# unlocked "):
-            findings.append(f"should-fix: {path}:{number} — approved test re-opened by a human: {text[len('# unlocked '):]}")
+    findings += lock_findings(base, files, added)
     for path, number, text, code in code_lines(added):
         if SKIP.search(code):
             findings.append(f"blocker: {path}:{number} — skip marker added: {text.strip()}")
