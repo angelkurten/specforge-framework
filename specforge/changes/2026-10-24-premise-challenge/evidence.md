@@ -1,0 +1,7 @@
+## Evidence
+
+- **Ran**: the contract's Challenge by hand before Red (`grep -ln "LOOP" scripts/*_test.py` and the fixture contracts; `grep -v "^#" specforge/changes/*/locked-tests.txt`), then `python3 specforge/scripts/loop.py specforge/changes/2026-10-24-premise-challenge` with `claude -p --model sonnet --permission-mode acceptEdits "--allowedTools=…"`, then every suite in `.github/workflows/v2-ci.yml` locally, then `lock_tests.py check` on this change.
+- **Result**: the first premise as written ("breaks no existing suite") failed: five suites run `loop.py` on fixture contracts without the section. The human kept the strict rule and chose to migrate the fixtures; the premise was restated and holds. Loop exit 0, 8/8 tasks in 8 iterations, 2.19 USD. All 20 suites pass, including `scripts/premise_challenge_test.py` (7 tests). `lock_tests.py check` exit 0.
+- **CI**: on `417ce29`, `v2-ci` run 23 (id 40141222097) success; `cli-ci` run 94 (id 40141222163) success.
+- **Not checked**: a `## Premises` section with no bullet at all. The template carries its format inside an HTML comment, so a contract copied from it unedited has the heading and no bullet; no scenario covers what `loop.py` does with that.
+- **Deviations from the contract**: the Constraints listed `archive_fix_test.py` and the `reapprove_*` fixtures for migration; they import the `Repo` fixture from `archive_test.py`, so migrating that one fixture covered them, and only `archive_test.py` and `loop_test.py` changed.
