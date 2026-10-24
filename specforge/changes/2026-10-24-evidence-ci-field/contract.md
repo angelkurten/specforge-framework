@@ -19,7 +19,7 @@ Out:
 
 ## Context
 
-- `specforge/changes/archive/2026-10-23-compose/compose.md`, and `specforge/changes/archive/2026-10-23-init-installs-v2/evidence.md` and `specforge/changes/archive/2026-10-23-specforge-namespace/evidence.md`: two reports omitted CI although `.claude/skills/specforge-review/SKILL.md` step 4 already asked for it. An instruction was not enough.
+- `specforge/changes/archive/2026-10-23-init-installs-v2/evidence.md` and `specforge/changes/archive/2026-10-23-specforge-namespace/evidence.md`: two reports omitted CI although `.claude/skills/specforge-review/SKILL.md` step 4 already asked for it. An instruction was not enough.
 - `specforge/scripts/review_prep.py` `EVIDENCE_FIELDS` and `evidence_findings`.
 
 ## Constraints
@@ -35,6 +35,12 @@ Out:
 3. A filled `CI` field, with the other four fields filled, gives no evidence blocker.
 4. `archive.py` refuses a change whose evidence lacks `CI`.
 5. `templates/evidence-report.md` carries a `CI` field.
+
+Added after review (`scripts/evidence_ci_fix_test.py`):
+
+6. An empty `CI` field followed by a blank line and a section is a blocker. A field's value is its own line plus indented continuation lines only.
+7. A placeholder `CI` value is a blocker: `pending`, `TBD`, `[TBD]`, `n/a`, `-`, `not run` or `none`.
+8. A multi-line `CI` value passes, and `none` stays valid for fields where it is an answer.
 
 ## Stop and escalate
 
