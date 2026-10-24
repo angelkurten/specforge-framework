@@ -111,11 +111,14 @@ def run(change: Path, agent: str, max_iterations: int | None, max_cost: float | 
     lock_bytes = lock_file.read_bytes() if lock_file.is_file() else None
     contract = change / "contract.md"
     text = contract.read_text() if contract.is_file() else ""
-    if "## Premises" not in text:
+    heading = re.search(r"^## Premises\b.*$", text, re.M)
+    if not heading:
         return stop(2, f"{contract} has no ## Premises section: check the premises, or write `- none` and why")
-    section = text.split("## Premises", 1)[1].split("\n## ", 1)[0]
+    section = text[heading.end():].split("\n## ", 1)[0]
+    if not any(line.startswith("- ") for line in section.splitlines()):
+        return stop(2, f"{contract} has a ## Premises heading but no premise: check the premises, or write `- none` and why")
     for line in section.splitlines():
-        if line.startswith("- ") and not line.startswith("- none") and "→ holds" not in line and "→ fails:" not in line:
+        if line.startswith("- ") and not re.match(r"- none — \S", line) and "→ holds" not in line and "→ fails:" not in line:
             return stop(2, f"premise not checked, run its command and record `→ holds` or `→ fails:`: {line}")
         if line.startswith("- ") and "→ fails:" in line:
             return stop(2, f"premise failed, re-classify the change (usually to Explore): {line}")

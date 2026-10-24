@@ -15,12 +15,12 @@
 
 Fix round after review (VERDICT: BLOCK — `## Premises` is found by substring, so a mention in prose hides the section; an empty section and a loose `- none` start the loop):
 
-- [ ] scripts/premise_challenge_fix_test.py test_8_a_mention_before_the_heading_does_not_hide_the_real_premises
-- [ ] scripts/premise_challenge_fix_test.py test_9_a_mention_without_the_heading_does_not_start
-- [ ] scripts/premise_challenge_fix_test.py test_10_a_heading_with_no_bullet_does_not_start
-- [ ] scripts/premise_challenge_fix_test.py test_11_only_none_with_a_reason_counts_as_no_premise
-- [ ] scripts/premise_challenge_fix_test.py test_12_the_template_says_a_premise_fits_on_one_line
-- [ ] Add premise_challenge_fix_test to the suite list in .github/workflows/v2-ci.yml, and every suite there passes, and `loop.py` on this change's own contract gets past the premise check
+- [x] scripts/premise_challenge_fix_test.py test_8_a_mention_before_the_heading_does_not_hide_the_real_premises
+- [x] scripts/premise_challenge_fix_test.py test_9_a_mention_without_the_heading_does_not_start
+- [x] scripts/premise_challenge_fix_test.py test_10_a_heading_with_no_bullet_does_not_start
+- [x] scripts/premise_challenge_fix_test.py test_11_only_none_with_a_reason_counts_as_no_premise
+- [x] scripts/premise_challenge_fix_test.py test_12_the_template_says_a_premise_fits_on_one_line
+- [x] Add premise_challenge_fix_test to the suite list in .github/workflows/v2-ci.yml, and every suite there passes, and `loop.py` on this change's own contract gets past the premise check
 
 ## Blocked
 
@@ -33,3 +33,9 @@ Fix round after review (VERDICT: BLOCK — `## Premises` is found by substring, 
 - test_5: sin cambios de código; `python3 scripts/premise_challenge_test.py` → pasan 1-6, solo falla 7 (tarea siguiente).
 - test_7: `loop.py` imprime los últimos 500 caracteres del stderr del agente cuando sale con código distinto de cero; `python3 scripts/premise_challenge_test.py` → 7 tests OK.
 - ci: añadí premise_challenge_test a la lista de v2-ci.yml; corrí las 20 suites de la lista con `python3 scripts/<suite>.py` → todas OK (exit 0).
+- test_8: `loop.py` busca `## Premises` solo al inicio de línea (regex `^## Premises`, multilínea); `premise_challenge_fix_test.py test_8` → OK, `premise_challenge_test.py` → 7 tests OK.
+- test_9: sin cambios de código (el regex `^## Premises` de test_8 ya lo cubre); `python3 scripts/premise_challenge_fix_test.py PremiseChallengeFixTests.test_9_a_mention_without_the_heading_does_not_start` → OK; siguen fallando 10, 11 y 12 (tareas siguientes).
+- test_10: `loop.py` rechaza (exit 2) un `## Premises` sin ninguna viñeta `- `; `python3 scripts/premise_challenge_fix_test.py` → test_10 OK, fallan 11 y 12 (tareas siguientes); `premise_challenge_test.py` → OK.
+- test_11: `loop.py` solo acepta `- none — <motivo>` (regex `- none — \S`) como sin premisa; `python3 scripts/premise_challenge_fix_test.py` → 4 OK, solo falla test_12 (tarea siguiente); `premise_challenge_test.py` → 7 tests OK.
+- test_12: la plantilla templates/contract.md dice que cada premisa cabe en una línea; `python3 scripts/premise_challenge_fix_test.py` → 5 tests OK.
+- ci2: añadí premise_challenge_fix_test a la lista de v2-ci.yml; las 21 suites de la lista con `python3 scripts/<suite>.py` → todas OK; `loop.py <este cambio> --agent true --max-iterations 1` → pasa la comprobación de premisas (sale 3 por presupuesto, no 2).
