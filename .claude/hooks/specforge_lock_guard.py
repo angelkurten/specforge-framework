@@ -28,6 +28,7 @@ FILE_TOOLS = {"Edit": "file_path", "Write": "file_path", "MultiEdit": "file_path
 WRITERS = {"rm", "mv", "cp", "tee", "truncate", "dd"}
 IN_PLACE = re.compile(r"\b(sed|perl|ruby)\b[^|;&]*\s-[a-zA-Z]*i")
 GIT_WRITE = re.compile(r"\bgit\s+(checkout|restore|rm|mv)\b")
+UNLOCK = re.compile(r"lock_tests\.py\b[^;&|]*\bunlock\b")
 
 
 def load_locked(root: Path) -> tuple[set[Path], set[Path]]:
@@ -101,6 +102,14 @@ def main() -> int:
     elif tool == "Bash" and args.get("command"):
         hit = bash_writes(args["command"], locked, locks, root)
     if hit is None:
+        if tool == "Bash" and UNLOCK.search(args.get("command") or ""):
+            # Unlocking an approved test is a human act: route it to a prompt.
+            # Where nobody can answer (a `claude -p` loop iteration), the call is denied.
+            print(json.dumps({"hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "ask",
+                "permissionDecisionReason": "Unlocking approved tests needs a human: confirm only if you changed the design these tests encode.",
+            }}))
         return 0
     print(
         f"{hit.relative_to(root)} is locked: a human approved these tests red, and "

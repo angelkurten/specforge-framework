@@ -3,11 +3,19 @@
 
     python3 specforge/scripts/lock_tests.py approve specforge/changes/<change> tests/a_test.py ...
     python3 specforge/scripts/lock_tests.py check specforge/changes/<change>
+    python3 specforge/scripts/lock_tests.py unlock specforge/changes/<change> --reason "<why>" tests/a_test.py ...
 
 `approve` records one `<sha256>  <path>` line per test in
 `<change>/locked-tests.txt`; approving a path again replaces its line. `check`
 prints every approved test whose bytes no longer match and exits 1, or exits 0.
 Paths are relative to the working directory, which is the repository root.
+
+`unlock` is the one sanctioned way to change an approved test after a human
+changes the design it encodes: it needs a reason, marks the entry UNLOCKED and
+records `# unlocked <date> <path>: <reason>`. Until `approve` re-locks it,
+`check` reports it, so the loop does not run and the change does not archive.
+`approve` on an unlocked entry records `# reapproved <date> <path>`. History
+lines are kept by every rewrite, so each re-approval shows in the diff.
 
 This is the sensor half of the lock. The Claude Code hook in
 `.claude/hooks/specforge_lock_guard.py` is the guide half: it refuses an edit
@@ -22,9 +30,11 @@ from __future__ import annotations
 
 import hashlib
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 LOCK_FILE = "locked-tests.txt"
+UNLOCKED = "UNLOCKED"
 
 
 def digest(path: Path) -> str:
@@ -32,24 +42,51 @@ def digest(path: Path) -> str:
 
 
 def read_lock(change: Path) -> dict[str, str]:
-    """Map each approved path to its approved hash."""
-    lock = change / LOCK_FILE
-    if not lock.is_file():
-        return {}
+    """Map each approved path to its approved hash, or UNLOCKED."""
     entries = {}
-    for line in lock.read_text().splitlines():
-        if line.strip():
+    for line in _lines(change):
+        if line.strip() and not line.startswith("#"):
             sha, path = line.split("  ", 1)
             entries[path] = sha
     return entries
 
 
+def _lines(change: Path) -> list[str]:
+    lock = change / LOCK_FILE
+    return lock.read_text().splitlines() if lock.is_file() else []
+
+
+def _write(change: Path, entries: dict[str, str], history: list[str]) -> None:
+    lines = history + [f"{sha}  {path}" for path, sha in sorted(entries.items())]
+    (change / LOCK_FILE).write_text("\n".join(lines) + "\n")
+
+
+def _today() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+
 def approve(change: Path, paths: list[str], root: Path) -> None:
     entries = read_lock(change)
+    history = [l for l in _lines(change) if l.startswith("#")]
     for path in paths:
+        if entries.get(path) == UNLOCKED:
+            history.append(f"# reapproved {_today()} {path}")
         entries[path] = digest(root / path)
-    lines = [f"{sha}  {path}" for path, sha in sorted(entries.items())]
-    (change / LOCK_FILE).write_text("\n".join(lines) + "\n")
+    _write(change, entries, history)
+
+
+def unlock(change: Path, paths: list[str], reason: str) -> list[str]:
+    """Mark approved paths UNLOCKED; return the paths refused, changing nothing then."""
+    entries = read_lock(change)
+    refused = [p for p in paths if entries.get(p) in (None, UNLOCKED)]
+    if refused:
+        return refused
+    history = [l for l in _lines(change) if l.startswith("#")]
+    for path in paths:
+        entries[path] = UNLOCKED
+        history.append(f"# unlocked {_today()} {path}: {reason}")
+    _write(change, entries, history)
+    return []
 
 
 def check(change: Path, root: Path) -> list[str]:
@@ -72,7 +109,12 @@ def active_changes(root: Path) -> list[Path]:
 
 def locked_paths(root: Path) -> set[Path]:
     """Every test locked by an active change."""
-    return {(root / path).resolve() for change in active_changes(root) for path in read_lock(change)}
+    return {
+        (root / path).resolve()
+        for change in active_changes(root)
+        for path, sha in read_lock(change).items()
+        if sha != UNLOCKED
+    }
 
 
 def lock_files(root: Path) -> set[Path]:
@@ -84,10 +126,28 @@ def main(argv: list[str]) -> int:
     if len(argv) >= 3 and argv[0] == "approve":
         approve(Path(argv[1]), argv[2:], Path.cwd())
         return 0
+    if len(argv) >= 2 and argv[0] == "unlock":
+        args, reason = list(argv[2:]), ""
+        if "--reason" in args:
+            i = args.index("--reason")
+            reason = args[i + 1] if i + 1 < len(args) else ""
+            del args[i : i + 2]
+        if not reason.strip() or not args:
+            print("unlock needs --reason \"<why the approved test must change>\" and at least one path", file=sys.stderr)
+            return 2
+        refused = unlock(Path(argv[1]), args, reason.strip())
+        for path in refused:
+            print(f"not locked, nothing to unlock: {path}")
+        return 1 if refused else 0
     if len(argv) == 2 and argv[0] == "check":
-        changed = check(Path(argv[1]), Path.cwd())
+        change = Path(argv[1])
+        changed = check(change, Path.cwd())
+        unlocked = {p for p, sha in read_lock(change).items() if sha == UNLOCKED}
         for path in changed:
-            print(f"locked test changed: {path}")
+            if path in unlocked:
+                print(f"locked test unlocked, awaiting re-approval: {path}")
+            else:
+                print(f"locked test changed: {path}")
         return 1 if changed else 0
     print(__doc__.split("\n\n")[1], file=sys.stderr)
     return 2

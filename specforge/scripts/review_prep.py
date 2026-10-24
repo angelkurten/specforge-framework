@@ -133,7 +133,11 @@ def review(change: Path, base: str) -> tuple[list[str], list[str]]:
     rng = f"{base}...HEAD"
     files = changed_files(rng)
     findings = []
-    for path, number, text, code in code_lines(added_lines(rng)):
+    added = added_lines(rng)
+    for path, number, text in added:
+        if path.endswith("/locked-tests.txt") and text.startswith("# unlocked "):
+            findings.append(f"should-fix: {path}:{number} — approved test re-opened by a human: {text[len('# unlocked '):]}")
+    for path, number, text, code in code_lines(added):
         if SKIP.search(code):
             findings.append(f"blocker: {path}:{number} — skip marker added: {text.strip()}")
         if STUB.search(code) or THROWN_STUB.search(text):

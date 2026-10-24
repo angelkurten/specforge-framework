@@ -47,3 +47,13 @@ The implementer never disables tests, linters or rules, never leaves stubs, and 
 When a change is done, `python3 specforge/scripts/archive.py <change>` moves its folder to `specforge/changes/archive/`, as the last commit before merge. The human runs it, or asks the agent to. An archived change locks nothing.
 
 The command refuses, and changes nothing, while the evidence report has an empty field or a locked test differs from what was approved. It also refuses when `locked-tests.txt` differs from the last commit. An uncommitted re-hash therefore cannot hide an edited test. A re-approval that was committed is accepted: re-approving is a human act, and the script cannot tell it from tampering. It shows up in the diff as a change to `locked-tests.txt`, and that diff is where review catches it. The Claude Code guard also protects `locked-tests.txt` and the folders holding one, so the only ways to change a lock are `lock_tests.py approve` and `archive.py`. A loop whose change folder moves mid-run stops with exit 4.
+
+## Re-approving a locked test
+
+When a human changes a design that approved tests encode, the tests change through one path:
+1. `python3 specforge/scripts/lock_tests.py unlock <change> --reason "<why>" <tests>`.
+2. Edit the tests.
+3. `lock_tests.py approve` again.
+
+`unlock` refuses without a reason. It records `# unlocked <date> <test>: <reason>` in `locked-tests.txt`, and `approve` adds `# reapproved <date> <test>`, so every re-approval shows in the diff. `review_prep.py` reports it as should-fix, with the reason. Until the test is re-approved, `check` reports it, so the loop does not run and the change does not archive. The Claude Code guard answers `unlock` with a confirmation prompt to a human. In a `claude -p` loop iteration nobody can answer, so the call is denied.
+
