@@ -13,6 +13,15 @@
 - [x] scripts/premise_challenge_test.py test_7_a_failing_agent_shows_its_stderr
 - [x] Add premise_challenge_test to the suite list in .github/workflows/v2-ci.yml, and every suite there passes
 
+Fix round after review (VERDICT: BLOCK — `## Premises` is found by substring, so a mention in prose hides the section; an empty section and a loose `- none` start the loop):
+
+- [ ] scripts/premise_challenge_fix_test.py test_8_a_mention_before_the_heading_does_not_hide_the_real_premises
+- [ ] scripts/premise_challenge_fix_test.py test_9_a_mention_without_the_heading_does_not_start
+- [ ] scripts/premise_challenge_fix_test.py test_10_a_heading_with_no_bullet_does_not_start
+- [ ] scripts/premise_challenge_fix_test.py test_11_only_none_with_a_reason_counts_as_no_premise
+- [ ] scripts/premise_challenge_fix_test.py test_12_the_template_says_a_premise_fits_on_one_line
+- [ ] Add premise_challenge_fix_test to the suite list in .github/workflows/v2-ci.yml, and every suite there passes, and `loop.py` on this change's own contract gets past the premise check
+
 ## Blocked
 
 ## Log

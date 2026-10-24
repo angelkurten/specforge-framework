@@ -49,6 +49,14 @@ Out:
 6. `specforge/core/loop.md` lists Challenge as the phase before Red.
 7. When the agent exits non-zero, `loop.py` prints the tail of its stderr with the iteration line, so a failing agent command is readable without re-running it by hand. From `specforge/changes/2026-10-24-symlinked-lock`: each iteration showed only `agent exit 1`.
 
+Added after review (`scripts/premise_challenge_fix_test.py`), VERDICT: BLOCK — the section was found by substring, so this contract's own Scope line hid its premises:
+
+8. A `## Premises` mention in prose before the heading does not hide the real section: the heading counts only at the start of a line, and a contract whose premises hold starts the loop.
+9. A contract that mentions `## Premises` but has no such heading does not start, and the message names `Premises`.
+10. A `## Premises` heading with no bullet, as a contract copied unedited from the template has, does not start.
+11. Only `- none — <reason>` counts as no premise: `- none`, `- none —` and a premise that merely starts with "none" do not start the loop.
+12. The template says each premise fits on one line.
+
 ## Stop and escalate
 
 Stop if a fixture change would weaken an approved test of another change. Budget: 10 iterations, 5 USD.
