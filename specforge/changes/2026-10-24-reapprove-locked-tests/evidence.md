@@ -8,7 +8,9 @@
 - **Not checked**:
   - Whether the guard's `ask` actually showed a confirmation prompt in the live session. Scenario 7 asserts the hook's output. During the live run above, the human could not say whether a prompt appeared.
   - `ask` under `bypassPermissions`. The docs read do not say. There the hash check and the review report remain the controls.
-- **Deviations from the contract**: the first version did not meet the Outcome. A loop with an unlocked test invoked the agent once. The review below found this and the other bypasses, and the human amended the guarantee.
+- **Deviations from the contract**:
+  - The first version did not meet the Outcome. A loop with an unlocked test invoked the agent once. The review below found this and the other bypasses, and the human amended the guarantee.
+  - The review fixes changed three files the Scope did not list: `specforge/scripts/loop.py` (refuse to start, stop on a lock change), `specforge/core/review.md` (lock changes need human confirmation) and `.github/workflows/v2-ci.yml` (the new suites).
 
 ## Review
 
@@ -23,4 +25,19 @@
 | S | The review finding attributed an unlock to a human; scenarios 6 and 7 could not catch a broken implementation | The findings are unattributed. Scenario 10 asserts that the agent never ran. Scenario 7 stays a check on the `ask` output only, and B3 records why |
 
 The fixes were done test-first in `scripts/reapprove_fix_test.py`: 6 tests, all red, approved and locked. After the fixes, all eleven `v2-ci.yml` suites pass.
+
+### Re-verification
+
+The reviewer re-ran B1–B4 against `af04104`: all fixed under the amended guarantee, and S fixed. Its new findings:
+
+| # | Finding | Resolution |
+|---|---|---|
+| N1 | blocker: a deleted lock produced no finding | The lock comparison is rewritten: every lock at the base against every lock at HEAD, read from git and paired by change name (scenario 15) |
+| N2 | blocker: removed history lines produced no finding | Removed history lines are reported (16) |
+| N3 | The lock was read from the working tree, so a dirty tree hid a committed re-approval | Both sides are read from git (17) |
+| N4 | A re-approval and an archive move in one range went unreported | Pairing by change name follows the move (18) |
+| S | `core/review.md` overclaimed; the Scope deviation was unrecorded | Both corrected |
+| — | `check_locked` and test-name reading in `review_prep.py` still read the working tree | Not fixed in this change: they check the current state, which is what the loop and archive also act on |
+
+Done test-first in `scripts/reapprove_fix2_test.py`: 4 tests, red, approved and locked. This was the third and last iteration of the budget.
 

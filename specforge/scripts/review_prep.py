@@ -116,34 +116,61 @@ def test_names(text: str) -> dict[str, int]:
 
 
 def lock_findings(base: str, files: list[tuple[str, str]], added: list[tuple[str, int, str]]) -> list[str]:
-    """Every change to an approved test's lock, unattributed: the diff cannot say who.
+    """Every change to an approved test's lock in the range, unattributed: the diff cannot say who.
 
-    New history lines, changed hashes and removed entries are each reported, so a
-    human confirms every one (specforge/core/review.md). A lock first added in
-    the range is a first approval and is not reported here."""
+    Compares every lock at the base with every lock at HEAD, both read from git
+    and paired by change name, so a dirty working tree cannot hide a committed
+    change and an archive move cannot unpair a lock. Reports removed locks,
+    removed entries, changed hashes, and added or removed history lines; a
+    human confirms each (specforge/core/review.md)."""
+    before, after = _locks_at(base), _locks_at("HEAD")
     out = []
-    for path, number, text in added:
-        if path.endswith("/locked-tests.txt") and text.startswith("#"):
-            out.append(f"should-fix: {path}:{number} — lock history added, confirm it: {text}")
-    for status, path in files:
-        if status != "M" or not path.endswith("/locked-tests.txt"):
+    for name, (path, text) in before.items():
+        old_entries, old_history = _parse_lock(text)
+        if name not in after:
+            for entry, (_, number) in old_entries.items():
+                out.append(f"should-fix: {path}:{number} — lock removed in the range, confirm it: {entry}")
             continue
-        before = {}
-        for number, line in enumerate(git("show", f"{base}:{path}").splitlines(), 1):
-            if line.strip() and not line.startswith("#") and "  " in line:
-                sha, entry = line.split("  ", 1)
-                before[entry] = (sha, number)
-        after = {}
-        for line in Path(path).read_text().splitlines():
-            if line.strip() and not line.startswith("#") and "  " in line:
-                sha, entry = line.split("  ", 1)
-                after[entry] = sha
-        for entry, (sha, number) in before.items():
-            if entry not in after:
+        new_path, new_text = after[name]
+        new_entries, new_history = _parse_lock(new_text)
+        for entry, (sha, number) in old_entries.items():
+            if entry not in new_entries:
                 out.append(f"should-fix: {path}:{number} — approved entry removed, confirm it: {entry}")
-            elif after[entry] != sha and after[entry] != "UNLOCKED":
-                out.append(f"should-fix: {path}:{number} — approved hash changed (re-approved), confirm it: {entry}")
+            elif new_entries[entry][0] not in (sha, "UNLOCKED"):
+                out.append(f"should-fix: {new_path}:{new_entries[entry][1]} — approved hash changed (re-approved), confirm it: {entry}")
+        for line, number in old_history.items():
+            if line not in new_history:
+                out.append(f"should-fix: {path}:{number} — lock history removed, confirm it: {line}")
+        for line, number in new_history.items():
+            if line not in old_history:
+                out.append(f"should-fix: {new_path}:{number} — lock history added, confirm it: {line}")
+    for name, (path, text) in after.items():
+        if name not in before:
+            for line, number in _parse_lock(text)[1].items():
+                out.append(f"should-fix: {path}:{number} — lock history added, confirm it: {line}")
     return out
+
+
+def _locks_at(ref: str) -> dict[str, tuple[str, str]]:
+    """Each change's lock at ref, keyed by change folder name."""
+    listing = git("ls-tree", "-r", "--name-only", ref).splitlines()
+    return {
+        Path(p).parent.name: (p, git("show", f"{ref}:{p}"))
+        for p in listing
+        if p.endswith("/locked-tests.txt")
+    }
+
+
+def _parse_lock(text: str) -> tuple[dict[str, tuple[str, int]], dict[str, int]]:
+    """(entry -> (sha, line), history line -> line) from a lock's text."""
+    entries, history = {}, {}
+    for number, line in enumerate(text.splitlines(), 1):
+        if line.startswith("#"):
+            history.setdefault(line, number)
+        elif "  " in line:
+            sha, entry = line.split("  ", 1)
+            entries[entry] = (sha, number)
+    return entries, history
 
 
 def evidence_findings(change: Path) -> list[str]:

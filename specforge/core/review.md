@@ -37,5 +37,5 @@ CHECKED: <one line per check above: what was read or run>
 
 ## Lock changes
 
-`review_prep.py` reports every change to a `locked-tests.txt` it diffs as should-fix: a new history line, a changed hash or a removed entry. It does not attribute them; a diff cannot say who ran a command. The reviewer lists each one, and the human confirms each before a PASS stands. An approved test that changed without a human confirming it is the one defect this framework exists to catch.
+`review_prep.py` compares every lock at the base with every lock at HEAD, both read from git and paired by change name. It reports as should-fix a removed lock, a removed entry, a changed hash, and any history line added or removed. A dirty working tree or an archive move in the range does not hide one. It does not attribute them; a diff cannot say who ran a command. The reviewer lists each one, and the human confirms each before a PASS stands. An approved test that changed without a human confirming it is the one defect this framework exists to catch.
 

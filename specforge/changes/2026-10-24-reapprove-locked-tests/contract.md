@@ -70,6 +70,13 @@ Added after review (`scripts/reapprove_fix_test.py`):
 13. With an unreadable lock file, the guard refuses an Edit with exit 2, both to a test and to any other file.
 14. `check` reports a malformed lock line with exit 1, so `archive.py` refuses.
 
+Added after re-verification (`scripts/reapprove_fix2_test.py`). `review_prep.py` compares every lock at the base with every lock at HEAD, both read from git and paired by change name, so archiving a change does not unpair them:
+
+15. A lock deleted in the range is reported.
+16. History lines removed in the range are reported.
+17. A committed re-approval is reported even when the working tree holds the old lock.
+18. A re-approval and an `archive.py` move in the same range is reported.
+
 ## Stop and escalate
 
 Stop if `ask` cannot be produced without changing how the guard refuses today. Budget: 3 iterations.
