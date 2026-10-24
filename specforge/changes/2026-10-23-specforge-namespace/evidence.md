@@ -31,3 +31,4 @@
 | nit | No test pins that `__pycache__` or `*_test.py` stays out of the bundle on a clean checkout | Not fixed: the explicit list makes it structural, and the 55-file count catches an added entry |
 | nit | An install made with the superseded layout silently drops its old manifest entries on `update`; nothing is overwritten or erased | Not fixed: that layout was never released (VERSION 0.27.3) |
 
+CI after the review fixes is green: `v2-ci` run 8 and `cli-ci` run 79 on `908f4f6`, and `v2-ci` run 9 and `cli-ci` run 80 on `563a490`, which adds `compose.md`.
