@@ -131,7 +131,7 @@ def lock_findings(base: str, files: list[tuple[str, str]], added: list[tuple[str
     itself reported. History lines are compared by count. A human confirms each
     finding (specforge/core/review.md)."""
     before, after = _locks_at(base), _locks_at("HEAD")
-    out = []
+    out = _mode_findings(_lock_modes(base), _lock_modes("HEAD"))
     for key, copies in after.items():
         if len(copies) > 1:
             paths = ", ".join(p for p, _ in copies)
@@ -162,6 +162,30 @@ def lock_findings(base: str, files: list[tuple[str, str]], added: list[tuple[str
                 for line, numbers in _parse_lock(text)[1].items():
                     for number in numbers:
                         out.append(f"should-fix: {path}:{number} — lock history added, confirm it: {line}")
+    return out
+
+
+REGULAR = ("100644", "100755")
+
+
+def _lock_modes(ref: str) -> dict[str, str]:
+    """Git mode of every lock at ref, by path."""
+    modes = {}
+    for entry in git("ls-tree", "-r", "-z", ref).split("\0"):
+        meta, _, p = entry.partition("\t")
+        if p.endswith("/locked-tests.txt"):
+            modes[p] = meta.split()[0]
+    return modes
+
+
+def _mode_findings(before: dict[str, str], after: dict[str, str]) -> list[str]:
+    """A lock that is not a regular file, or changed type in the range, is a blocker."""
+    out = []
+    for p, mode in after.items():
+        if mode not in REGULAR:
+            out.append(f"blocker: {p}:1 — lock is not a regular file (symlink or other, mode {mode}), it can hide a re-approval")
+        elif p in before and before[p] not in REGULAR:
+            out.append(f"blocker: {p}:1 — lock changed type in the range (mode {before[p]} -> {mode}), confirm it")
     return out
 
 

@@ -159,6 +159,9 @@ def main(argv: list[str]) -> int:
         return 1 if refused else 0
     if len(argv) == 2 and argv[0] == "check":
         change = Path(argv[1])
+        if (change / LOCK_FILE).is_symlink():
+            print(f"{change / LOCK_FILE} is a symlink: a lock must be a regular file")
+            return 1
         changed = check(change, Path.cwd())
         try:
             unlocked = {p for p, sha in read_lock(change).items() if sha == UNLOCKED}
