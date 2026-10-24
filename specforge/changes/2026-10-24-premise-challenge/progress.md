@@ -1,6 +1,6 @@
 # Progress
 
-**Budget**: 10 iterations, 5 USD
+**Budget**: 10 iterations, 7 USD (raised from 5 USD by the human before the third round)
 
 ## Tasks
 

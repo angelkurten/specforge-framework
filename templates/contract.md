@@ -37,7 +37,8 @@
   The beliefs whose failure would make this change wrong, each with the
   cheapest command that checks it and what it returned. One bullet per
   premise, in exactly this format, so loop.py can read it. Each premise
-  fits on one line:
+  fits on one line. Write it as a `-` bullet; a `*`, `+` or indented
+  bullet is read as a premise too, and held to the same format:
 
   - <premise> — `<command>` → holds
   - <premise> — `<command>` → fails: <what it returned>
