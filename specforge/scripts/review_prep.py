@@ -51,7 +51,7 @@ TEST_NAME = re.compile(
     r"^\s*def (test\w*)\(|^func (Test\w+)\(|\b(?:it|test)\(\s*['\"]([^'\"]+)['\"]",
     re.MULTILINE,
 )
-EVIDENCE_FIELDS = ("Ran", "Result", "Not checked", "Deviations from the contract")
+EVIDENCE_FIELDS = ("Ran", "Result", "CI", "Not checked", "Deviations from the contract")
 
 
 def git(*args: str) -> str:

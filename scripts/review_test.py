@@ -38,6 +38,7 @@ EVIDENCE = """\
 
 - **Ran**: python3 -m pytest
 - **Result**: 3 passed
+- **CI**: v2-ci run 1, green
 - **Not checked**: nothing; every scenario ran
 - **Deviations from the contract**: none
 """
