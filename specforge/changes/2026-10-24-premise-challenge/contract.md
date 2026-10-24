@@ -22,7 +22,7 @@ Out:
 ## Context
 
 - Taken from Gentle AI's ODD "challenge" step: before building on a high-consequence premise, execute something to see whether it holds.
-- `specforge/scripts/loop.py` `main` refuses a run with no iteration cap through `parser.error` (exit 2); a premise refusal uses the same path.
+- `specforge/scripts/loop.py` `main` refuses a run with no iteration cap through `parser.error` (exit 2). A premise refusal uses the same exit code, from `stop(2, …)` inside `run()`, after the lock checks (see Constraints).
 - `specforge/changes/2026-10-24-symlinked-lock`: its Outcome claimed the loop stops and the change does not archive, a premise nobody checked. `archive.py` calls `lock_tests.check()`, not the command line.
 
 ## Constraints
@@ -34,7 +34,7 @@ Out:
 
 ## Premises
 
-- Refusing a contract with no Premises section breaks only fixtures this change migrates — `grep -ln "LOOP" scripts/*_test.py` and the fixture contracts they write → holds. As first written ("breaks no existing suite") it failed: `loop_test.py` writes no contract.md at all; `archive_test.py`, `archive_fix_test.py` and the `reapprove_*` fixtures write contracts without the section; `symlinked_lock_fix_test.py` test_6, locked by an active change, runs the loop and expects exit 4. Re-classified: still Contract; the human chose to keep the strict rule and migrate the fixtures, and the check runs after the lock checks.
+- Refusing a contract with no Premises section breaks only fixtures this change migrates, judged from the suites that run the loop and the fixture contracts they write — `grep -ln "LOOP" scripts/*_test.py` → holds. As first written ("breaks no existing suite") it failed: `loop_test.py` writes no contract.md at all; `archive_test.py`, `archive_fix_test.py` and the `reapprove_*` fixtures write contracts without the section; `symlinked_lock_fix_test.py` test_6, locked by an active change, runs the loop and expects exit 4. Re-classified: still Contract; the human chose to keep the strict rule and migrate the fixtures, and the check runs after the lock checks.
 - The fixtures to migrate are not locked by an active change — `grep -v "^#" specforge/changes/*/locked-tests.txt` → holds: only `scripts/symlinked_lock_test.py` and `scripts/symlinked_lock_fix_test.py` are locked, and neither needs editing once the premise check runs after the lock checks.
 
 ## Acceptance evidence
@@ -57,6 +57,15 @@ Added after review (`scripts/premise_challenge_fix_test.py`), VERDICT: BLOCK —
 11. Only `- none — <reason>` counts as no premise: `- none`, `- none —` and a premise that merely starts with "none" do not start the loop.
 12. The template says each premise fits on one line.
 
+Added after the second review (`scripts/premise_challenge_fix2_test.py`), VERDICT: PASS with a should-fix the human chose to fix now — a result was read without its command:
+
+13. A result counts only right after a non-empty backticked command: `→ holds` with no command, with text between the command and the arrow, or as `→ holds?`, and an empty `→ fails:`, do not start the loop.
+14. The documented forms start it: `` `<command>` → holds ``, and the same followed by `:` or `.` and a detail.
+15. A premise written as a `*`, `+` or indented bullet does not slip past next to a valid one: the loop does not start and names it.
+16. The template's HTML comment is not read as premises: a contract that keeps it and adds one checked premise starts.
+17. A failing agent with no stderr prints no blank line.
+18. `loop.py`'s docstring names the premise refusal.
+
 ## Stop and escalate
 
-Stop if a fixture change would weaken an approved test of another change. Budget: 10 iterations, 5 USD.
+Stop if a fixture change would weaken an approved test of another change. Budget: 10 iterations per round, 5 USD; raised to 7 USD by the human before the third round, with 4.16 USD spent.

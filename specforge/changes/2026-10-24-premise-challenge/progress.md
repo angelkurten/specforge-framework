@@ -22,6 +22,15 @@ Fix round after review (VERDICT: BLOCK — `## Premises` is found by substring, 
 - [x] scripts/premise_challenge_fix_test.py test_12_the_template_says_a_premise_fits_on_one_line
 - [x] Add premise_challenge_fix_test to the suite list in .github/workflows/v2-ci.yml, and every suite there passes, and `loop.py` on this change's own contract gets past the premise check
 
+Third round after the second review (PASS with a should-fix: `→ holds` is read without its backticked command; other bullet shapes slip past):
+
+- [ ] scripts/premise_challenge_fix2_test.py test_13_a_result_needs_a_backticked_command_right_before_it
+- [ ] scripts/premise_challenge_fix2_test.py test_15_a_bullet_in_another_shape_does_not_slip_past
+- [ ] scripts/premise_challenge_fix2_test.py test_14 and test_16 (pass today; must still pass)
+- [ ] scripts/premise_challenge_fix2_test.py test_17_a_failing_agent_with_no_stderr_prints_no_blank_line
+- [ ] scripts/premise_challenge_fix2_test.py test_18_the_docstring_names_the_premise_refusal
+- [ ] Add premise_challenge_fix2_test to the suite list in .github/workflows/v2-ci.yml, every suite there passes, and `loop.py` on this change's own contract gets past the premise check
+
 ## Blocked
 
 ## Log
