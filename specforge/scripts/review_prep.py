@@ -52,9 +52,10 @@ TEST_NAME = re.compile(
     re.MULTILINE,
 )
 EVIDENCE_FIELDS = ("Ran", "Result", "CI", "Not checked", "Deviations from the contract")
-# A CI value must name a run: a run number or a commit, so at least one digit.
-# Any placeholder, wrapped or not (`pending`, **TBD**, "green"), names none.
-NAMES_A_RUN = re.compile(r"\d")
+# A CI value must name a run: `run 17`, `run #17`, an /actions/runs/<id> URL,
+# or a commit hash with a digit. A placeholder, wrapped or not, or a workflow
+# name alone (`v2-ci`: pending) names none.
+NAMES_A_RUN = re.compile(r"\brun\s*#?\d+\b|/actions/runs/\d+|\b(?=[0-9a-f]*\d)[0-9a-f]{7,40}\b", re.IGNORECASE)
 
 
 def git(*args: str) -> str:
@@ -200,7 +201,9 @@ def evidence_findings(change: Path) -> list[str]:
     for field in EVIDENCE_FIELDS:
         # A field's value is its own line plus indented continuation lines, so
         # an empty field never borrows the text of a following section.
-        match = re.search(rf"^- \*\*{re.escape(field)}\*\*:(.*(?:\n(?:[ \t]*\n)*[ \t]+\S.*)*)", text, re.MULTILINE)
+        # After a blank line only a sub-bullet continues the field, so an empty
+        # field never borrows an indented block that follows it.
+        match = re.search(rf"^- \*\*{re.escape(field)}\*\*:(.*(?:\n[ \t]+\S.*|\n(?:[ \t]*\n)+[ \t]+[-*+] .*)*)", text, re.MULTILINE)
         line = text.count("\n", 0, match.start()) + 1 if match else 1
         value = match.group(1).strip() if match else ""
         if not value:

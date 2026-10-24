@@ -24,7 +24,7 @@ Out:
 
 ## Constraints
 
-- The script checks that the field is present and names at least one run: it must contain a number, a run number or a commit. Whether the runs it names exist and are green is the reviewer's job (`specforge/core/review.md` § Evidence). This Constraint was widened after the second review; see the evidence's Deviations.
+- The script checks that the field is present and names at least one run: it must contain a run reference (`run 17`, `run #17`, an `/actions/runs/<id>` URL, or a commit hash with a digit). Whether the runs it names exist and are green is the reviewer's job (`specforge/core/review.md` § Evidence). This Constraint was widened after the second review; see the evidence's Deviations.
 
 ## Acceptance evidence
 
@@ -46,6 +46,13 @@ Added after re-verification (`scripts/evidence_ci_fix2_test.py`):
 
 9. A `CI` value that names no run is a blocker, however it is wrapped: `` `pending` ``, `**pending**`, `_TBD_`, `(pending)`, `—`, `CI pending`, `green`, `see Review`.
 10. Sub-bullets separated from their field by a blank line belong to the field.
+
+Added in the last budgeted round (`scripts/evidence_ci_fix3_test.py`):
+
+11. A digit that is not a run reference is a blocker: `` `v2-ci`: pending ``, `pending (2 workflows queued)`, `TBD, after PR #12 merges`.
+12. A run reference passes: `run 17`, `run #17`, an `/actions/runs/<id>` URL, or a commit hash with at least one digit.
+13. An empty field does not borrow an indented block that follows a blank line; only sub-bullets do.
+14. The template asks for the runs on the last code or test commit before the commit that holds the report.
 
 ## Stop and escalate
 
