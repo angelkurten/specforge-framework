@@ -11,6 +11,7 @@
   - The runs on the commit holding this report cannot be named in it; the reviewer reads them directly (`specforge/core/review.md` § Evidence).
 - **Not checked**: that the runs a CI line names exist and are green. The script checks only that the field carries a run reference (`run 17`, `run #17`, an `/actions/runs/<id>` URL, or a commit hash with a digit). The reviewer reads the runs (`specforge/core/review.md` § Evidence).
 - **Deviations from the contract**:
+  - The review fixes edited `specforge/core/review.md` and `.github/workflows/v2-ci.yml`, which Scope does not list.
   - After the second review, the Constraint was widened from presence only to also requiring that the field name a run, and scenarios 9–10 were added.
   - One fixture line was added to `scripts/review_test.py` and to `scripts/archive_test.py`: the `CI` field in their sample evidence reports. Both tests were approved in earlier changes. Their locks are archived and no longer enforced, so no `unlock` was involved. The human approved the edit as part of this change's red set, and the review below flagged it for confirmation. The edit only adds a line, and no assertion changed.
 
@@ -55,4 +56,10 @@ The reviewer re-checked `460cf19` and returned **PASS**: B2, S5 and the three ni
 | nit | A digit-free commit hash (`deadbee`) blocks | Accepted: the contract asks for a hash with a digit; about 0.1% of 7-character hashes have none |
 
 Done test-first in `scripts/evidence_ci_fix3_test.py`: 4 tests, with 11, 13 and 14 red and 12 a guard. They were approved and locked. This was the third and last budgeted iteration.
+
+### Final re-verification
+
+The reviewer re-checked `15b1683` and returned **PASS**: S4, S6 and R fixed. CI on `15b1683` is green: `v2-ci` run 19 and `cli-ci` run 90. On 2026-10-24 the human confirmed this round's in-loop changes: the Constraint rewritten to require a run reference, and the lock entry for `scripts/evidence_ci_fix3_test.py`. The Scope nit is now recorded under Deviations.
+
+**Known limit, open should-fix, budget spent.** The run-reference rule is a pattern, so a few plausible values that name no run still pass the script: `pending on <hash>`, `not run 2026-10-24`, and prose such as `run 2 is still in progress`. A bare `#18` blocks, though GitHub labels runs that way. These pass the script only, not review: `specforge/core/review.md` § Evidence makes the reviewer read every named run, and a missing or unnamed one is a blocker.
 
