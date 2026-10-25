@@ -93,7 +93,7 @@ sequenceDiagram
 | 11 | The actor stops mid-flow: every route is one transaction, so there is nothing half-written to come back to | — | — |
 | 12 | The SQLite file is locked or the membership insert fails during `POST /teams` | 500 | FastAPI's default; the transaction rolls back, so no team is written without its owner's membership (§9 row 17) |
 | 13 | A body carries a field the model does not declare, such as `role` | 422 | `extra_forbidden` |
-| 14 | A `team_id` or `user_id` that is not an integer, or outside 1 to 2^63-1 | 422 | FastAPI validation error, after authentication and before any team lookup |
+| 14 | A `team_id` or `user_id` that is not an integer, or outside 1 to 2^63-1 | 422 | FastAPI validation error, after authentication; a `team_id` before the team lookup, a `user_id` after it, so a non-member gets 404 whatever the `user_id` |
 | 15 | A body declared as JSON that is not valid JSON, or whose bytes are not valid UTF-8 | 422 or 400 | FastAPI's defaults (`json_invalid`, or `There was an error parsing the body`), returned before authentication |
 
 ## Frontend Spec
@@ -104,7 +104,7 @@ No design exists: this PRD adds no user-visible screen. The product has no UI ye
 
 Every route requires `Authorization: Bearer <token>`, resolved by `current_user` (new), the dependency extracted from `GET /me` (`../specforge-pilot/teamtasks/app.py:90-103`). A missing, malformed or unknown token is `401 {"detail": "invalid token"}`, the same as `/me` today. The one exception is a route with a body: FastAPI decodes the body before any dependency runs, so a body that is not valid JSON is `422` and one whose bytes are not valid UTF-8 is `400`, with or without a token (§4.2 branch 15). No route has a rate limit; see §8.
 
-Path ids are one type, `TeamId` (new) and `UserId` (new), each `Annotated[int, Path(ge=1, le=2**63-1)]`, so an out-of-range or non-integer id is `422` after authentication and before any lookup, instead of a `500` from the SQLite binding. Every new request model sets `extra="forbid"`; `Credentials` and `Login` (`../specforge-pilot/teamtasks/app.py:34-42`) are not changed.
+Path ids are one type, `TeamId` (new) and `UserId` (new), each `Annotated[int, Path(ge=1, le=2**63-1)]`, so an out-of-range or non-integer id is `422` instead of a `500` from the SQLite binding. A `team_id` is validated by `team_membership` (new), after authentication and before the team lookup; a `user_id` is a parameter of the route, which FastAPI validates after the dependencies have run, so it is checked after the team lookup. Every new request model sets `extra="forbid"`; `Credentials` and `Login` (`../specforge-pilot/teamtasks/app.py:34-42`) are not changed.
 
 ### 5.1 `POST /teams`
 
@@ -154,7 +154,7 @@ Path ids are one type, `TeamId` (new) and `UserId` (new), each `Annotated[int, P
 
 **Request**: `{"email": "ben@example.com"}` — a new request model with `extra="forbid"`, the email pattern of `Credentials.email` (`../specforge-pilot/teamtasks/app.py:36`) and `max_length=254`; the email is trimmed and lower-cased as registration does (`../specforge-pilot/teamtasks/app.py:65`). `role` is never read from the request: add-member always writes `member`.
 
-**Order of checks**: 401 → 404 team not found → 403 not owner → 422 body → 404 user not found → 409 already a member → 201. Because the owner check is a dependency, it runs before the body is validated, so a non-owner gets 403 whatever they send, and never reaches the email lookup.
+**Order of checks**: 401 → 422 `team_id` → 404 team not found → 403 not owner → 422 body → 404 user not found → 409 already a member → 201. Because the owner check is a dependency, it runs before the body is validated, so a non-owner gets 403 whatever they send, and never reaches the email lookup.
 
 **Response 201**: `{"user_id": 2, "email": "ben@example.com", "role": "member"}`
 
@@ -174,7 +174,7 @@ Path ids are one type, `TeamId` (new) and `UserId` (new), each `Annotated[int, P
 
 **Auth**: the owner for any member; any member for themselves. `team_membership` (new) for membership, then the rule in the route; the route has no body, so every check runs in this order.
 
-**Order of checks**: 401 → 422 path id → 404 team not found → 404 member not found → 409 owner target → 403 caller neither the owner nor the target → 204. The delete is scoped by both `team_id` and `user_id`.
+**Order of checks**: 401 → 422 `team_id` → 404 team not found → 422 `user_id` → 404 member not found → 409 owner target → 403 caller neither the owner nor the target → 204. The delete is scoped by both `team_id` and `user_id`.
 
 **Response 204**: no body.
 
@@ -260,7 +260,7 @@ flowchart LR
 - `POST /teams` writes the team and the owner's membership in one session and one `commit()`. Add-member runs a `SELECT` on the existing membership (→ 409) and also catches `IntegrityError` around `commit()` (→ 409) for the race.
 - The engine is created with `hide_parameters=True` (new) at `../specforge-pilot/teamtasks/app.py:53`, so a database error's traceback, which uvicorn writes to stderr, never carries an email bound as a SQL parameter.
 
-**Rejected**: copying the token check into each route — five copies of an authentication check is five places to get it wrong. **Rejected**: `teams.owner_id` beside `memberships.role` — two sources of ownership that can disagree, and the roles PRD would have to rewrite both. **Rejected**: the owner check inside the route — FastAPI validates the body first, so a non-owner with a bad body would get 422 instead of 403. **Rejected**: one request-scoped session shared by the dependencies — the caller's membership object in its identity map turns an owner adding their own email into a SQLAlchemy identity conflict, a 500, instead of a 409. Reconsider the single-file layout when `teamtasks/app.py` passes about 400 lines.
+**Rejected**: copying the token check into each route — five copies of an authentication check is five places to get it wrong. **Rejected**: `teams.owner_id` beside `memberships.role` — two sources of ownership that can disagree, and the roles PRD would have to rewrite both. **Rejected**: the owner check inside the route — FastAPI validates the body first, so a non-owner with a bad body would get 422 instead of 403. **Rejected**: one request-scoped session shared by the dependencies and the route — it would work, but it breaks the per-route `Session(engine)` convention the app already follows (`../specforge-pilot/teamtasks/app.py:69`); reconsider it if a route needs the dependency's rows inside its own transaction. Reconsider the single-file layout when `teamtasks/app.py` passes about 400 lines.
 
 ## 8. Security
 
@@ -285,34 +285,34 @@ flowchart LR
 
 | # | Test | Type | Description | Path |
 |---|------|------|-------------|------|
-| 1 | creating a team returns 201 with role owner, and the creator is its only member | integration | | `../specforge-pilot/tests/test_teams.py` |
+| 1 | creating a team returns 201 with role owner, and the creator is its only member | integration | Reads `memberships` to check exactly one row, role `owner`. | `../specforge-pilot/tests/test_teams.py` |
 | 2 | team name boundaries | integration | 100 characters is 201; 101 is 422; 100 plus surrounding spaces is 201 with the trimmed name returned; whitespace only, missing, `null` and a non-string are 422; a 100-character multibyte name is 201; `"a\u009bb"`, `"a‏b"` and `"a\u0007b"` are 422. | `../specforge-pilot/tests/test_teams.py` |
 | 3 | every team route without a token, with a malformed header or with an unknown token is 401 | integration | Parametrised over the five routes. | `../specforge-pilot/tests/test_teams.py` |
 | 4 | `GET /teams` returns exactly the caller's teams with their role, and `[]` for a user in none | integration | Fails against a list that returns every team in the table. | `../specforge-pilot/tests/test_teams.py` |
-| 5 | the owner adds a registered user by email, in any letter case, and the member list shows them with role `member` | integration | | `../specforge-pilot/tests/test_teams.py` |
-| 6 | adding an unregistered email is 404 `user not found`; a malformed email and one over 254 characters are 422 | integration | | `../specforge-pilot/tests/test_teams.py` |
-| 7 | adding someone already a member is 409, and so is the owner adding their own email | integration | The owner case fails against a shared request-scoped session, which raises an identity conflict (500). | `../specforge-pilot/tests/test_teams.py` |
+| 5 | the owner adds a registered user by email, in any letter case, and the member list shows them with role `member` | integration | The email is sent as `  BEN@Example.com ` and listed lower-cased. | `../specforge-pilot/tests/test_teams.py` |
+| 6 | adding an unregistered email is 404 `user not found`; a malformed email and one over 254 characters are 422 | integration | 254 characters is accepted, 255 is 422. | `../specforge-pilot/tests/test_teams.py` |
+| 7 | adding someone already a member is 409, and so is the owner adding their own email | integration | Fails against an add-member with neither the membership `SELECT` nor `except IntegrityError`, which answers 500. | `../specforge-pilot/tests/test_teams.py` |
 | 8 | a member who is not the owner gets 403 adding an unregistered email, and 403 with a malformed body | integration | Fails against an owner check made after the email lookup or after body validation. | `../specforge-pilot/tests/test_teams.py` |
 | 9 | a non-member gets 404 on every route of a team, identical to a team id that does not exist | integration | Fails against a check that answers 403 for an existing team, which tells a probing user the team exists. | `../specforge-pilot/tests/test_teams.py` |
 | 10 | after the owner removes a member (204), the removed user gets 404 on the team, no longer sees it in `GET /teams`, and their token still works on `/me` | integration | Fails against a removal that leaves the membership readable. | `../specforge-pilot/tests/test_teams.py` |
 | 11 | a member removes themselves (204) with the same after-effects as row 10; a member removing another member is 403 | integration | | `../specforge-pilot/tests/test_teams.py` |
 | 12 | removing the owner is 409, by the owner and by a member | integration | Pins the §5.5 order: a member targeting the owner gets 409, not 403. | `../specforge-pilot/tests/test_teams.py` |
 | 13 | removing a user who is not a member is 404 `member not found`, by the owner and by a member | integration | Pins the §5.5 order: 404 member not found comes before 403. | `../specforge-pilot/tests/test_teams.py` |
-| 14 | a removed member can be added again | integration | | `../specforge-pilot/tests/test_teams.py` |
+| 14 | a removed member can be added again | integration | 201, and the member list shows them once. | `../specforge-pilot/tests/test_teams.py` |
 | 15 | `GET /me` still returns the user after the token check moves into `current_user` | integration | A deliberate overlap with `../specforge-pilot/tests/test_auth.py:90-95`, kept in this suite as the regression for the extraction. | `../specforge-pilot/tests/test_teams.py` |
-| 16 | a database error on the add-member email lookup does not put the email in the traceback | integration | A `before_cursor_execute` listener on the app's engine raises `sqlite3.OperationalError("database is locked")` for the statement containing `users.email =`; the test calls add-member with `raise_server_exceptions=True` inside `pytest.raises(sqlalchemy.exc.OperationalError)`, builds the email at runtime, and asserts the email is absent from `"".join(traceback.format_exception(exc))` and SQLAlchemy's hidden-parameters marker is present. Fails against `create_engine` without `hide_parameters`. | `../specforge-pilot/tests/test_teams.py` |
+| 16 | a database error on the add-member email lookup does not put the email in the traceback | integration | A `before_cursor_execute` listener on the app's engine raises `sqlite3.OperationalError("database is locked")` for the add-member lookup only — the statement selecting from `users` by `email`, which `current_user` and `team_membership` never issue (they read `sessions` and `memberships`); the test calls add-member with `raise_server_exceptions=True` inside `pytest.raises(sqlalchemy.exc.OperationalError)`, builds the email at runtime, and asserts the email is absent from `"".join(traceback.format_exception(exc))` and SQLAlchemy's hidden-parameters marker is present. Fails against `create_engine` without `hide_parameters`. | `../specforge-pilot/tests/test_teams.py` |
 | 17 | a failing membership insert during `POST /teams` leaves no team | integration | A `BEFORE INSERT ON memberships` trigger raising `ABORT` is created on the test database; with `raise_server_exceptions=False` the response is 500 and `teams` has 0 rows. Fails against a route that commits the team before the membership. | `../specforge-pilot/tests/test_teams.py` |
 | 18 | a concurrent add of the same email is 409 | integration | A one-shot `before_flush` listener on `Session`, removed in `finally`, inserts the same membership through a raw sqlite3 connection; the add answers 409. Fails against a route without `except IntegrityError` (500). | `../specforge-pilot/tests/test_teams.py` |
 | 19 | add-member with `"role": "owner"` in the body is 422 and writes no membership | integration | Fails against a route that copies `role` from the body, and against a model that ignores extra fields. | `../specforge-pilot/tests/test_teams.py` |
 | 20 | the database refuses a second owner row and an unknown role | integration | Raw sqlite3 inserts with a fresh `(team_id, user_id)` pair: a second `owner` for a team raises `IntegrityError` (the partial unique index), and `role='admin'` raises `IntegrityError` (the CHECK). A repeat of the existing pair would hit the primary key first and pass against a schema with neither. | `../specforge-pilot/tests/test_teams.py` |
-| 21 | an out-of-range or non-integer path id | integration | `/teams/0/members`, `/teams/99999999999999999999/members` and `/teams/abc/members` are 401 without a token and 422 with one. Fails against path ids typed as plain `int`, where the oversized id raises `OverflowError` in the SQLite binding and answers 500. | `../specforge-pilot/tests/test_teams.py` |
+| 21 | an out-of-range or non-integer path id | integration | `/teams/0/members`, `/teams/99999999999999999999/members` and `/teams/abc/members` are 401 without a token and 422 with one; `DELETE /teams/1/members/abc` is 422 for a member and 404 for a non-member. Fails against path ids typed as plain `int`, where the oversized id raises `OverflowError` in the SQLite binding and answers 500. | `../specforge-pilot/tests/test_teams.py` |
 | 22 | `GET /teams` is served by `ix_memberships_user_id` | conformance | `EXPLAIN QUERY PLAN` on the route's query names the index. Fails against a schema whose only index is the primary key. | `../specforge-pilot/tests/test_teams.py` |
 | 23 | an undecodable body on `POST /teams` and on add-member is answered before authentication | integration | Without a token: `{bad` with `content-type: application/json` is 422, and the bytes `{"email":"\xff"}` are 400 `There was an error parsing the body`, on both routes. Pins §4.2 branch 15 so a later change of order is seen. | `../specforge-pilot/tests/test_teams.py` |
 
 ## 10. Migration Plan
 
 1. Deploy the app. `create_all` (`../specforge-pilot/teamtasks/app.py:54`) creates `teams`, `memberships`, the CHECK constraint and both indexes on startup; it needs only the existing `users` table, which it already creates. Rollback: deploy the previous commit; the two tables stay unused.
-2. Step 1 can be rolled back at any time: dropping `memberships` then `teams` removes the feature's data, and nothing else references them.
+**Rollback**: step 1 can be rolled back at any time; dropping `memberships` then `teams` removes the feature's data, and nothing else references them.
 
 Existing rows: none in the two new tables; `users` and `sessions` are untouched. No backfill. No feature flag: the routes are new and unused until a client calls them.
 
@@ -327,6 +327,7 @@ This PRD logs nothing new; team events and refusals are logged by [PRD-016](016-
 ## 11. Open Questions
 
 - [ ] Probing of team ids and emails is invisible until PRD-016 ships. Cost: the accepted risks in §8 rows 6 and 7 cannot be watched. Owned by PRD-016.
+- [ ] A registered email may carry bidi or control characters (the pattern at `../specforge-pilot/teamtasks/app.py:36` allows them), and §5.3 now shows emails to other members, where one can render misleadingly. Cost: spoofed member lists. Owned by a change to registration, which this PRD leaves untouched.
 - [ ] No rate limit on authenticated routes (§8 row 11). Cost: unbounded probing by a logged-in user. Owned by a future rate-limiting change.
 
 ## Clarifications
