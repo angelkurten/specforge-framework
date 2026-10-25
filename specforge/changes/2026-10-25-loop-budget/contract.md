@@ -44,6 +44,7 @@ Out:
   - A missing file means nothing has been spent.
   - A line that is not `iteration <int> usd <float>` stops the loop with exit 4, naming the line, the same as a malformed lock line.
   - Between iterations, `loop.py` compares the ledger with the bytes it last wrote, the way it compares the lock file, and stops with exit 4 on any difference (added after review).
+- **Threat ceiling.** The ledger checks catch accidental damage and an agent that edits the ledger without editing `loop.py`. An agent with `Bash(python3 *)` can rewrite `loop.py` itself, so no guard in `loop.py` stops a hostile agent. The defence there is the review of the diff, which shows every change to `loop.py` and `loop-runs.txt` (decided by the human, 2026-10-25).
 - Every existing suite in `.github/workflows/v2-ci.yml` still passes. A test that relies on per-run counting is not edited: if one exists, stop and ask.
 
 ## Premises
@@ -74,6 +75,11 @@ Added after review (`scripts/loop_budget_fix_test.py`; test_1 tightened and re-a
 Added after the second review (`scripts/loop_budget_fix2_test.py`), VERDICT: BLOCK on the evidence's CI field, with a should-fix the human chose to fix — an altered ledger stayed altered, so a rerun got its budget back:
 
 12. When an iteration alters `loop-runs.txt`, `loop.py` writes back the bytes it last wrote, appends that iteration's line, then stops with exit 4. Its message says the ledger was restored.
+
+Added after the third review (`scripts/loop_budget_fix3_test.py`), VERDICT: BLOCK — a symlink or a directory in place of the ledger reset the budget or crashed the loop, and the ledger check hid a changed locked test. This is the final round, decided by the human, 2026-10-25:
+
+13. A `loop-runs.txt` that is a symlink, or is not a regular file, stops the loop with exit 4 and no traceback. This holds whether it appears during an iteration or exists before a run starts, so a rerun never runs the agent on it.
+14. An iteration that alters the ledger and also edits a locked test stops with exit 4, naming both.
 
 ## Stop and escalate
 

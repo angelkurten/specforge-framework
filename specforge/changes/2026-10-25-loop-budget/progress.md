@@ -1,6 +1,6 @@
 # Progress
 
-**Budget**: 6 iterations, 2.60 USD
+**Budget**: 9 iterations, 3.60 USD
 
 ## Tasks
 
@@ -27,6 +27,12 @@ Second fix round after review (VERDICT: BLOCK on evidence; should-fix the human 
 - [x] scripts/loop_budget_fix2_test.py test_12_an_altered_ledger_is_restored_and_the_iteration_recorded
 - [x] every suite in `.github/workflows/v2-ci.yml` passes (run them as that file does)
 
+Third and final fix round after review (VERDICT: BLOCK — symlinked or directory ledger; ledger check hides a changed locked test):
+
+- [ ] scripts/loop_budget_fix3_test.py test_13_a_ledger_that_is_not_a_regular_file_stops_every_run
+- [ ] scripts/loop_budget_fix3_test.py test_14_a_ledger_change_does_not_hide_a_changed_locked_test
+- [ ] every suite in `.github/workflows/v2-ci.yml` passes (run them as that file does)
+
 ## Blocked
 
 
@@ -50,3 +56,4 @@ Second fix round after review (VERDICT: BLOCK on evidence; should-fix the human 
 - Lead, second fix round: `**Budget**:` raised by the human's approval to `6 iterations, 2.60 USD` against the ledger (4 lines, 1.54 USD): 2 iterations, about 1 USD for this round.
 - Second fix task 1 (test_12): on an altered ledger loop.py writes back the bytes it last wrote, appends that iteration's line, then stops with exit 4 ("restored"); ran `python3 scripts/loop_budget_fix2_test.py` → OK (2 tests), `loop_budget_fix_test.py` → OK (1), `loop_budget_test.py` → OK (10); lock hash of fix2 test matches locked-tests.txt.
 - Second fix task 2: ran all 25 suites of v2-ci.yml in order (python3 scripts/<suite>.py) → exit 0 each; lock hashes of the three loop_budget test files match locked-tests.txt.
+- Lead, final fix round: `**Budget**:` raised by the human's approval to `9 iterations, 3.60 USD` against the ledger (6 lines, 2.33 USD): 3 iterations, about 1.20 USD.

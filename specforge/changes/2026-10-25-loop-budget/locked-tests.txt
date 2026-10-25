@@ -1,5 +1,6 @@
 # unlocked 2026-10-25 scripts/loop_budget_test.py: test_1 asserted '1' and '2' anywhere in the output, which the change path and 'exit 2' satisfy; it now asserts the message names 1 iteration left and 2 tasks left (review round 1 should-fix)
 # reapproved 2026-10-25 scripts/loop_budget_test.py
 eafda40fbd74ca2a1d56ab9254fa4c26374c01a1a08a3fcff41699d0e0aa104b  scripts/loop_budget_fix2_test.py
+97b04333c63a20ebd56ca5ceff1de5ed7bd329c35390a58e77e94df0bb2ac414  scripts/loop_budget_fix3_test.py
 c3e6d5c89bf797b332d19d2739a557c5e0453185121186c73da5aad354cc846f  scripts/loop_budget_fix_test.py
 52d3bff979ba7bc2c8917ee17930f3c8958c0c16f73aa3e94c4399c82f21f1a6  scripts/loop_budget_test.py
