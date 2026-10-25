@@ -2,7 +2,7 @@
 
 - **Ran**:
   - The three premise commands in the contract, by hand, before Red.
-  - `python3 specforge/scripts/loop.py specforge/changes/2026-10-25-loop-budget`, three times (two runs before review, one fix round), with `claude -p --output-format json --model sonnet --permission-mode acceptEdits "--allowedTools=Bash(python3 *),Bash(git diff *),Bash(git status *),Bash(git log *)"`.
+  - `python3 specforge/scripts/loop.py specforge/changes/2026-10-25-loop-budget`, four times (two runs before review, two fix rounds), with `claude -p --output-format json --model sonnet --permission-mode acceptEdits "--allowedTools=Bash(python3 *),Bash(git diff *),Bash(git status *),Bash(git log *)"`.
   - Every suite in `.github/workflows/v2-ci.yml` locally, and `python3 specforge/scripts/lock_tests.py check specforge/changes/2026-10-25-loop-budget`.
 - **Result**:
   - **Premises.** All three hold.
@@ -10,15 +10,17 @@
   - **Run 2.** Exit 0, 1/1 remaining task in 1 iteration, 0.41 USD. That iteration also fixed the archive crash.
   - **Totals.** 12 iterations, 3.20 USD, before review.
   - **Fix round after review (VERDICT: BLOCK).** Exit 0, 3/3 tasks in 3 iterations, 1.13 USD; the ledger now holds 4 lines.
-  - **Overall.** 15 iterations, 4.33 USD.
-  - **Suites.** All 24 pass, `loop_budget_test` and `loop_budget_fix_test` included. `lock_tests.py check` → exit 0.
-- **CI**: GitHub Actions `v2-ci` run 40230881041 on `65f3efd` and run 40230941029 on `4bb7a95`, both success. Both test the code of `111b1b1`, the last code commit: `git diff 111b1b1 4bb7a95` touches only `evidence.md`. `111b1b1` itself was pushed together with `65f3efd`, so Actions ran on the tip only. Run 40230031148 on `7248b2c` passed before the fix round. `cli-ci` is red on every recent v2 run, because `siblings-paths-resolve: ../specforge-pilot` fails on the runner, where the pilot sibling does not exist; that predates this change and is outside its suites. After the second fix round, see the line added below.
+  - **Second fix round after review (VERDICT: BLOCK on the CI field).** Exit 0, 2/2 tasks in 2 iterations, 0.79 USD; the ledger holds 6 lines.
+  - **Overall.** 17 iterations, 5.12 USD.
+  - **Suites.** All 25 pass, `loop_budget_test`, `loop_budget_fix_test` and `loop_budget_fix2_test` included. `lock_tests.py check` → exit 0.
+- **CI**: GitHub Actions `v2-ci` run 40230881041 on `65f3efd` and run 40230941029 on `4bb7a95`, both success. Both test the code of `111b1b1`, the last code commit: `git diff 111b1b1 4bb7a95` touches only `evidence.md`. `111b1b1` itself was pushed together with `65f3efd`, so Actions ran on the tip only. Run 40230031148 on `7248b2c` passed before the fix round. `cli-ci` is red on every recent v2 run, because `siblings-paths-resolve: ../specforge-pilot` fails on the runner, where the pilot sibling does not exist; that predates this change and is outside its suites. After the second fix round: run 40232555872 on `4606513`, the last code commit, success. The head that adds this report gets its own run after it is pushed.
 - **Not checked**:
   - Concurrent `loop.py` runs on one change appending to the ledger at once. Running two loops on one change was never supported.
   - A ledger edited by hand to lower the spend. The ledger is not locked; it shows in the diff like `progress.md` does.
 - **Deviations from the contract**:
   - **Run 1 was not recorded in the ledger.** It ran on the old `loop.py`, already loaded in memory when the agent edited the file, so its 11 iterations are absent from `loop-runs.txt`.
   - **Three fixtures adjusted.** On the human's decision after `BLOCKED`, the lead adjusted three existing fixtures: `scripts/loop_test.py` test_8, `scripts/premise_challenge_test.py` test_5 and `scripts/premise_challenge_fix2_test.py` test_14. The contract's Out list records it; no assertion changed.
-  - **CI list.** The lead added `loop_budget_test` and `loop_budget_fix_test` to `v2-ci.yml`.
+  - **CI list.** The lead added `loop_budget_test`, `loop_budget_fix_test` and `loop_budget_fix2_test` to `v2-ci.yml`.
+  - **Restore only.** An altered ledger is restored to `loop.py`'s last bytes plus that iteration's line, not to anything an agent wrote. A ledger replaced before `loop.py` starts, outside a run, is not detected (Not checked: edited by hand).
   - **Moved folder.** When the change folder moves mid-run, that iteration is not written to the ledger. `loop.py` skips the append when the folder is gone and stops with exit 4 on the move, as before. The contract said every iteration appends; the human may accept this or ask for the archived path to be written instead.
   - **Budget.** The raise from 12 to 14 was the lead's own, without a human decision. It is withdrawn. The fix round ran under `4 iterations, 2 USD` against the ledger, as the human approved.
