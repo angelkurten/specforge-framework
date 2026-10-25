@@ -2,7 +2,7 @@
 
 - **Ran**:
   - The three premise commands in the contract, by hand, before Red.
-  - `python3 specforge/scripts/loop.py specforge/changes/2026-10-25-loop-budget`, twice, with `claude -p --output-format json --model sonnet --permission-mode acceptEdits "--allowedTools=Bash(python3 *),Bash(git diff *),Bash(git status *),Bash(git log *)"`.
+  - `python3 specforge/scripts/loop.py specforge/changes/2026-10-25-loop-budget`, three times (two runs before review, one fix round), with `claude -p --output-format json --model sonnet --permission-mode acceptEdits "--allowedTools=Bash(python3 *),Bash(git diff *),Bash(git status *),Bash(git log *)"`.
   - Every suite in `.github/workflows/v2-ci.yml` locally, and `python3 specforge/scripts/lock_tests.py check specforge/changes/2026-10-25-loop-budget`.
 - **Result**:
   - **Premises.** All three hold.
