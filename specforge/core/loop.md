@@ -49,7 +49,7 @@ A run with no iteration cap does not start. The cap comes from the `**Budget**:`
 
 The budget is the change's, cumulative across runs, not the run's. `loop.py` appends `iteration <n> usd <cost>` to `loop-runs.txt` in the change folder after every iteration (it is the only writer), and both caps count what the ledger holds. A run refuses to start (exit 2) when the iterations left are fewer than the unticked tasks, and stops with exit 3 before any agent when the spent cost is already at the cap. A fix round gets more budget only when a human raises the `**Budget**:` line.
 
-These checks catch accidental damage and an iteration that alters the ledger in place before it exits. They are not a defence against a hostile agent: an agent with `Bash(python3 *)` can edit `loop.py`, raise the `**Budget**:` line or leave a detached process behind. The defence there is review of the diff. Known gaps, from `specforge/changes/archive/2026-10-25-loop-budget`: a hard link in place of the ledger makes the restore overwrite the linked file, and a non-UTF-8 ledger is a traceback rather than exit 4.
+These checks catch accidental damage and an iteration that alters the ledger in place before it exits. They are not a defence against a hostile agent: an agent with `Bash(python3 *)` can edit `loop.py`, raise the `**Budget**:` line or leave a detached process behind. The defence there is review of the diff.
 
 ## No cheating
 

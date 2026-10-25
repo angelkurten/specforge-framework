@@ -141,7 +141,10 @@ def run(change: Path, agent: str, max_iterations: int | None, max_cost: float | 
     ledger_file = change / "loop-runs.txt"
     if not_regular(ledger_file):
         return stop(4, f"{ledger_file} is not a regular file")
-    lines = ledger_file.read_text().splitlines() if ledger_file.is_file() else []
+    try:
+        lines = ledger_file.read_bytes().decode("utf-8").splitlines() if ledger_file.is_file() else []
+    except UnicodeDecodeError:
+        return stop(4, f"{ledger_file} is not valid UTF-8")
     spent = 0.0
     for line in lines:
         if not re.fullmatch(r"iteration \d+ usd \d+(\.\d+)?", line):
@@ -173,11 +176,12 @@ def run(change: Path, agent: str, max_iterations: int | None, max_cost: float | 
                 problem = f"{ledger_file} is not a regular file"
             else:
                 altered = (ledger_file.read_bytes() if ledger_file.is_file() else None) != ledger_bytes
-                if altered:  # write back what loop.py last wrote, so a rerun cannot get the budget back
-                    ledger_file.write_bytes(ledger_bytes or b"")
-                with ledger_file.open("a") as ledger:
-                    ledger.write(f"iteration {iteration} usd {cost:.4f}\n")
-                ledger_bytes = ledger_file.read_bytes()
+                # Write back what loop.py last wrote (so a rerun cannot get the budget back) plus this line,
+                # through a temp file and os.replace: never write through a hard link.
+                tmp = change / "loop-runs.txt.tmp"
+                ledger_bytes = (ledger_bytes or b"") + f"iteration {iteration} usd {cost:.4f}\n".encode()
+                tmp.write_bytes(ledger_bytes)
+                os.replace(tmp, ledger_file)
                 if altered:
                     problem = f"ledger changed during the loop, restored: {ledger_file}"
         changed = [
