@@ -321,8 +321,8 @@ No new log line for requests; [PRD-016](016-teamtasks-team-audit-log.md) owns te
 ## Gate: Promotion to Implemented
 
 ```yaml
-# amendment: §9 row 15 ← VALIDATION finding 1; bounce: specforge-quality-reviewer survives (re-proposal); commit 4feb79d
-# amendment: §9 row 27 ← VALIDATION finding 1; bounce: specforge-quality-reviewer survives (re-proposal); commit 4feb79d
+# amendment: §9 row 15 ← VALIDATION finding 1; bounce: specforge-quality-reviewer survives (re-proposal); commits 4feb79d, fc5ecfd
+# amendment: §9 row 27 ← VALIDATION finding 1; bounce: specforge-quality-reviewer survives (re-proposal); commits 4feb79d, fc5ecfd
 commit_hash: [TBD]
 tests:
   - [TBD]
