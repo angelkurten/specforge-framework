@@ -47,6 +47,8 @@ Direct and Explore do not run this loop.
 
 A run with no iteration cap does not start. The cap comes from the `**Budget**:` line in `progress.md`.
 
+The budget is the change's, cumulative across runs, not the run's. `loop.py` appends `iteration <n> usd <cost>` to `loop-runs.txt` in the change folder after every iteration (it is the only writer), and both caps count what the ledger holds. A run refuses to start (exit 2) when the iterations left are fewer than the unticked tasks, and stops with exit 3 before any agent when the spent cost is already at the cap. A fix round gets more budget only when a human raises the `**Budget**:` line.
+
 ## No cheating
 
 The implementer never disables tests, linters or rules, never leaves stubs, and never edits or deletes an approved test. If it believes a test is wrong, or that reality contradicts the contract, it writes `BLOCKED:` and stops. A human then either fixes the contract and re-approves the tests, or tells the agent it is wrong.

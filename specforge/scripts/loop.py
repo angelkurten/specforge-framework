@@ -21,7 +21,12 @@ loop checks, in this order, and stops on the first that holds:
     exit 3  the iteration cap is reached
 
 The budget comes from progress.md's `**Budget**:` line, e.g.
-`10 iterations, 5 USD`; --max-iterations and --max-cost override it. Cost is
+`10 iterations, 5 USD`; --max-iterations and --max-cost override it. The budget
+is the change's, cumulative across runs: `loop-runs.txt` in the change folder
+is a ledger only loop.py writes (`iteration <n> usd <cost>` per iteration), and
+the caps count what it holds. A run refuses to start (exit 2) when the
+iterations left are fewer than the unticked tasks, and stops with exit 3 before
+any agent when the spent cost is already at the cap. Cost is
 counted only when the agent prints JSON carrying `total_cost_usd`, as
 `claude -p --output-format json` does. The agent command is run from the
 working directory, with SPECFORGE_CHANGE_DIR and SPECFORGE_ITERATION set and
@@ -128,9 +133,21 @@ def run(change: Path, agent: str, max_iterations: int | None, max_cost: float | 
             return stop(2, f"premise not checked, run its command and record `→ holds` or `→ fails:`: {line}")
         if "→ fails:" in line:
             return stop(2, f"premise failed, re-classify the change (usually to Explore): {line}")
+    ledger_file = change / "loop-runs.txt"
+    lines = ledger_file.read_text().splitlines() if ledger_file.is_file() else []
     spent = 0.0
+    for line in lines:
+        if not re.fullmatch(r"iteration \d+ usd \d+(\.\d+)?", line):
+            return stop(4, f"malformed loop-runs.txt line: {line}")
+        spent += float(line.split()[3])
+    iteration = len(lines)
+    if max_cost is not None and spent >= max_cost:
+        return stop(3, f"budget: {spent:.2f} USD already spent, cap {max_cost:.2f}")
+    _, total = ticked(progress_file.read_text())
+    left = total - done_before
+    if max_iterations is not None and max_iterations - iteration < left:
+        return stop(2, f"{max(max_iterations - iteration, 0)} iterations left for {left} tasks left: raise the **Budget**: line")
     idle = 0
-    iteration = 0
     while True:
         iteration += 1
         env = dict(os.environ, SPECFORGE_CHANGE_DIR=str(change), SPECFORGE_ITERATION=str(iteration))
@@ -140,7 +157,11 @@ def run(change: Path, agent: str, max_iterations: int | None, max_cost: float | 
             text=True,
             env=env,
         )
-        spent += cost_of(result.stdout)
+        cost = cost_of(result.stdout)
+        spent += cost
+        if change.is_dir():  # an archived folder is reported by the checks below
+            with ledger_file.open("a") as ledger:
+                ledger.write(f"iteration {iteration} usd {cost:.4f}\n")
         changed = [
             path for path, sha in approved.items()
             if not (root / path).is_file() or digest(root / path) != sha
