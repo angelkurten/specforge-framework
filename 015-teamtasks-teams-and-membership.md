@@ -342,6 +342,8 @@ This PRD logs nothing new; team events and refusals are logged by [PRD-016](016-
 ## Gate: Promotion to Implemented
 
 ```yaml
+# amendment: §9 row 16 ← VALIDATION finding 1; bounce: specforge-quality-reviewer survives; commit 6c15e98
+# amendment: §9 row 24 ← VALIDATION finding 2; bounce: specforge-quality-reviewer survives; commit 6c15e98
 commit_hash: [TBD]
 tests:
   - [TBD]
