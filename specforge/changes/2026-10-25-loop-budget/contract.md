@@ -22,6 +22,7 @@ Out:
 - Any change to the other stop conditions (exits 0, 2 no progress, 4, 5).
 - Making `archive.py` or `review_prep.py` read the ledger.
 - A CI-run check on the head, which is deferred (see `specforge/DECISIONS.md` after this change).
+- Editing existing tests, except three fixtures (decided by the human, 2026-10-25, after loop BLOCKED). `scripts/loop_test.py` test_8 reaches the cap with an agent that ticks nothing under `2 iterations`, not with `1 iterations` for 2 tasks. `scripts/premise_challenge_test.py` test_5 and `scripts/premise_challenge_fix2_test.py` test_14 delete `loop-runs.txt` between their runs, each of which stands for a fresh change. Their assertions are unchanged.
 
 ## Context
 

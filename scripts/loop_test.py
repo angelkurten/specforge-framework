@@ -181,7 +181,8 @@ class LoopTests(Fixture):
         self.assertNotIn("iteration 4", r.stdout)
 
     def test_8_stops_at_the_iteration_cap(self):
-        r = self.loop("tick", budget="1 iterations")
+        # A budget below the tasks left now refuses at start; an agent that ticks nothing reaches the cap.
+        r = self.loop("noop", budget="2 iterations")
         self.assertEqual(r.returncode, 3, r.stdout + r.stderr)
         self.assertIn("budget", r.stdout)
 

@@ -78,6 +78,7 @@ class PremiseChallengeTests(Repo):
             self.assertTrue(self.marker.exists(), r.stdout + r.stderr)
             self.assertEqual(r.returncode, 3, r.stdout + r.stderr)
             self.marker.unlink()
+            (self.root / CHANGE / "loop-runs.txt").unlink(missing_ok=True)  # each contract is a fresh change's run
 
     def test_6_the_loop_rule_lists_challenge_before_red(self):
         text = LOOP_RULE.read_text()

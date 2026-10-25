@@ -33,6 +33,8 @@ class PremiseChallengeFix2Tests(Repo):
         # Subtests share the marker file; a stale one from an earlier subtest
         # would make a refusal look like a run.
         (self.root / "agent-ran").unlink(missing_ok=True)
+        # The budget is cumulative (loop-runs.txt); each subtest is a fresh change's run.
+        (self.root / base.CHANGE / "loop-runs.txt").unlink(missing_ok=True)
         return base.PremiseChallengeTests.run_loop(self, contract, **kw)
 
     def assertStarts(self, r):
