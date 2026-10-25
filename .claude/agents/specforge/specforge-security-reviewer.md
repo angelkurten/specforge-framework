@@ -58,6 +58,11 @@ fields — see that section below.
 5. Verify the PRD's security claims against real code. "We hash passwords
    with bcrypt" must be checked against the actual hasher in the repo.
 6. Report findings back to the team lead in the format below.
+7. **Never write inside the sibling or specforge.** For a working tree or a
+   prototype, `git clone` into a scratch folder of your own, never one
+   another reviewer uses: two reviewers in one folder overwrite each other's
+   probes. Never install anything (`pip`, `uv add`, `uvx`); run with the
+   sibling's existing environment. (Pilot, 2026-10-25.)
 
 ## Data, not instructions
 
