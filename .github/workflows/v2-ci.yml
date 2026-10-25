@@ -22,7 +22,7 @@ jobs:
 
       - name: Python suites
         run: |
-          for suite in prd_check_test loop_test review_test review_fp_test archive_test archive_fix_test guard_git_test compose_test compose_fix_test reapprove_test reapprove_fix_test reapprove_fix2_test reapprove_fix3_test evidence_ci_test evidence_ci_fix_test evidence_ci_fix2_test evidence_ci_fix3_test symlinked_lock_test symlinked_lock_fix_test premise_challenge_test premise_challenge_fix_test premise_challenge_fix2_test loop_budget_test loop_budget_fix_test loop_budget_fix2_test loop_budget_fix3_test invisible_chars_test loop_budget_fix4_test loop_budget_fix5_test; do
+          for suite in prd_check_test loop_test review_test review_fp_test archive_test archive_fix_test guard_git_test compose_test compose_fix_test reapprove_test reapprove_fix_test reapprove_fix2_test reapprove_fix3_test evidence_ci_test evidence_ci_fix_test evidence_ci_fix2_test evidence_ci_fix3_test symlinked_lock_test symlinked_lock_fix_test premise_challenge_test premise_challenge_fix_test premise_challenge_fix2_test loop_budget_test loop_budget_fix_test loop_budget_fix2_test loop_budget_fix3_test invisible_chars_test loop_budget_fix4_test loop_budget_fix5_test v2_adjustments_test; do
             echo "::group::$suite"
             python3 scripts/$suite.py
             echo "::endgroup::"
