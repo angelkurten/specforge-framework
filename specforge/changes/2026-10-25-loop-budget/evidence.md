@@ -8,13 +8,17 @@
   - **Premises.** All three hold.
   - **Run 1.** Exit 5 at iteration 11, 10/11 tasks, 2.79 USD. The `BLOCKED` was correct: three existing fixtures relied on per-run counting, and the contract said to stop and ask.
   - **Run 2.** Exit 0, 1/1 remaining task in 1 iteration, 0.41 USD. That iteration also fixed the archive crash.
-  - **Totals.** 12 iterations, 3.20 USD.
-  - **Suites.** All 23 pass, `loop_budget_test` included. `lock_tests.py check` → exit 0.
-- **CI**: GitHub Actions `v2-ci` run 40230031148 on `7248b2c`: success.
+  - **Totals.** 12 iterations, 3.20 USD, before review.
+  - **Fix round after review (VERDICT: BLOCK).** Exit 0, 3/3 tasks in 3 iterations, 1.13 USD; the ledger now holds 4 lines.
+  - **Overall.** 15 iterations, 4.33 USD.
+  - **Suites.** All 24 pass, `loop_budget_test` and `loop_budget_fix_test` included. `lock_tests.py check` → exit 0.
+- **CI**: GitHub Actions `v2-ci` on `111b1b1`, the last code commit, and on the pushed head that adds this report. Read with `gh run list --branch v2` (run 40230031148 on `7248b2c` passed before the fix round). `cli-ci` is red on every recent v2 run, because `siblings-paths-resolve: ../specforge-pilot` fails on the runner, where the pilot sibling does not exist. That predates this change and is outside its suites.
 - **Not checked**:
   - Concurrent `loop.py` runs on one change appending to the ledger at once. Running two loops on one change was never supported.
   - A ledger edited by hand to lower the spend. The ledger is not locked; it shows in the diff like `progress.md` does.
 - **Deviations from the contract**:
-  - **Run 1 was not recorded in the ledger.** It ran on the old `loop.py`, already loaded in memory when the agent edited the file, so its 11 iterations are absent from `loop-runs.txt`. The ledger holds only run 2's line. The lead raised `**Budget**:` from 12 to 14 to cover run 2, against the contract's 12.
+  - **Run 1 was not recorded in the ledger.** It ran on the old `loop.py`, already loaded in memory when the agent edited the file, so its 11 iterations are absent from `loop-runs.txt`.
   - **Three fixtures adjusted.** On the human's decision after `BLOCKED`, the lead adjusted three existing fixtures: `scripts/loop_test.py` test_8, `scripts/premise_challenge_test.py` test_5 and `scripts/premise_challenge_fix2_test.py` test_14. The contract's Out list records it; no assertion changed.
-  - **CI list.** The lead added `loop_budget_test` to `v2-ci.yml`.
+  - **CI list.** The lead added `loop_budget_test` and `loop_budget_fix_test` to `v2-ci.yml`.
+  - **Moved folder.** When the change folder moves mid-run, that iteration is not written to the ledger. `loop.py` skips the append when the folder is gone and stops with exit 4 on the move, as before. The contract said every iteration appends; the human may accept this or ask for the archived path to be written instead.
+  - **Budget.** The raise from 12 to 14 was the lead's own, without a human decision. It is withdrawn. The fix round ran under `4 iterations, 2 USD` against the ledger, as the human approved.
