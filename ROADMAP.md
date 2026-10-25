@@ -193,4 +193,19 @@
 **Evidence**:
 - [PRD-017] — retroactive meta-reference per `.claude/rules/roadmap.md` § Evidence category 7
 
+### ROADMAP-012: teamtasks task CSV export
+
+**Status**: Shipped
+**Horizon**: —
+**Theme**: —
+**Last reviewed**: 2026-10-25
+**PRD**: PRD-018
+
+**Problem / outcome**: a member could list a team's tasks only as JSON, not take them into a spreadsheet; a CSV export with the list's filters, member-only emails and formula-safe cells lets status reviews happen where the team already works.
+**User**: teamtasks team members (the specforge v2 pilot's sandbox product)
+**Siblings likely impacted**: teamtasks
+
+**Evidence**:
+- [PRD-018] — retroactive meta-reference per `.claude/rules/roadmap.md` § Evidence category 7
+
 **Caveats**: —

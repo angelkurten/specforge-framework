@@ -1,6 +1,6 @@
 # PRD-018: teamtasks task CSV export
 
-**Status**: Draft
+**Status**: Implemented
 **Date**: 2026-10-25
 **Author**: AI-assisted
 **Priority**: P2
@@ -175,9 +175,9 @@ No new log line; [PRD-016](016-teamtasks-team-audit-log.md) owns team logging. u
 
 ```yaml
 # amendment: §9 ← VALIDATION findings 1-2; bounce: specforge-quality-reviewer survives; commit f48cf85
-commit_hash: [TBD]
+commit_hash: 7f81ccd
 tests:
-  - [TBD]
+  - ../specforge-pilot/tests/test_tasks_export.py
 system_artifact_diff:
-  - [TBD]
+  - ../specforge-pilot/docs/SYSTEM_ARTIFACT.md#domain-tasks (commit 8da8977)
 ```
