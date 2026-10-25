@@ -64,9 +64,8 @@ class LoopBudgetTests(Repo):
         out = r.stdout + r.stderr
         self.assertEqual(r.returncode, 2, out)
         self.assertEqual(self.ran(), [], "the agent ran although the budget cannot finish")
-        self.assertIn("1", out)
-        self.assertIn("2", out)
-        self.assertIn("task", out)
+        self.assertRegex(out, r"\b1 iterations? left\b")
+        self.assertRegex(out, r"\b2 tasks? left\b")
 
     def test_2_a_budget_equal_to_the_tasks_left_starts(self):
         # Fails against a refusal that counts ticked tasks too: 3 boxes, 1 already ticked, 2 left.

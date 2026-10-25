@@ -43,6 +43,7 @@ Out:
 - The ledger is append-only and written only by `loop.py`.
   - A missing file means nothing has been spent.
   - A line that is not `iteration <int> usd <float>` stops the loop with exit 4, naming the line, the same as a malformed lock line.
+  - Between iterations, `loop.py` compares the ledger with the bytes it last wrote, the way it compares the lock file, and stops with exit 4 on any difference (added after review).
 - Every existing suite in `.github/workflows/v2-ci.yml` still passes. A test that relies on per-run counting is not edited: if one exists, stop and ask.
 
 ## Premises
@@ -65,6 +66,10 @@ Out:
 8. A malformed ledger line stops the run with exit 4, quoting the line, and runs no agent.
 9. `archive.py` moves `loop-runs.txt` with the change folder.
 10. `specforge/core/loop.md` and `loop.py`'s docstring both name `loop-runs.txt` and say the budget is cumulative.
+
+Added after review (`scripts/loop_budget_fix_test.py`; test_1 tightened and re-approved), VERDICT: BLOCK — nothing enforced that only loop.py writes the ledger, so an agent could truncate it mid-run and get fresh budget:
+
+11. An agent that truncates, deletes or appends to `loop-runs.txt` during its iteration stops the loop with exit 4, naming `loop-runs.txt`, before the next iteration. After each iteration, the ledger's bytes must equal what `loop.py` last wrote.
 
 ## Stop and escalate
 

@@ -1,6 +1,6 @@
 # Progress
 
-**Budget**: 14 iterations, 5 USD
+**Budget**: 4 iterations, 2 USD
 
 ## Tasks
 
@@ -15,6 +15,12 @@
 - [x] scripts/loop_budget_test.py test_9_archive_moves_the_ledger
 - [x] scripts/loop_budget_test.py test_10_the_docs_say_the_budget_is_cumulative
 - [x] every suite in `.github/workflows/v2-ci.yml` passes (run them as that file does)
+
+Fix round after review (VERDICT: BLOCK — the ledger is not protected from an agent rewriting it; test_1's asserts are loose):
+
+- [ ] scripts/loop_budget_test.py test_1_a_budget_below_the_tasks_left_does_not_start (re-approved: exact message)
+- [ ] scripts/loop_budget_fix_test.py test_11_an_agent_that_alters_the_ledger_stops_the_loop
+- [ ] every suite in `.github/workflows/v2-ci.yml` passes (run them as that file does)
 
 ## Blocked
 
@@ -32,3 +38,4 @@
 - Task 10 (test_10): loop.md and loop.py docstring now name `loop-runs.txt` and say the budget is cumulative; ran `python3 scripts/loop_budget_test.py` → 10 tests OK.
 - Lead, 2026-10-25: BLOCKED resolved by the human — three existing fixtures adjusted by the lead (contract Out). The archive crash (FileNotFoundError writing loop-runs.txt after the folder moved) is a loop.py bug for the next iteration to fix. First run: 11 iterations, 2.79 USD.
 - Task 11: archive_test test_8 and archive_fix_test crashed writing loop-runs.txt after the folder moved; loop.py now writes the ledger only if the change folder exists; ran all 21 suites of v2-ci.yml in order → all pass (exit 0 each), plus loop_budget_test → 10 tests OK.
+- Lead, fix round: `**Budget**:` is now `4 iterations, 2 USD` against the ledger. It counts 1 iteration and 0.41 USD, because run 1 predates it; this leaves 3 iterations and 1.59 USD, as the human approved for this round. The earlier raise from 12 to 14 was the lead's own and is withdrawn.
