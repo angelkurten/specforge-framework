@@ -12,7 +12,7 @@
   - **Fix round after review (VERDICT: BLOCK).** Exit 0, 3/3 tasks in 3 iterations, 1.13 USD; the ledger now holds 4 lines.
   - **Overall.** 15 iterations, 4.33 USD.
   - **Suites.** All 24 pass, `loop_budget_test` and `loop_budget_fix_test` included. `lock_tests.py check` → exit 0.
-- **CI**: GitHub Actions `v2-ci` on `111b1b1`, the last code commit, and on the pushed head that adds this report. Read with `gh run list --branch v2` (run 40230031148 on `7248b2c` passed before the fix round). `cli-ci` is red on every recent v2 run, because `siblings-paths-resolve: ../specforge-pilot` fails on the runner, where the pilot sibling does not exist. That predates this change and is outside its suites.
+- **CI**: GitHub Actions `v2-ci` run 40230881041 on `65f3efd` and run 40230941029 on `4bb7a95`, both success. Both test the code of `111b1b1`, the last code commit: `git diff 111b1b1 4bb7a95` touches only `evidence.md`. `111b1b1` itself was pushed together with `65f3efd`, so Actions ran on the tip only. Run 40230031148 on `7248b2c` passed before the fix round. `cli-ci` is red on every recent v2 run, because `siblings-paths-resolve: ../specforge-pilot` fails on the runner, where the pilot sibling does not exist; that predates this change and is outside its suites. After the second fix round, see the line added below.
 - **Not checked**:
   - Concurrent `loop.py` runs on one change appending to the ledger at once. Running two loops on one change was never supported.
   - A ledger edited by hand to lower the spend. The ledger is not locked; it shows in the diff like `progress.md` does.

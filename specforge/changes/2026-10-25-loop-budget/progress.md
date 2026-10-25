@@ -1,6 +1,6 @@
 # Progress
 
-**Budget**: 4 iterations, 2 USD
+**Budget**: 6 iterations, 2.60 USD
 
 ## Tasks
 
@@ -22,6 +22,11 @@ Fix round after review (VERDICT: BLOCK — the ledger is not protected from an a
 - [x] scripts/loop_budget_fix_test.py test_11_an_agent_that_alters_the_ledger_stops_the_loop
 - [x] every suite in `.github/workflows/v2-ci.yml` passes (run them as that file does)
 
+Second fix round after review (VERDICT: BLOCK on evidence; should-fix the human chose to fix — an altered ledger stays altered):
+
+- [ ] scripts/loop_budget_fix2_test.py test_12_an_altered_ledger_is_restored_and_the_iteration_recorded
+- [ ] every suite in `.github/workflows/v2-ci.yml` passes (run them as that file does)
+
 ## Blocked
 
 
@@ -42,3 +47,4 @@ Fix round after review (VERDICT: BLOCK — the ledger is not protected from an a
 - Fix task 1 (test_1, exact message): no code change needed (the refusal already names "1 iterations left" and "2 tasks left"); ran `python3 scripts/loop_budget_test.py LoopBudgetTests.test_1_a_budget_below_the_tasks_left_does_not_start` → OK (1 test); lock hashes of both test files match locked-tests.txt.
 - Fix task 2 (test_11): loop.py keeps the ledger bytes it last wrote and stops with exit 4 naming loop-runs.txt if they differ after an iteration (before appending); ran `python3 scripts/loop_budget_fix_test.py` → OK (1 test), `python3 scripts/loop_budget_test.py` → OK (10 tests).
 - Fix task 3: ran all 24 suites of v2-ci.yml in order (the 22 earlier plus loop_budget_test and loop_budget_fix_test) → exit 0 each; lock hashes of both test files match locked-tests.txt.
+- Lead, second fix round: `**Budget**:` raised by the human's approval to `6 iterations, 2.60 USD` against the ledger (4 lines, 1.54 USD): 2 iterations, about 1 USD for this round.

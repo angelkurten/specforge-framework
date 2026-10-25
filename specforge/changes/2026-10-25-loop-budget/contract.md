@@ -71,6 +71,10 @@ Added after review (`scripts/loop_budget_fix_test.py`; test_1 tightened and re-a
 
 11. An agent that truncates, deletes or appends to `loop-runs.txt` during its iteration stops the loop with exit 4, naming `loop-runs.txt`, before the next iteration. After each iteration, the ledger's bytes must equal what `loop.py` last wrote.
 
+Added after the second review (`scripts/loop_budget_fix2_test.py`), VERDICT: BLOCK on the evidence's CI field, with a should-fix the human chose to fix — an altered ledger stayed altered, so a rerun got its budget back:
+
+12. When an iteration alters `loop-runs.txt`, `loop.py` writes back the bytes it last wrote, appends that iteration's line, then stops with exit 4. Its message says the ledger was restored.
+
 ## Stop and escalate
 
 Stop and ask if an existing suite depends on per-run counting, or if the ledger needs any writer other than `loop.py`. Budget: 12 iterations, 5 USD, for 11 tasks (10 scenarios and the full suite).
