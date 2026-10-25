@@ -174,6 +174,7 @@ No new log line; [PRD-016](016-teamtasks-team-audit-log.md) owns team logging. u
 ## Gate: Promotion to Implemented
 
 ```yaml
+# amendment: §9 ← VALIDATION findings 1-2; bounce: specforge-quality-reviewer survives; commit f48cf85
 commit_hash: [TBD]
 tests:
   - [TBD]
