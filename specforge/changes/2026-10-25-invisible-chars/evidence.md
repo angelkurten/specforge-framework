@@ -14,4 +14,5 @@
 - **Not checked**:
   - Characters outside category `Cf`, such as default-ignorable letters (U+3164) and variation selectors, as the contract's Out list says.
   - Files that are not UTF-8: `git diff` text decoding is unchanged.
+- **Self-check.** `review_prep.py` on this change flagged a literal U+202E in two lines of this contract, where the lead had typed the escape and the file tool decoded it. The contract was corrected. `review_prep.py:11` is flagged as a stub: the docstring line that names `TODO` sits inside a triple-quoted string opened outside the hunk, which is a false positive of the existing stub pattern.
 - **Deviations from the contract**: none. The `splitlines` change is inside `added_lines`, which the contract names as the input.

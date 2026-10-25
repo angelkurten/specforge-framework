@@ -4,7 +4,7 @@
 
 ## Outcome
 
-`review_prep.py` reports every added line, in code or prose, that carries a literal invisible or bidi-control character. The finding is should-fix and names the code point, so the author writes the escape instead. The pilot found a literal U+202E in two locked test files and in a PRD, written by the file tool from `‮`, and no check saw it.
+`review_prep.py` reports every added line, in code or prose, that carries a literal invisible or bidi-control character. The finding is should-fix and names the code point, so the author writes the escape instead. The pilot found a literal U+202E in two locked test files and in a PRD, written by the file tool from `\u202e`, and no check saw it.
 
 ## Scope
 
@@ -48,7 +48,7 @@ Out:
 2. The same character in an added `.md` line is reported too.
 3. Literal U+200B, U+FEFF and U+E0041 are each reported with their code point.
 4. A line holding U+200D (in 👩‍💻) and U+200C (in a Persian word) gives no finding. This fails against reporting all of category `Cf`.
-5. The escaped text `"‮"` (backslash, u, digits) gives no finding.
+5. The escaped text `"\u202e"` (backslash, u, digits) gives no finding.
 6. A line holding U+2028 is reported.
 7. The docstring of `review_prep.py` names the new should-fix.
 
