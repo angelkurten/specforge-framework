@@ -55,4 +55,5 @@ jobs:
 
       - name: Doctor (specforge validates its own repo)
         working-directory: ${{ github.workspace }}
-        run: node tools/cli/dist/src/cli.js doctor
+        # teamtasks (../specforge-pilot) is a local sibling, never checked out in CI (PRD-003 --ignore-sibling)
+        run: node tools/cli/dist/src/cli.js doctor --ignore-sibling=teamtasks
