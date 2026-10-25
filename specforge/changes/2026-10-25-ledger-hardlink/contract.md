@@ -9,7 +9,7 @@
 ## Scope
 
 In:
-- **Writes.** Every write of the ledger goes to a temporary file in the change folder, followed by `os.replace` onto `loop-runs.txt`. That covers the restore of an altered ledger and the per-iteration append. A hard link is then left pointing at its own, unchanged inode.
+- **Writes.** Every write of the ledger goes to a fresh temporary file from `tempfile.mkstemp` in the change folder, followed by `os.replace` onto `loop-runs.txt`. That covers the restore of an altered ledger and the per-iteration append. A hard link is then left pointing at its own, unchanged inode.
 - **Reads.** The ledger is read as bytes and decoded as UTF-8. On failure the run stops with exit 4, naming `loop-runs.txt`, before any agent runs.
 - **Docs.** `specforge/core/loop.md` drops both gaps from its known-gaps sentence.
 
@@ -46,6 +46,10 @@ Out:
 2. A ledger that is already a hard link to another file when a run starts gets its iteration lines, and the other file's bytes stay unchanged. This fails against an in-place append.
 3. A ledger holding non-UTF-8 bytes stops the run with exit 4, naming `loop-runs.txt`, with no traceback and no agent run.
 4. `specforge/core/loop.md` no longer lists the hard-link and non-UTF-8 gaps.
+
+Added after review (`scripts/loop_budget_fix5_test.py`), VERDICT: BLOCK — the temp file had a fixed name and was written with `write_bytes`, so a link planted at `loop-runs.txt.tmp` was written through, and a symlink reached any file the user can write:
+
+5. A hard link, a symlink or a directory an agent plants at `loop-runs.txt.tmp` is never written through and causes no traceback. The run goes on, the linked file's bytes stay unchanged, and the ledger gets its line. The temp file comes from `tempfile.mkstemp` in the change folder, which creates it with `O_EXCL`.
 
 ## Stop and escalate
 

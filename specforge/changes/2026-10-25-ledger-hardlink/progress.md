@@ -1,6 +1,6 @@
 # Progress
 
-**Budget**: 6 iterations, 2.50 USD
+**Budget**: 8 iterations, 2.50 USD
 
 ## Tasks
 
@@ -10,6 +10,11 @@
 - [x] scripts/loop_budget_fix4_test.py test_4_loop_md_no_longer_lists_these_gaps
 - [x] every suite in `.github/workflows/v2-ci.yml` passes (run them as that file does)
 
+Fix round after review (VERDICT: BLOCK — fixed temp name written through a planted link or symlink):
+
+- [ ] scripts/loop_budget_fix5_test.py test_5_a_link_or_directory_planted_at_the_temp_path_is_never_written_through
+- [ ] every suite in `.github/workflows/v2-ci.yml` passes (run them as that file does)
+
 ## Blocked
 
 ## Log
@@ -18,3 +23,4 @@
 - Task 3: loop.py append now builds ledger bytes + new line, temp file + `os.replace` (restore folded in); `python3 scripts/loop_budget_fix4_test.py -k test_2` → OK (1 test); full fix4 suite: only test_4 fails (task 4).
 - Task 4: removed the known-gaps sentence from specforge/core/loop.md:52; `python3 scripts/loop_budget_fix4_test.py` → Ran 4 tests, OK.
 - Task 5: ran all 28 suites from v2-ci.yml in order (`python3 scripts/<suite>.py`); every one exited 0.
+- Lead, fix round: `**Budget**:` raised by the human's approval to `8 iterations, 2.50 USD` against the ledger (5 lines, 1.26 USD).
