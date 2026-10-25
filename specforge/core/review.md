@@ -14,12 +14,15 @@ After the loop finishes, a reviewer that did not write the change looks for ways
 - **Cheating a pattern misses.** Assertions weakened in tests that were not locked. Exceptions swallowed. Expected values special-cased in the code.
 - **Evidence.** The reviewer re-runs the commands under Ran and compares the output with Result. It reads the CI runs the `CI` field names. They must be the runs on the last commit that changed code or tests before the commit that holds the report, since a report cannot name its own commit's runs. It also reads the runs on the pushed head directly, so an evidence-only follow-up is covered too. A missing, red or unnamed run is a blocker. Not checked is plausible, and nothing that was skipped is claimed as checked. Every deviation from the contract is recorded.
 
-**Controlled mode** adds the security checklist:
+**Controlled mode, and any change whose contract shows a high-risk signal from `specforge/core/modes.md` § Risk** (authentication, authorization, secrets, payments or PII, among others), adds the security checklist:
 - authentication and authorization on every new entry point;
 - input that reaches storage or execution is validated;
+- no response reveals, by its content, status or timing, whether a record exists that the caller may not know about;
 - no secret in code, config or logs;
 - no PII in logs;
 - every new dependency named and justified.
+
+A Contract change with high risk once passed review with a login that answered in 0.9 ms for an unknown email and 23.4 ms for a wrong password, which revealed every registered email (`specforge-pilot`, change `2026-10-25-register-and-login`).
 
 ## Report
 
