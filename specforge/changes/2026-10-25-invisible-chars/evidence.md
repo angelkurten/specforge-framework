@@ -15,4 +15,6 @@
   - Characters outside category `Cf`, such as default-ignorable letters (U+3164) and variation selectors, as the contract's Out list says.
   - Files that are not UTF-8: `git diff` text decoding is unchanged.
 - **Self-check.** `review_prep.py` on this change flagged a literal U+202E in two lines of this contract, where the lead had typed the escape and the file tool decoded it. The contract was corrected. `review_prep.py:11` is flagged as a stub: the docstring line that names `TODO` sits inside a triple-quoted string opened outside the hunk, which is a false positive of the existing stub pattern.
-- **Deviations from the contract**: none. The `splitlines` change is inside `added_lines`, which the contract names as the input.
+- **Deviations from the contract**:
+  - **Contract edited after approval.** The approved contract held a literal U+202E at lines 7 and 51, because the file tool decoded the escape the lead typed. That made scenario 5 contradict scenario 1. After the loop, the lead replaced both with the escape text (`2e18b7c`); the locked test always encoded the intended meaning. The human confirmed the edit on 2026-10-25.
+  - **`splitlines` replaced.** `split("\n")` in `added_lines` changes the input of every check, not only the new finding: lines holding U+000B, U+000C, U+001C-U+001E, U+0085, U+2028 or U+2029 are no longer split. This goes beyond Scope; no test covers it for the other findings.
