@@ -169,7 +169,7 @@ erDiagram
   - This is the same guard shape as `0003`'s downgrade (`../specforge-pilot/teamtasks/migrations/versions/0003_task_statuses.py:27-31`).
 - **Head-revision pins:** the five pins listed in §1 change from `0003_task_statuses` to `0004_task_comments`.
 - **Transactional downgrade:** the `downgrade` helper of `../specforge-pilot/tests/test_task_statuses.py:191-200` becomes a call to `teamtasks.app.downgrade` (§7). Its plain `create_engine(...).begin()` lacks the app's `BEGIN IMMEDIATE`, so pysqlite autocommits DDL. A downgrade from `0004` refused at `0003`'s guard would leave the database at `0004` with `task_comments` dropped. Reproduced in the draft review.
-- These and the new rows are the only edits to existing tests.
+- These, the new rows, and row 13's new assertions inside the existing `test_12` are the only edits to existing tests.
 
 ## 7. Architecture
 
@@ -233,7 +233,7 @@ flowchart LR
 | 12 | the migrations still match the models, at the new head | integration | `tests/test_roles.py` rows 12, 13, 20, 21 and 22, and `tests/test_task_statuses.py` row 12, pass with their pins at `0004_task_comments`. | `../specforge-pilot/tests/test_roles.py` |
 | 13 | a refused downgrade through the new head changes nothing | integration | `tests/test_task_statuses.py` row 12, with its helper calling `teamtasks.app.downgrade` and its pin at `0004_task_comments`: with a task in `review` and no comments, the downgrade to `0002` refuses at `0003`'s guard, `sqlite_master` is identical before and after, and the version is still `0004_task_comments` with `task_comments` present. Fails against the old plain-engine helper, which leaves `task_comments` dropped. | `../specforge-pilot/tests/test_task_statuses.py` |
 | 14 | a refused or failed task delete keeps its comments | integration | cy, a plain member who did not create the task, gets `403` deleting a task with comments, and both comments remain. With `Session.delete` monkeypatched to raise, a delete by the owner raises and both the task and its comments remain. Fails against deleting the comments before the 403 check, or in a commit of their own. | `../specforge-pilot/tests/test_task_comments.py` |
-| 15 | the previous commit refuses a database at 0004 | integration | The `teamtasks/` tree of the commit before the one that adds `0004` (HEAD while uncommitted), extracted with `git archive` as in `../specforge-pilot/tests/test_task_statuses.py:176-189`, raises `CommandError` with `Can't locate revision` on a database migrated to `0004`. This proves §10's rollback order. | `../specforge-pilot/tests/test_task_comments.py` |
+| 15 | the previous commit refuses a database at 0004 | integration | The `teamtasks/` tree of the commit before the one that adds `0004` (HEAD while uncommitted), extracted with `git archive` as in `../specforge-pilot/tests/test_task_statuses.py:176-189`, raises `CommandError` with `Can't locate revision` on a database migrated to `0004`. This proves §10's rollback order. Like `previous_app`, it relies on git history: after commit, `--diff-filter=A` must return exactly one hash for the `0004` file. | `../specforge-pilot/tests/test_task_comments.py` |
 
 ## 10. Migration Plan
 
