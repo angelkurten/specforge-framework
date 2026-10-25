@@ -25,6 +25,8 @@ Every iteration is a fresh agent process that reads `contract.md` and `progress.
    ```
 
    Write `--allowedTools=` with an `=` and commas. The space-separated form takes every later argument as a tool, including the prompt `loop.py` appends last, and each iteration exits 1 having done nothing.
+
+   A change to `loop.py`'s own gates can refuse its own contract, and then no fix round can run. Run that round on the base's copy: `git show <base>:specforge/scripts/loop.py` and `lock_tests.py` into a scratch folder, so the lock checks still apply, and record it as a deviation (`specforge/changes/archive/2026-10-24-premise-challenge`).
 4. **Refactor.** Structural changes land in commits separate from behaviour changes.
 5. **Review.** A separate reviewer checks the diff against the contract, and checks that the tests are not trivial or tied to the implementation. Controlled mode adds a sample of mutation testing.
 
