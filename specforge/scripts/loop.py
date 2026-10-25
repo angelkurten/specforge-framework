@@ -13,6 +13,7 @@ with exit 2. After every iteration the
 loop checks, in this order, and stops on the first that holds:
 
     exit 4  an approved test changed        (specforge/scripts/lock_tests.py check),
+            or loop-runs.txt differs from what loop.py last wrote,
             or the change folder moved      (specforge/scripts/archive.py mid-run)
     exit 5  the agent wrote a BLOCKED: line  (progress.md § Blocked)
     exit 0  every task is ticked
@@ -141,6 +142,7 @@ def run(change: Path, agent: str, max_iterations: int | None, max_cost: float | 
             return stop(4, f"malformed loop-runs.txt line: {line}")
         spent += float(line.split()[3])
     iteration = len(lines)
+    ledger_bytes = ledger_file.read_bytes() if ledger_file.is_file() else None
     if max_cost is not None and spent >= max_cost:
         return stop(3, f"budget: {spent:.2f} USD already spent, cap {max_cost:.2f}")
     _, total = ticked(progress_file.read_text())
@@ -160,8 +162,11 @@ def run(change: Path, agent: str, max_iterations: int | None, max_cost: float | 
         cost = cost_of(result.stdout)
         spent += cost
         if change.is_dir():  # an archived folder is reported by the checks below
+            if (ledger_file.read_bytes() if ledger_file.is_file() else None) != ledger_bytes:
+                return stop(4, f"ledger changed during the loop: {ledger_file}")
             with ledger_file.open("a") as ledger:
                 ledger.write(f"iteration {iteration} usd {cost:.4f}\n")
+            ledger_bytes = ledger_file.read_bytes()
         changed = [
             path for path, sha in approved.items()
             if not (root / path).is_file() or digest(root / path) != sha
