@@ -44,7 +44,7 @@ Out:
   - A missing file means nothing has been spent.
   - A line that is not `iteration <int> usd <float>` stops the loop with exit 4, naming the line, the same as a malformed lock line.
   - Between iterations, `loop.py` compares the ledger with the bytes it last wrote, the way it compares the lock file, and stops with exit 4 on any difference (added after review).
-- **Threat ceiling.** The ledger checks catch accidental damage and an agent that edits the ledger without editing `loop.py`. An agent with `Bash(python3 *)` can rewrite `loop.py` itself, so no guard in `loop.py` stops a hostile agent. The defence there is the review of the diff, which shows every change to `loop.py` and `loop-runs.txt` (decided by the human, 2026-10-25).
+- **Threat ceiling.** The ledger checks catch accidental damage and an iteration that alters the ledger in place before it exits. They do not stop a hostile agent. An agent with `Bash(python3 *)` can rewrite `loop.py`, raise the `**Budget**:` line in `progress.md`, or start a detached process that truncates the ledger after the run. The defence there is the review of the diff, which shows every change to `loop.py`, `loop-runs.txt` and the `**Budget**:` line (decided by the human, 2026-10-25; corrected after the fourth review, which showed the earlier wording overclaimed).
 - Every existing suite in `.github/workflows/v2-ci.yml` still passes. A test that relies on per-run counting is not edited: if one exists, stop and ask.
 
 ## Premises

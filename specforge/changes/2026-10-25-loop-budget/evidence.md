@@ -18,6 +18,14 @@
 - **Not checked**:
   - Concurrent `loop.py` runs on one change appending to the ledger at once. Running two loops on one change was never supported.
   - A ledger edited by hand to lower the spend. The ledger is not locked; it shows in the diff like `progress.md` does.
+- **Debt from the fourth review (PASS)**, recorded by the human's decision rather than reopening the round:
+  - **`**Budget**:` raised by an agent.** An agent can raise the `**Budget**:` line in `progress.md`, which it must edit to tick tasks, and a rerun honours it. Diff review only.
+  - **Detached process.** A detached process started by the agent can truncate the ledger after the run. Diff review only.
+  - **Hard link.** A hard link in place of the ledger is a regular file, so the restore writes through it and overwrites the linked file. This is the most serious item: it damages a file the change does not own. Fix next with a temp file and `os.replace`.
+  - **Non-UTF-8 bytes.** A non-UTF-8 ledger is a traceback (exit 1), not exit 4.
+  - **`cost_of` limits.** `cost_of` accepts NaN, infinity and negative costs.
+  - **No restore path.** A symlinked or directory ledger is left as found, with no restore path in the message.
+  - **Lock file not named.** A ledger stop does not name a lock file altered in the same iteration.
 - **Deviations from the contract**:
   - **Run 1 was not recorded in the ledger.** It ran on the old `loop.py`, already loaded in memory when the agent edited the file, so its 11 iterations are absent from `loop-runs.txt`.
   - **Three fixtures adjusted.** On the human's decision after `BLOCKED`, the lead adjusted three existing fixtures: `scripts/loop_test.py` test_8, `scripts/premise_challenge_test.py` test_5 and `scripts/premise_challenge_fix2_test.py` test_14. The contract's Out list records it; no assertion changed.
