@@ -161,3 +161,19 @@
 
 **Caveats**: two 🟡 tracked in PRD-014 (`Draft`) — the in-place correction route states no boundary on its own reach, so `commit_hash` and the rest of the gate block are unconstrained by anything but convention; and a lead edit to a frozen `Implemented` PRD has no mandatory review surface, since no validator holds a baseline and the reviewer definitions oblige no record-integrity read. Both surfaced from the security panel, which verified the boundary held here by executing thirteen mutations in a detached worktree and finding it jointly guarded — vitest pins the gate's values, `doctor` pins its structure, and no mutation passed both. Scope was cut after four review rounds: an earlier draft's `doctor` validator was withdrawn when its finding shape proved to be a `contains(file, string)` oracle reachable from a contributed PRD in CI, and the conformance assertions checking the PRD's own table against itself were cut when the last two blockers in the corpus were both defects in those assertions rather than in the convention.
 
+### ROADMAP-010: teamtasks teams and membership
+
+**Status**: Shipped
+**Horizon**: —
+**Theme**: —
+**Last reviewed**: 2026-10-25
+**PRD**: PRD-015
+
+**Problem / outcome**: teamtasks users could register and log in but had nothing to belong to; teams with an owner and members give every later feature a scope to live in.
+**User**: teamtasks users (the specforge v2 pilot's sandbox product)
+**Siblings likely impacted**: teamtasks
+
+**Evidence**:
+- [PRD-015] — retroactive meta-reference per `.claude/rules/roadmap.md` § Evidence category 7
+
+**Caveats**: —

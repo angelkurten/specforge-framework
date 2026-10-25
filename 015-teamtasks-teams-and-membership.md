@@ -1,6 +1,6 @@
 # PRD-015: teamtasks teams and membership
 
-**Status**: Draft
+**Status**: Implemented
 **Date**: 2026-10-25
 **Author**: AI-assisted
 **Priority**: P1
@@ -344,9 +344,9 @@ This PRD logs nothing new; team events and refusals are logged by [PRD-016](016-
 ```yaml
 # amendment: §9 row 16 ← VALIDATION finding 1; bounce: specforge-quality-reviewer survives; commit 6c15e98
 # amendment: §9 row 24 ← VALIDATION finding 2; bounce: specforge-quality-reviewer survives; commit 6c15e98
-commit_hash: [TBD]
+commit_hash: 4ac6b7d
 tests:
-  - [TBD]
+  - ../specforge-pilot/tests/test_teams.py
 system_artifact_diff:
-  - [TBD]
+  - ../specforge-pilot/docs/SYSTEM_ARTIFACT.md#domain-teams (commit 31d6160)
 ```
