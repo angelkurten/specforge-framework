@@ -1,6 +1,6 @@
 # PRD-019: teamtasks task comments
 
-**Status**: Draft
+**Status**: Implemented
 **Date**: 2026-10-25
 **Author**: AI-assisted
 **Priority**: P2
@@ -274,9 +274,11 @@ No new log line; [PRD-016](016-teamtasks-team-audit-log.md) owns team logging.
 ## Gate: Promotion to Implemented
 
 ```yaml
-commit_hash: [TBD]
+commit_hash: 650b3cf
 tests:
-  - [TBD]
+  - ../specforge-pilot/tests/test_task_comments.py
+  - ../specforge-pilot/tests/test_roles.py
+  - ../specforge-pilot/tests/test_task_statuses.py
 system_artifact_diff:
-  - [TBD]
+  - ../specforge-pilot/docs/SYSTEM_ARTIFACT.md#domain-tasks (commit 643005b)
 ```

@@ -208,4 +208,19 @@
 **Evidence**:
 - [PRD-018] — retroactive meta-reference per `.claude/rules/roadmap.md` § Evidence category 7
 
+### ROADMAP-013: teamtasks task comments
+
+**Status**: Shipped
+**Horizon**: —
+**Theme**: —
+**Last reviewed**: 2026-10-25
+**PRD**: PRD-019
+
+**Problem / outcome**: a team could create and update tasks but had nowhere to say anything about one; comments on a task, deletable by their author, the owner or an admin, give questions and decisions a place next to the work.
+**User**: teamtasks team members (the specforge v2 pilot's sandbox product)
+**Siblings likely impacted**: teamtasks
+
+**Evidence**:
+- [PRD-019] — retroactive meta-reference per `.claude/rules/roadmap.md` § Evidence category 7
+
 **Caveats**: —
