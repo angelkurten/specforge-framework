@@ -45,6 +45,7 @@ import re
 import shlex
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -178,9 +179,10 @@ def run(change: Path, agent: str, max_iterations: int | None, max_cost: float | 
                 altered = (ledger_file.read_bytes() if ledger_file.is_file() else None) != ledger_bytes
                 # Write back what loop.py last wrote (so a rerun cannot get the budget back) plus this line,
                 # through a temp file and os.replace: never write through a hard link.
-                tmp = change / "loop-runs.txt.tmp"
                 ledger_bytes = (ledger_bytes or b"") + f"iteration {iteration} usd {cost:.4f}\n".encode()
-                tmp.write_bytes(ledger_bytes)
+                fd, tmp = tempfile.mkstemp(dir=change, prefix="loop-runs.", suffix=".tmp")  # O_EXCL: never a planted path
+                with os.fdopen(fd, "wb") as f:
+                    f.write(ledger_bytes)
                 os.replace(tmp, ledger_file)
                 if altered:
                     problem = f"ledger changed during the loop, restored: {ledger_file}"
