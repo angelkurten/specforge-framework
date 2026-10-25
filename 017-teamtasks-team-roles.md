@@ -93,10 +93,10 @@ sequenceDiagram
 | 13 | A plain member who is not the creator deletes a task | 403 | `{"detail": "only the owner, an admin or the creator can delete a task"}` |
 | 14 | The caller's role or membership changed after the dependency check and before the write | the status the rows at write time give | the route re-reads both rows under the database lock (§7) |
 | 15 | Two transfers of the same team, or a transfer and a role change, at the same time | one succeeds, the other answers from the rows it then sees | serialized by `BEGIN IMMEDIATE`; never zero or two owners, never 500 |
-| 16 | The database lock is not acquired within sqlite3's 5 s busy timeout | 500 | FastAPI's default |
+| 16 | The database lock is not acquired within sqlite3's 5 s busy timeout | 500 | FastAPI's default; deliberately untested, since it needs a 5 s wait per case |
 | 17 | The migration fails at startup | the app does not start | the stamp and the rebuild roll back together; the schema is left as it was (§6.2) |
 
-Branch 11 is checked before branch 12, so a plain member removing an admin gets `only the owner can remove an admin`.
+Transfer's 409 `conflict, retry` (§5.2) is the defensive mapping of an `IntegrityError` that the serialized engine makes unreachable; it has no branch of its own. Branch 11 is checked before branch 12, so a plain member removing an admin gets `only the owner can remove an admin`.
 
 ## Frontend Spec
 
@@ -147,6 +147,7 @@ Unchanged from PRD-015 unless stated: authentication through `current_user` (`..
 ### 5.4 `DELETE /teams/{team_id}/members/{user_id}` (changed)
 
 **Rule**, checked in this order inside the write transaction, after the caller and target are re-read:
+0. the caller is not a member → 404 `team not found`;
 1. the target is not a member → 404 `member not found`;
 2. the target is the owner → 409 `the owner cannot be removed`;
 3. the target is the caller → 204;
@@ -220,7 +221,7 @@ flowchart LR
 
 - **Serialized engine.** `create_engine(..., hide_parameters=True)` (`../specforge-pilot/teamtasks/app.py:165`) gains two listeners: on `connect`, the DBAPI connection's `isolation_level` is set to `None`; on `begin`, the connection emits `BEGIN IMMEDIATE`. Every Session — reads and writes — takes SQLite's write lock when it begins and holds it until it ends. pysqlite's default sends `BEGIN` only before the first write, which is why a role read and its write were not atomic.
 - **Its cost.** All requests take turns on one lock. A wait longer than sqlite3's 5 s busy timeout is a 500. Work that does not touch the database runs outside any Session: `log_in` reads the salt and hash in one Session, runs scrypt with none open, then inserts the token in a second Session; transfer's password check does the same.
-- **One Session at a time.** No code may open a second Session, or a raw `sqlite3` connection, while one is open on the same thread: the second blocks on the lock the first holds and fails after 5 s. Test hooks follow the same rule: a hook that changes rows mid-request runs between `team_membership` and the route's Session, through a one-shot `Pool` `checkin` listener or a dependency override, never inside a Session.
+- **One Session at a time.** No code may open a second Session, or a raw `sqlite3` connection, while one is open on the same thread: the second blocks on the lock the first holds and fails after 5 s. Test hooks follow the same rule: a hook that changes rows mid-request runs between `team_membership` and the route's Session, through a one-shot `Pool` `checkin` listener or a dependency override, never inside a Session — except a probe opened with a short timeout to assert the lock is held (§9.1, `test_18`).
 - `team_owner` (kept) gates role changes and transfer before the body; `team_manager` (new) gates add-member. Both build on `team_membership`.
 - **Removal unassigns** in the route's transaction: `DELETE memberships` then `UPDATE tasks SET assignee_id = NULL WHERE team_id = ? AND assignee_id = ?`.
 - **Migrations replace `create_all`** at startup.
@@ -237,7 +238,7 @@ flowchart LR
 | 4 | Transfer to a non-member | the target must be a member of the team at write time | §5.2 |
 | 5 | A removed member still holds work in the team, or is assigned again | their tasks are unassigned in the removal's transaction; the assignee check runs in the write's serialized transaction | §5, §5.4 |
 | 6 | A stolen owner token takes over a team for good (tokens never expire) | transfer requires the owner's current password, checked with the login's scrypt path; a wrong password changes nothing | §5.2 (new), decided by the human on 2026-10-25 |
-| 7 | Holding the database lock to deny service | scrypt never runs inside a Session (login, transfer); a stuck lock is bounded by the 5 s busy timeout | §7 |
+| 7 | Holding the database lock to deny service | scrypt never runs inside a Session (login, transfer); a stuck lock is bounded by the 5 s busy timeout. Every request, unauthenticated ones included, takes the lock for its token lookup; each hold is one indexed SELECT, so volume is generic flooding, bounded only by the absent rate limit (PRD-015 §8 row 11) | §7 |
 | 8 | The transfer password echoed back | a `RequestValidationError` handler removes `input` from the route's 422s | §5.2 (new) |
 | 9 | Role changes and transfers are invisible | none in this PRD; [PRD-016](016-teamtasks-team-audit-log.md) owns the audit log | — |
 | 10 | Inherited: the email oracle and membership without consent (PRD-015 §8 rows 6, 7); transfer adds a password-guessing path no stronger than `POST /sessions` | unchanged | — |
@@ -248,23 +249,23 @@ flowchart LR
 
 | # | Test | Type | Description | Path |
 |---|------|------|-------------|------|
-| 1 | the owner promotes a member to admin and demotes them back, and `GET /teams/{team_id}/members` shows each role | integration | | `../specforge-pilot/tests/test_roles.py` |
+| 1 | the owner promotes a member to admin and demotes them back, and `GET /teams/{team_id}/members` shows each role | integration | 200 each time with the new role; the member list agrees after each change. | `../specforge-pilot/tests/test_roles.py` |
 | 2 | only the owner changes roles | integration | An admin and a member get 403 `only the owner can manage roles`, with a valid and with a malformed body (the 403 comes before body validation). | `../specforge-pilot/tests/test_roles.py` |
-| 3 | a role change on the owner is 409; a role of `owner`, `viewer` or an extra field is 422 | integration | | `../specforge-pilot/tests/test_roles.py` |
-| 4 | a role change whose target is not a member is 404 `member not found` | integration | | `../specforge-pilot/tests/test_roles.py` |
+| 3 | a role change on the owner is 409; a role of `owner`, `viewer` or an extra field is 422 | integration | The owner as target: 409 `use transfer to change the owner`; each 422 case leaves the role unchanged. | `../specforge-pilot/tests/test_roles.py` |
+| 4 | a role change whose target is not a member is 404 `member not found` | integration | A registered user outside the team and a user id that does not exist give the same 404. | `../specforge-pilot/tests/test_roles.py` |
 | 5 | transfer with the right password makes the target owner and the caller admin | integration | Both rows read back from `memberships`; the team has exactly one owner row. | `../specforge-pilot/tests/test_roles.py` |
 | 6 | transfer refusals | integration | A non-owner: 403; a wrong password: 403 `wrong password` and no row changes (fails against a transfer that writes before it checks the password); a non-member target: 404; the owner themselves: 409 `already the owner`. | `../specforge-pilot/tests/test_roles.py` |
-| 7 | an admin adds a member with role `member`; a plain member gets 403 before the body is validated | integration | | `../specforge-pilot/tests/test_roles.py` |
+| 7 | an admin adds a member with role `member`; a plain member gets 403 before the body is validated | integration | The admin's add returns role `member`; the plain member's 403 also comes with a malformed body. | `../specforge-pilot/tests/test_roles.py` |
 | 8 | removal rules by role | integration | The owner removes an admin and a member; an admin removes a member; a plain member and an admin each remove themselves (204 each). An admin removing another admin and a member removing an admin get 403 `only the owner can remove an admin`; a member removing a member gets 403 `only the owner or an admin can remove other members`; anyone removing the owner, the owner included, gets 409. | `../specforge-pilot/tests/test_roles.py` |
 | 9 | removing a member unassigns their tasks in that team and only that team | integration | ben is assignee of a task in A and in B; removing him from A leaves A's task unassigned and B's task his. Fails against a removal that leaves `assignee_id` set, and against one that unassigns in every team. | `../specforge-pilot/tests/test_roles.py` |
 | 10 | task delete by role | integration | An admin deletes any task (204); a plain member who created a task deletes it (204); a plain member deletes another's task: 403. | `../specforge-pilot/tests/test_roles.py` |
-| 11 | a change after the dependency check is judged at the write | integration | Parametrised over the five role-sensitive writes (add-member, remove-member, role change, transfer, task delete) and over task create and update. A one-shot `Pool` `checkin` listener, firing after `team_membership`'s Session closes and before the route's opens, demotes or removes the caller through a raw sqlite3 connection; the write answers 403 or 404 and changes no row. Fails against a route that trusts the dependency's role. | `../specforge-pilot/tests/test_roles.py` |
+| 11 | a change after the dependency check is judged at the write | integration | A one-shot `Pool` `checkin` listener fires on the checkin that ends `team_membership`'s Session — the first checkin after a statement selecting from `memberships`, flagged by a `before_cursor_execute` listener — and changes the caller's row through a raw sqlite3 connection; the test asserts it fired before the route's Session began. Cases, each with its mutation and status: an admin demoted to member, then add-member → 403 `only the owner or an admin can add members`; then removing a plain member → 403 `only the owner or an admin can remove other members`; then deleting another's task → 403 `only the owner, an admin or the creator can delete a task`; the owner demoted to admin, then a role change or a transfer → 403 `only the owner can manage roles`; a member removed, then task create or update → 404 `team not found`, and removing another member → 404 `team not found`. Each refused write changes no row. A control case runs the same hook against a route that decides on the dependency's role and must answer 2xx, so the row can fail. Fails against a route that trusts the dependency's role. | `../specforge-pilot/tests/test_roles.py` |
 | 12 | a database from before this PRD is upgraded in place | integration | The fixture builds the PRD-015-plus-tasks schema with literal DDL (the unnamed CHECK of `owner` and `member`), adds an owner, a member and a task, and opens it with `create_app`. `alembic_version` is `0002_admin_role`; the rows keep their roles; `sqlite_master` shows `ck_memberships_role` with the three roles and `uq_memberships_one_owner` with `WHERE role = 'owner'`; raw inserts of `role='viewer'` and of a second owner raise `IntegrityError`. Fails against an app that runs `create_all` only, and against a rebuild without `table_args`, which drops the CHECK. | `../specforge-pilot/tests/test_roles.py` |
-| 13 | the schema made by migrations matches the models | conformance | `alembic upgrade head` on an empty file, compared with `Base.metadata` through `compare_metadata`, reports no difference, and `sqlite_master.sql` for `memberships` equals the one `create_all` makes. | `../specforge-pilot/tests/test_roles.py` |
+| 13 | the schema made by migrations matches the models | conformance | `alembic upgrade head` on an empty file, compared with `Base.metadata` through `compare_metadata`, reports no difference; and against a file made by `create_all`, `memberships` has the same set of CHECK clauses (read from its `CREATE TABLE` text), the same `PRAGMA table_info`, the same `PRAGMA foreign_key_list` as a set, and byte-identical `sqlite_master.sql` for each index. The table text itself is not compared: a batch rebuild quotes the name and reorders foreign keys. Fails against a rebuild without `table_args`, and against a model that still carries the two-role CHECK. | `../specforge-pilot/tests/test_roles.py` |
 | 14 | the database refuses an unknown role and a second owner on a fresh file | integration | Raw sqlite3 inserts with fresh `(team_id, user_id)` pairs: `role='viewer'` and a second `owner` raise `IntegrityError`; `role='admin'` is accepted. | `../specforge-pilot/tests/test_roles.py` |
 | 15 | two transfers interleaved leave one owner | integration | Two threads, released by a barrier, each run a transfer of the same team to a different member; one answers 200, the other 403; the team has one owner row; neither answers 500. Fails against a deferred-BEGIN engine, where both re-read `owner` and the second hits the unique index. | `../specforge-pilot/tests/test_roles.py` |
-| 16 | the earlier suites still pass with their role expectations updated per §9.1 | integration | | `../specforge-pilot/tests/test_teams.py` |
-| 17 | the task suite still passes with its delete expectation updated per §9.1 | integration | | `../specforge-pilot/tests/test_tasks.py` |
+| 16 | the earlier suites still pass with their role expectations updated per §9.1 | integration | Only the §9.1 sites change in this file. | `../specforge-pilot/tests/test_teams.py` |
+| 17 | the task suite still passes with its delete expectation updated per §9.1 | integration | Only the §9.1 site changes in this file. | `../specforge-pilot/tests/test_tasks.py` |
 | 18 | the task fix suite still passes unchanged | integration | Its refused delete is by a plain member, still 403. | `../specforge-pilot/tests/test_tasks_fix.py` |
 | 19 | the new routes need a token and bound their ids | integration | `PATCH /teams/{team_id}/members/{user_id}` and `POST /teams/{team_id}/transfer` are 401 without a token or with an unknown one; with a token, a path `team_id` or `user_id` of `0` or `99999999999999999999` is 422, and so is a transfer body `user_id` of either. Fails against plain `int` ids, which overflow the SQLite binding. | `../specforge-pilot/tests/test_roles.py` |
 | 20 | a failed migration leaves the schema as it was | integration | On a copy of the row 12 fixture, `0002` is made to raise after its rebuild; `create_app` raises; the file has no `alembic_version`, the old CHECK and no `_alembic_tmp_memberships`; a clean `create_app` afterwards upgrades it. | `../specforge-pilot/tests/test_roles.py` |
@@ -275,6 +276,8 @@ flowchart LR
 | 25 | login does not hold the database lock while hashing | integration | The same wrapper during `POST /sessions`; another write commits meanwhile. Fails against a `log_in` that hashes inside its Session. | `../specforge-pilot/tests/test_roles.py` |
 | 26 | the previous commit's code runs on the migrated database | integration | The row 12 fixture is migrated, ben is made `admin`, then the app as of the commit before this PRD (`git show` into a scratch folder) is started on it: it starts, lists ben as `admin`, and refuses ben's add-member with 403. | `../specforge-pilot/tests/test_roles.py` |
 
+`tests/conftest.py` (new, §6.2) is the fixture every suite above runs under; it is not a test and has no row.
+
 ### 9.1 Earlier tests whose expectations change
 
 These tests encode PRD-015's and change 3's owner-only rules, or a concurrency path the serialized engine closes. The implementer updates them in the same change. This list is the sites known at authoring time, not a completeness claim; step 9's diff reconciliation covers the rest.
@@ -283,7 +286,7 @@ These tests encode PRD-015's and change 3's owner-only rules, or a concurrency p
 |---|---|---|---|
 | `../specforge-pilot/tests/test_teams.py` | the span `def test_8_non_owner_gets_403_before_body_or_lookup` | asserts the message `only the owner can add members` | assert `only the owner or an admin can add members` |
 | `../specforge-pilot/tests/test_teams.py` | the span `def test_11_member_removes_self_but_not_others` | asserts `only the owner can remove other members` | assert `only the owner or an admin can remove other members` |
-| `../specforge-pilot/tests/test_teams.py` | the span `def test_18_concurrent_add_is_409` | a raw sqlite3 insert from a `before_flush` hook races the add and expects 409 | the raw writer, opened with a short timeout from the same hook, gets `database is locked` and the add answers 201; fails against a deferred-BEGIN engine |
+| `../specforge-pilot/tests/test_teams.py` | the span `def test_18_concurrent_add_is_409` | a raw sqlite3 insert from a `before_flush` hook races the add and expects 409 | the raw writer, opened with a short timeout from the same hook, which catches the error, gets `database is locked` and the add answers 201; fails against a deferred-BEGIN engine |
 | `../specforge-pilot/tests/test_teams.py` | the span `def test_20_database_refuses_second_owner_and_unknown_role` | inserts `admin` as the unknown role | insert `viewer` instead |
 | `../specforge-pilot/tests/test_tasks.py` | the span `def test_9_owner_and_creator_may_delete_another_member_may_not` | asserts `only the owner or the creator can delete a task` | assert `only the owner, an admin or the creator can delete a task` |
 
