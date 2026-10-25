@@ -24,8 +24,8 @@ Fix round after review (VERDICT: BLOCK — the ledger is not protected from an a
 
 Second fix round after review (VERDICT: BLOCK on evidence; should-fix the human chose to fix — an altered ledger stays altered):
 
-- [ ] scripts/loop_budget_fix2_test.py test_12_an_altered_ledger_is_restored_and_the_iteration_recorded
-- [ ] every suite in `.github/workflows/v2-ci.yml` passes (run them as that file does)
+- [x] scripts/loop_budget_fix2_test.py test_12_an_altered_ledger_is_restored_and_the_iteration_recorded
+- [x] every suite in `.github/workflows/v2-ci.yml` passes (run them as that file does)
 
 ## Blocked
 
@@ -48,3 +48,5 @@ Second fix round after review (VERDICT: BLOCK on evidence; should-fix the human 
 - Fix task 2 (test_11): loop.py keeps the ledger bytes it last wrote and stops with exit 4 naming loop-runs.txt if they differ after an iteration (before appending); ran `python3 scripts/loop_budget_fix_test.py` → OK (1 test), `python3 scripts/loop_budget_test.py` → OK (10 tests).
 - Fix task 3: ran all 24 suites of v2-ci.yml in order (the 22 earlier plus loop_budget_test and loop_budget_fix_test) → exit 0 each; lock hashes of both test files match locked-tests.txt.
 - Lead, second fix round: `**Budget**:` raised by the human's approval to `6 iterations, 2.60 USD` against the ledger (4 lines, 1.54 USD): 2 iterations, about 1 USD for this round.
+- Second fix task 1 (test_12): on an altered ledger loop.py writes back the bytes it last wrote, appends that iteration's line, then stops with exit 4 ("restored"); ran `python3 scripts/loop_budget_fix2_test.py` → OK (2 tests), `loop_budget_fix_test.py` → OK (1), `loop_budget_test.py` → OK (10); lock hash of fix2 test matches locked-tests.txt.
+- Second fix task 2: ran all 25 suites of v2-ci.yml in order (python3 scripts/<suite>.py) → exit 0 each; lock hashes of the three loop_budget test files match locked-tests.txt.

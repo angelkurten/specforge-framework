@@ -2,3 +2,5 @@ iteration 1 usd 0.4079
 iteration 2 usd 0.3589
 iteration 3 usd 0.3966
 iteration 4 usd 0.3785
+iteration 5 usd 0.4130
+iteration 6 usd 0.3768

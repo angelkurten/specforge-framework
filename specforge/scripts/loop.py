@@ -162,11 +162,14 @@ def run(change: Path, agent: str, max_iterations: int | None, max_cost: float | 
         cost = cost_of(result.stdout)
         spent += cost
         if change.is_dir():  # an archived folder is reported by the checks below
-            if (ledger_file.read_bytes() if ledger_file.is_file() else None) != ledger_bytes:
-                return stop(4, f"ledger changed during the loop: {ledger_file}")
+            altered = (ledger_file.read_bytes() if ledger_file.is_file() else None) != ledger_bytes
+            if altered:  # write back what loop.py last wrote, so a rerun cannot get the budget back
+                ledger_file.write_bytes(ledger_bytes or b"")
             with ledger_file.open("a") as ledger:
                 ledger.write(f"iteration {iteration} usd {cost:.4f}\n")
             ledger_bytes = ledger_file.read_bytes()
+            if altered:
+                return stop(4, f"ledger changed during the loop, restored: {ledger_file}")
         changed = [
             path for path, sha in approved.items()
             if not (root / path).is_file() or digest(root / path) != sha
