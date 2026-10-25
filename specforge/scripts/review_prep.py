@@ -8,7 +8,9 @@ Diffs `<base>...HEAD` and reports what a pattern can decide on its own:
     blocker     a skip marker added, a test file deleted, a test function
                 removed, a locked test changed, evidence.md missing or with an
                 empty field
-    should-fix  a stub added: TODO, FIXME, NotImplementedError, "not implemented"
+    should-fix  a stub added: TODO, FIXME, NotImplementedError, "not implemented";
+                a literal invisible character (Unicode Cf except U+200C/U+200D,
+                plus U+2028/U+2029) on an added line, prose included: write the escape
 
 A pattern written as data is not reported: prose files (.md, .txt, .rst,
 .adoc), string literals, and lines inside a triple-quoted string added in the
@@ -29,6 +31,7 @@ import argparse
 import re
 import subprocess
 import sys
+import unicodedata
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -51,6 +54,9 @@ TEST_NAME = re.compile(
     r"^\s*def (test\w*)\(|^func (Test\w+)\(|\b(?:it|test)\(\s*['\"]([^'\"]+)['\"]",
     re.MULTILINE,
 )
+# ZWNJ and ZWJ are legitimate (Persian, emoji sequences); every other format
+# character is invisible, and so are the two Unicode line separators.
+VALID_INVISIBLE = {"\u200c", "\u200d"}
 EVIDENCE_FIELDS = ("Ran", "Result", "CI", "Not checked", "Deviations from the contract")
 # A CI value must name a run: `run 17`, `run #17`, an /actions/runs/<id> URL,
 # or a commit hash with a digit. A placeholder, wrapped or not, or a workflow
@@ -101,7 +107,7 @@ def added_lines(rng: str) -> list[tuple[str, int, str]]:
     """Every added line as (path, new line number, text)."""
     out = git("diff", "--no-renames", "-U0", rng)
     path, line, added = None, 0, []
-    for raw in out.splitlines():
+    for raw in out.split("\n"):  # not splitlines: it also splits on U+2028
         if raw.startswith("+++ "):
             path = raw[6:] if raw.startswith("+++ b/") else None
         elif raw.startswith("@@"):
@@ -110,6 +116,16 @@ def added_lines(rng: str) -> list[tuple[str, int, str]]:
             added.append((path, line, raw[1:]))
             line += 1
     return added
+
+
+def invisible_points(text: str) -> list[str]:
+    """Each distinct invisible code point in text, as U+XXXX, in order of appearance."""
+    points = dict.fromkeys(
+        f"U+{ord(c):04X}"
+        for c in text
+        if c not in VALID_INVISIBLE and (unicodedata.category(c) == "Cf" or c in "\u2028\u2029")
+    )
+    return list(points)
 
 
 def test_names(text: str) -> dict[str, int]:
@@ -245,6 +261,9 @@ def review(change: Path, base: str) -> tuple[list[str], list[str]]:
     findings = []
     added = added_lines(rng)
     findings += lock_findings(base, files, added)
+    for path, number, text in added:
+        if points := invisible_points(text):
+            findings.append(f"should-fix: {path}:{number} — literal invisible character {', '.join(points)}; write the escape")
     for path, number, text, code in code_lines(added):
         if SKIP.search(code):
             findings.append(f"blocker: {path}:{number} — skip marker added: {text.strip()}")
