@@ -1,6 +1,6 @@
 # PRD-015: teamtasks teams and membership
 
-**Status**: Implemented
+**Status**: Superseded by PRD-017
 **Date**: 2026-10-25
 **Author**: AI-assisted
 **Priority**: P1

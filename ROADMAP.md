@@ -177,3 +177,20 @@
 - [PRD-015] — retroactive meta-reference per `.claude/rules/roadmap.md` § Evidence category 7
 
 **Caveats**: —
+
+### ROADMAP-011: teamtasks team roles
+
+**Status**: Shipped
+**Horizon**: —
+**Theme**: —
+**Last reviewed**: 2026-10-25
+**PRD**: PRD-017
+
+**Problem / outcome**: a team had one owner who did every administrative act alone and could never hand the team over; owner, admin and member roles with a password-confirmed transfer let a team share its administration safely.
+**User**: teamtasks team owners and admins (the specforge v2 pilot's sandbox product)
+**Siblings likely impacted**: teamtasks
+
+**Evidence**:
+- [PRD-017] — retroactive meta-reference per `.claude/rules/roadmap.md` § Evidence category 7
+
+**Caveats**: —

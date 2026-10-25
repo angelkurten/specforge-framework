@@ -1,6 +1,6 @@
 # PRD-017: teamtasks team roles
 
-**Status**: Draft
+**Status**: Implemented
 **Date**: 2026-10-25
 **Author**: AI-assisted
 **Priority**: P1
@@ -323,9 +323,12 @@ No new log line for requests; [PRD-016](016-teamtasks-team-audit-log.md) owns te
 ```yaml
 # amendment: §9 row 15 ← VALIDATION finding 1; bounce: specforge-quality-reviewer survives (re-proposal); commits 4feb79d, fc5ecfd
 # amendment: §9 row 27 ← VALIDATION finding 1; bounce: specforge-quality-reviewer survives (re-proposal); commits 4feb79d, fc5ecfd
-commit_hash: [TBD]
+commit_hash: f972853
 tests:
-  - [TBD]
+  - ../specforge-pilot/tests/test_roles.py
+  - ../specforge-pilot/tests/test_teams.py
+  - ../specforge-pilot/tests/test_tasks.py
+  - ../specforge-pilot/tests/test_tasks_fix.py
 system_artifact_diff:
-  - [TBD]
+  - ../specforge-pilot/docs/SYSTEM_ARTIFACT.md#domain-teams (commit adea531)
 ```
