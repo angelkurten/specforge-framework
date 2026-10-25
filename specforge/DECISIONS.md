@@ -93,3 +93,10 @@ Append-only log of decisions with future value. Shape: [`templates/decision-log.
 **Rejected**: keeping the reviewer's manual typechange check as the only control.
 **Revisit if**: a lock reaches a reader through a path that does not go through `_lines()` or `git ls-tree`.
 
+
+## 2026-10-25 — The loop budget is the change's, and loop.py is not a sandbox
+
+**Context**: the v2 pilot overshot budgets by counting per run, and four review rounds of `2026-10-25-loop-budget` kept finding new ways an agent could alter its own ledger.
+**Decision**: `loop.py` keeps a cumulative ledger (`loop-runs.txt`) and refuses a run that cannot finish. It guards the ledger against accidental damage only. Against a hostile agent, the defence is review of the diff, because an agent with `Bash(python3 *)` can edit `loop.py` itself.
+**Rejected**: an open-ended hardening loop, stopped by the human after the fourth review; a CI-run check in `archive.py`, deferred because v2 has no provider-neutral CI interface.
+**Revisit if**: loop agents run without diff review, or a project needs `archive.py` to verify CI itself.
