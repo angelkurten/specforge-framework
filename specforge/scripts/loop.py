@@ -98,6 +98,10 @@ def cost_of(stdout: str) -> float:
         return 0.0
 
 
+def not_regular(path: Path) -> bool:
+    return path.is_symlink() or (path.exists() and not path.is_file())
+
+
 def stop(code: int, reason: str) -> int:
     print(f"loop: stopped — {reason}")
     return code
@@ -135,6 +139,8 @@ def run(change: Path, agent: str, max_iterations: int | None, max_cost: float | 
         if "→ fails:" in line:
             return stop(2, f"premise failed, re-classify the change (usually to Explore): {line}")
     ledger_file = change / "loop-runs.txt"
+    if not_regular(ledger_file):
+        return stop(4, f"{ledger_file} is not a regular file")
     lines = ledger_file.read_text().splitlines() if ledger_file.is_file() else []
     spent = 0.0
     for line in lines:
@@ -161,21 +167,25 @@ def run(change: Path, agent: str, max_iterations: int | None, max_cost: float | 
         )
         cost = cost_of(result.stdout)
         spent += cost
+        problem = None
         if change.is_dir():  # an archived folder is reported by the checks below
-            altered = (ledger_file.read_bytes() if ledger_file.is_file() else None) != ledger_bytes
-            if altered:  # write back what loop.py last wrote, so a rerun cannot get the budget back
-                ledger_file.write_bytes(ledger_bytes or b"")
-            with ledger_file.open("a") as ledger:
-                ledger.write(f"iteration {iteration} usd {cost:.4f}\n")
-            ledger_bytes = ledger_file.read_bytes()
-            if altered:
-                return stop(4, f"ledger changed during the loop, restored: {ledger_file}")
+            if not_regular(ledger_file):  # left as found, so a rerun refuses too
+                problem = f"{ledger_file} is not a regular file"
+            else:
+                altered = (ledger_file.read_bytes() if ledger_file.is_file() else None) != ledger_bytes
+                if altered:  # write back what loop.py last wrote, so a rerun cannot get the budget back
+                    ledger_file.write_bytes(ledger_bytes or b"")
+                with ledger_file.open("a") as ledger:
+                    ledger.write(f"iteration {iteration} usd {cost:.4f}\n")
+                ledger_bytes = ledger_file.read_bytes()
+                if altered:
+                    problem = f"ledger changed during the loop, restored: {ledger_file}"
         changed = [
             path for path, sha in approved.items()
             if not (root / path).is_file() or digest(root / path) != sha
         ]
-        if changed:
-            return stop(4, f"locked test changed: {', '.join(changed)}")
+        if problem or changed:
+            return stop(4, "; ".join(filter(None, [problem, changed and f"locked test changed: {', '.join(changed)}"])))
         if not progress_file.is_file():
             return stop(4, f"change folder moved: {change} no longer holds progress.md")
         if (lock_file.read_bytes() if lock_file.is_file() else None) != lock_bytes:

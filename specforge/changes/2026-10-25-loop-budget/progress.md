@@ -29,9 +29,9 @@ Second fix round after review (VERDICT: BLOCK on evidence; should-fix the human 
 
 Third and final fix round after review (VERDICT: BLOCK — symlinked or directory ledger; ledger check hides a changed locked test):
 
-- [ ] scripts/loop_budget_fix3_test.py test_13_a_ledger_that_is_not_a_regular_file_stops_every_run
-- [ ] scripts/loop_budget_fix3_test.py test_14_a_ledger_change_does_not_hide_a_changed_locked_test
-- [ ] every suite in `.github/workflows/v2-ci.yml` passes (run them as that file does)
+- [x] scripts/loop_budget_fix3_test.py test_13_a_ledger_that_is_not_a_regular_file_stops_every_run
+- [x] scripts/loop_budget_fix3_test.py test_14_a_ledger_change_does_not_hide_a_changed_locked_test
+- [x] every suite in `.github/workflows/v2-ci.yml` passes (run them as that file does)
 
 ## Blocked
 
@@ -57,3 +57,6 @@ Third and final fix round after review (VERDICT: BLOCK — symlinked or director
 - Second fix task 1 (test_12): on an altered ledger loop.py writes back the bytes it last wrote, appends that iteration's line, then stops with exit 4 ("restored"); ran `python3 scripts/loop_budget_fix2_test.py` → OK (2 tests), `loop_budget_fix_test.py` → OK (1), `loop_budget_test.py` → OK (10); lock hash of fix2 test matches locked-tests.txt.
 - Second fix task 2: ran all 25 suites of v2-ci.yml in order (python3 scripts/<suite>.py) → exit 0 each; lock hashes of the three loop_budget test files match locked-tests.txt.
 - Lead, final fix round: `**Budget**:` raised by the human's approval to `9 iterations, 3.60 USD` against the ledger (6 lines, 2.33 USD): 3 iterations, about 1.20 USD.
+- Third fix task 1 (test_13): loop.py stops with exit 4 naming loop-runs.txt when it is a symlink or not a regular file, at start and after an iteration (left as found, no append); ran `python3 scripts/loop_budget_fix3_test.py LedgerTypeTests.test_13_a_ledger_that_is_not_a_regular_file_stops_every_run` → OK (1 test); loop_budget_test, loop_budget_fix_test, loop_budget_fix2_test, loop_test → OK.
+- Third fix task 2 (test_14): no code change needed (the stop already joins the ledger problem and the changed locked tests in one exit 4 message); ran `python3 scripts/loop_budget_fix3_test.py` → OK (2 tests), test_14 ok; lock hash of fix3 test matches locked-tests.txt.
+- Third fix task 3: ran all 25 suites of v2-ci.yml in order from the repo root (python3 scripts/<suite>.py) → exit 0 each; lock hashes of the four loop_budget test files match locked-tests.txt.
