@@ -120,7 +120,9 @@ def main() -> int:
             }}))
         return 0
     print(
-        f"{hit.relative_to(root)} is locked: a human approved these tests red, and "
+        # relpath, not relative_to: a sibling's test (../<sibling>/...) is outside root,
+        # and a crash here exits 1, which a PreToolUse hook treats as non-blocking.
+        f"{os.path.relpath(hit, root)} is locked: a human approved these tests red, and "
         "the implementation may not change them or their lock. If you think a test "
         "is wrong, stop and write a BLOCKED: line in progress.md instead.",
         file=sys.stderr,
