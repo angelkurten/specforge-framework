@@ -44,7 +44,7 @@ Evaluate the rows in this order and take the **first** that matches:
 |---|---|---|---|
 | 1 | **Explore** | High uncertainty, at any risk | throwaway prototype, then a contract; the prototype is never merged |
 | 2 | **Controlled** | High risk, and the Controlled flag is yes | contract + evidence + decisions + approvals |
-| 3 | **Direct** | Low risk and trivial: at most 2 files, and no behaviour beyond what one sentence states | one test of an edge of the change (a bound, an empty or control-character input) |
+| 3 | **Direct** | Low risk and trivial: at most 2 files besides its edge test, and no behaviour beyond what one sentence states | one test of an edge of the change (a bound, an empty or control-character input); none when the change has no input, such as a copy or heading fix |
 | 4 | **Contract** | Everything else | contract + evidence report |
 
 Explore comes first because a change nobody can yet describe cannot be verified at any level of rigour; Controlled applies when it re-classifies.
@@ -66,8 +66,8 @@ Mode: Contract
 - A field the agent cannot decide from the request and the code is reported as `unsure`, with what it would need to decide.
 - When any field is `unsure`, the `Mode` line gives the mode with every `unsure` field resolved to high and to yes, and says so.
 - **With no human to confirm**, that resolved mode is the one used, and the contract records the proposal as unconfirmed under its `Mode` line.
-- On confirmation of Contract or Controlled, the change gets a folder `specforge/changes/<YYYY-MM-DD>-<slug>/` with a contract copied from `templates/contract.md`. Direct gets nothing; Explore gets its contract after the prototype.
+- On confirmation of Contract or Controlled, the change gets a folder `specforge/changes/<YYYY-MM-DD>-<slug>/` with a contract copied from `templates/contract.md`. Direct gets no folder, only its edge test; Explore gets its contract after the prototype.
 
 ## Design panel
 
-Optional. For a Contract or Controlled change with high risk that touches design (schema, migration, an invariant across routes), the lead may dispatch v1's draft reviewers on the contract before Red: `specforge-backend-reviewer`, `specforge-security-reviewer` and `specforge-quality-reviewer`, each with `REVIEW_MODE: draft` and `PRD_PATH` set to the contract. Their findings go into the contract.
+Optional. For a Contract or Controlled change with high risk that touches design (schema, migration, an invariant across routes), the lead may dispatch v1's draft reviewers on the contract before Red: `specforge-backend-reviewer`, `specforge-security-reviewer` and `specforge-quality-reviewer`, each with the six fields their definitions require: `PRD_PATH` set to the contract, `REVIEW_MODE: draft`, `SIBLING_CLAUDE_MD_PATH` (the project's `CLAUDE.md`), `CODE_REFERENCES`, `SYSTEM_ARTIFACT_PATH` (or `none`), and a `DOMAIN_CONTEXT` that says the document is a v2 contract, not a PRD. It has no numbered sections, so findings judge Scope, Constraints, Premises and Acceptance evidence, and a missing §2 or §9 is not a finding. Their findings go into the contract before Red.

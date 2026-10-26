@@ -22,6 +22,8 @@ After the loop finishes, a reviewer that did not write the change looks for ways
 - no PII in logs;
 - every new dependency named and justified.
 
+A Contract change with high risk once passed review with a login that answered in 0.9 ms for an unknown email and 23.4 ms for a wrong password, which revealed every registered email (`specforge-pilot`, change `2026-10-25-register-and-login`).
+
 **The edge checklist** applies to every Contract and Controlled change, beside the security checklist that applies to high risk only:
 - bounds that match across every route accepting the same value;
 - normalization (strip, case, NFC) applied where a value is compared as well as where it is stored, and bounds read after it;
@@ -30,7 +32,6 @@ After the loop finishes, a reviewer that did not write the change looks for ways
 
 The checklist comes from the blind audit of the pilot (`../specforge-pilot/specforge/changes/archive/2026-10-25-audit-fixes`).
 
-A Contract change with high risk once passed review with a login that answered in 0.9 ms for an unknown email and 23.4 ms for a wrong password, which revealed every registered email (`specforge-pilot`, change `2026-10-25-register-and-login`).
 
 ## Report
 

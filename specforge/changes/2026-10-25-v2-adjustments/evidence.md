@@ -21,3 +21,11 @@
   - **Skill line written by hand.** The lead wrote the classify skill's step 5 by hand, as agreed with the human, because Claude Code protects `.claude/` under acceptEdits and neither `--allowedTools` rule lifted that.
   - **Budget.** The human raised the budget from 7 iterations and 2.50 USD to 9 iterations and 3 USD.
   - **Full-suite task.** It was run and passed by the lead, after the loop reached its cap.
+  - **Review should-fixes, written by hand.** After review (PASS with should-fix), the lead fixed three prose defects by hand, on the human's decision:
+    - the design panel now names all six brief fields and tells v1 reviewers the document is a contract;
+    - Direct's file bound excludes its edge test, and the test is waived for a change with no input;
+    - "Direct gets nothing" now reads "no folder".
+
+    The lead also moved the login-timing example back beside the security checklist.
+  - **Weak locked test.** `scripts/v2_adjustments_test.py` test_1 does not fail when the first checklist item (bounds across routes) is deleted, because its needles also match other items. The test is locked, so this stays on record and is not fixed.
+  - **CI list.** The lead added `v2_adjustments_test` to `v2-ci.yml`, which Scope did not name.
