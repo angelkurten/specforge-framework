@@ -61,6 +61,10 @@ specforge EVA ships in the CLI from **0.28.0**. Check the version you would get 
 4. Run `specforge-review` for an adversarial review, then `specforge-compose` to turn each lesson into the cheapest artifact that catches it.
 5. Close the change with `specforge/scripts/archive.py`.
 
+## Working on a sibling repository
+
+Keep specforge as a sibling directory beside your code and run the whole change from specforge. The change folder and its lock stay in specforge, while the code and tests live in the sibling: lock entries are written as `../<sibling>/<test file>`, the agent command adds `--add-dir ../<sibling>` so edits there are accepted, and `git -C ../<sibling>` reads its history. For the review packet, pass `--repo ../<sibling>` together with `--repo-base <ref>` to `specforge/scripts/review_prep.py`, so the sibling's diff is checked like specforge's own. See `specforge/core/loop.md` for the loop details.
+
 ## Known limits
 
 - The pilot compared v2 Contract with v1 PRD: 10 human minutes against 25, but about twice as many defects escaped per 1000 lines (6.1 against 3.3), and v2 is the default with three adjustments (`specforge/DECISIONS.md`): an edge checklist in `specforge/core/review.md` for every Contract and Controlled change; Direct ships with an edge test (a bound, an empty or control-character input); and an optional design panel (v1's backend, security and quality reviewers on the contract, before Red) for high-risk changes that touch design.

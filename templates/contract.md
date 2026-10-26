@@ -25,7 +25,7 @@
 
 ## Context
 
-<!-- Existing files, components and decisions that matter, as paths. -->
+<!-- Existing files, components and decisions that matter, as paths. If the code lives in a sibling repository, give its path (../<sibling>) and the path of its CLAUDE.md. -->
 
 ## Constraints
 

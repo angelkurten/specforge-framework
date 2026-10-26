@@ -64,14 +64,15 @@ EVIDENCE_FIELDS = ("Ran", "Result", "CI", "Not checked", "Deviations from the co
 NAMES_A_RUN = re.compile(r"\brun\s*#?\d+\b|/actions/runs/\d+|\b(?=[0-9a-f]*\d)[0-9a-f]{7,40}\b", re.IGNORECASE)
 
 
-def git(*args: str) -> str:
+def git(*args: str, repo: Path | None = None) -> str:
     # quotePath=false: a non-ASCII path is printed as itself, not "d\\303\\251mo",
     # so every path test below sees the real name.
-    return subprocess.run(["git", "-c", "core.quotePath=false", *args], capture_output=True, text=True, check=True).stdout
+    cmd = ["git", *(["-C", str(repo)] if repo else []), "-c", "core.quotePath=false", *args]
+    return subprocess.run(cmd, capture_output=True, text=True, check=True).stdout
 
 
-def changed_files(rng: str) -> list[tuple[str, str]]:
-    out = git("diff", "--no-renames", "--name-status", rng)
+def changed_files(rng: str, repo: Path | None = None) -> list[tuple[str, str]]:
+    out = git("diff", "--no-renames", "--name-status", rng, repo=repo)
     return [tuple(line.split("\t", 1)) for line in out.splitlines() if line]
 
 
@@ -103,9 +104,10 @@ def code_lines(added: list[tuple[str, int, str]]) -> list[tuple[str, int, str, s
     return out
 
 
-def added_lines(rng: str) -> list[tuple[str, int, str]]:
-    """Every added line as (path, new line number, text)."""
-    out = git("diff", "--no-renames", "-U0", rng)
+def added_lines(rng: str, repo: Path | None = None) -> list[tuple[str, int, str]]:
+    """Every added line as (path, new line number, text); a sibling's paths are prefixed with <repo>/."""
+    out = git("diff", "--no-renames", "-U0", rng, repo=repo)
+    prefix = f"{repo.as_posix()}/" if repo else ""
     path, line, added = None, 0, []
     for raw in out.split("\n"):  # not splitlines: it also splits on U+2028
         if raw.startswith("+++ "):
@@ -113,7 +115,7 @@ def added_lines(rng: str) -> list[tuple[str, int, str]]:
         elif raw.startswith("@@"):
             line = int(re.match(r"@@ -\S+ \+(\d+)", raw).group(1))
         elif raw.startswith("+") and path:
-            added.append((path, line, raw[1:]))
+            added.append((prefix + path, line, raw[1:]))
             line += 1
     return added
 
@@ -275,28 +277,34 @@ def evidence_findings(change: Path) -> list[str]:
     return findings
 
 
-def review(change: Path, base: str) -> tuple[list[str], list[str]]:
+def review(change: Path, base: str, repo: Path | None = None, repo_base: str | None = None) -> tuple[list[str], list[str]]:
     rng = f"{base}...HEAD"
     files = changed_files(rng)
+    # The sibling's paths are reported as <repo>/<file>, the form lock entries use.
+    sibling = [(s, f"{repo.as_posix()}/{p}") for s, p in changed_files(f"{repo_base}...HEAD", repo)] if repo else []
     findings = []
     added = added_lines(rng)
     findings += lock_findings(base, files, added)
-    for path, number, text in added:
+    code_added = added + (added_lines(f"{repo_base}...HEAD", repo) if repo else [])
+    for path, number, text in code_added:
         if points := invisible_points(text):
             findings.append(f"should-fix: {path}:{number} — literal invisible character {', '.join(points)}; write the escape")
-    for path, number, text, code in code_lines(added):
+    for path, number, text, code in code_lines(code_added):
         if SKIP.search(code):
             findings.append(f"blocker: {path}:{number} — skip marker added: {text.strip()}")
         if STUB.search(code) or THROWN_STUB.search(text):
             findings.append(f"should-fix: {path}:{number} — stub added: {text.strip()}")
-    for status, path in files:
-        if not TEST_FILE.search(path):
+    sources = [(s, p, p, base, None) for s, p in files]
+    if repo:
+        sources += [(s, f"{repo.as_posix()}/{p}", p, repo_base, repo) for s, p in changed_files(f"{repo_base}...HEAD", repo)]
+    for status, path, rel, ref, root in sources:
+        if not TEST_FILE.search(rel):
             continue
         if status == "D":
             findings.append(f"blocker: {path}:1 — test file deleted")
         elif status == "M":
-            before = test_names(git("show", f"{base}:{path}"))
-            after = test_names(Path(path).read_text())
+            before = test_names(git("show", f"{ref}:{rel}", repo=root))
+            after = test_names((root / rel if root else Path(rel)).read_text())
             added = [name for name in after if name not in before]
             for name, line in before.items():
                 if name in after:
@@ -312,19 +320,20 @@ def review(change: Path, base: str) -> tuple[list[str], list[str]]:
         findings.append(f"blocker: {change / 'contract.md'}:1 — range {rng} is empty: nothing to review")
     for path in check_locked(change, Path.cwd()):
         findings.append(f"blocker: {path}:1 — locked test changed")
-    findings += foreign_lock_findings(change, base, files)
+    findings += foreign_lock_findings(change, base, files + sibling)
     findings += evidence_findings(change)
-    return [f"{s} {p}" for s, p in files], findings
+    return [f"{s} {p}" for s, p in files + sibling], findings
 
 
-def packet(change: Path, base: str, files: list[str], findings: list[str]) -> str:
+def packet(change: Path, base: str, files: list[str], findings: list[str], repo: Path | None = None, repo_base: str | None = None) -> str:
+    rng = f"{base}...HEAD" + (f"; {repo.as_posix()} {repo_base}...HEAD" if repo else "")
     return "\n".join(
         [
             "# Review packet",
             "",
             f"Contract: {change / 'contract.md'}",
             f"Evidence: {change / 'evidence.md'}",
-            f"Range: {base}...HEAD",
+            f"Range: {rng}",
             "",
             "## Changed files",
             "",
@@ -347,9 +356,16 @@ def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description="Mechanical review of a change.")
     parser.add_argument("change", type=Path, help="the change folder")
     parser.add_argument("--base", default="main", help="the ref the change branched from (default: main)")
+    parser.add_argument("--repo", type=Path, help="a code sibling, e.g. ../app; give with --repo-base")
+    parser.add_argument("--repo-base", help="the ref the sibling branched from")
     args = parser.parse_args(argv)
-    files, findings = review(args.change, args.base)
-    print(packet(args.change, args.base, files, findings))
+    if bool(args.repo) != bool(args.repo_base):
+        parser.error("--repo and --repo-base go together")
+    if args.repo and subprocess.run(["git", "-C", str(args.repo), "rev-parse", "--git-dir"],
+                                    capture_output=True).returncode:
+        parser.error(f"--repo {args.repo} is not a git repository")
+    files, findings = review(args.change, args.base, args.repo, args.repo_base)
+    print(packet(args.change, args.base, files, findings, args.repo, args.repo_base))
     return 1 if any(f.startswith("blocker: ") for f in findings) else 0
 
 

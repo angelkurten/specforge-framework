@@ -72,3 +72,11 @@ When a human changes a design that approved tests encode, the tests change throu
 
 `unlock` refuses without a reason. It records `# unlocked <date> <test>: <reason>` in `locked-tests.txt`, and `approve` adds `# reapproved <date> <test>`, so every re-approval shows in the diff. `review_prep.py` reports it as should-fix, with the reason. Until the test is re-approved, `check` reports it, so the loop does not run and the change does not archive. The Claude Code guard answers `unlock` with a confirmation prompt to a human. In a `claude -p` loop iteration nobody can answer, so the call is denied.
 
+
+## Sibling repositories
+
+When the code lives in a sibling directory, the loop still runs from specforge: the change folder and its lock stay here, and the code and tests stay in `../<sibling>/`.
+- Lock entries are paths under `../<sibling>/`, for example `../<sibling>/tests/slug_test.py`. `lock_tests.py` and `loop.py` resolve them from specforge unchanged.
+- The agent command adds `--add-dir ../<sibling>`, so `acceptEdits` covers the sibling, and sets `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1`, so the sibling's `CLAUDE.md` loads. Hooks in the sibling's `.claude/settings.json` do not load.
+- Git reads in the sibling use `git -C ../<sibling>`, never a `cd`.
+- `review_prep.py` takes `--repo ../<sibling> --repo-base <ref>` together, and reads the sibling's range `<ref>...HEAD` through the same code checks.
