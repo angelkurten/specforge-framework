@@ -1,0 +1,24 @@
+## Evidence
+
+- **Ran**:
+  - The three premise commands, by hand, before Red.
+  - `python3 specforge/scripts/loop.py specforge/changes/2026-10-26-release-0-28-0`, once, with `claude -p --output-format json --model sonnet --permission-mode acceptEdits` and `--allowedTools=Bash(python3 *),Bash(git diff *),Bash(git status *),Bash(git log *)`.
+  - `scripts/release_0_28_0_test.py`, `scripts/migration_guide_test.py` and every suite in `.github/workflows/v2-ci.yml`.
+  - In `tools/cli`, by the lead:
+    - `pnpm run build && pnpm run prepublish && pnpm test`, before the commit;
+    - `npx vitest run tests/conformance/framework.test.ts`, after it;
+    - `node tools/cli/dist/src/cli.js doctor --ignore-sibling=teamtasks` and `version`.
+- **Result**:
+  - **Premises.** All three hold.
+  - **Loop.** 6 iterations, 6/6 tasks, exit 0. Cost 1.70 USD (`loop-runs.txt`, 6 lines).
+  - **Suites.** Every v2 suite passes.
+  - **CLI before the commit.** `pnpm test` gave 513 of 514. The one failure was PRD-016 row 13, which reads the *committed* `package.json` through `git show HEAD:`, and the bump was not committed yet.
+  - **CLI after the commit.** The conformance file passes 279 of 279.
+  - **doctor and version.** `doctor` reports 0 findings. `version` prints `bundled framework version: 0.28.0`.
+- **CI**: on `e75d6c7`, the last code commit, `v2-ci` run 40266382283 and `cli-ci` run 40266382237 both succeeded. The pushed head that adds this report gets its own runs, read before review.
+- **Not checked**:
+  - The publish itself. `cli-release` runs only on a `v*.*.*` tag, and the tag is out of scope until the human approves it.
+  - That `npx @angelkurten/specforge@0.28.0 update` works on a real v1 install. The e2e suite covers `npm pack` and `init`, not an upgrade from a published 0.27.3.
+- **Deviations from the contract**:
+  - **Test 7 lock.** `scripts/migration_guide_test.py` test 7 was locked by the archived change `2026-10-25-migration-guide`. `lock_tests.py:120` does not enforce archived locks, so the test was edited and re-approved in this change's lock, with the human's approval. The archived `locked-tests.txt` was left untouched as a record.
+  - **CI file.** `.github/workflows/v2-ci.yml` gained `release_0_28_0_test`, which Scope did not declare.
