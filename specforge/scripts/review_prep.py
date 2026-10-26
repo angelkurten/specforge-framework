@@ -222,6 +222,26 @@ def _locks_at(ref: str) -> dict[str, list[tuple[str, str]]]:
     return locks
 
 
+def foreign_lock_findings(change: Path, base: str, files: list[tuple[str, str]]) -> list[str]:
+    """A test another change locked, archived or not, that the range edits or deletes.
+
+    check_locked() covers only the change under review, and `lock_tests.py`
+    enforces no archived lock, so without this a test approved elsewhere can be
+    edited and re-locked with no finding (change 2026-10-26-release-0-28-0)."""
+    own = _canonical(f"{change.as_posix().rstrip('/')}/locked-tests.txt")
+    touched = {path for status, path in files if status in ("M", "D")}
+    out = []
+    for key, copies in _locks_at(base).items():
+        if key == own:
+            continue
+        for lock_path, text in copies:
+            for entry in _parse_lock(text)[0]:
+                if entry in touched:
+                    name = Path(lock_path).parent.name
+                    out.append(f"should-fix: {entry}:1 — test locked by {name} ({lock_path}) changed in the range, confirm it")
+    return out
+
+
 def _parse_lock(text: str) -> tuple[dict[str, tuple[str, int]], dict[str, list[int]]]:
     """(entry -> (sha, line), history line -> every line it appears on)."""
     entries, history = {}, {}
@@ -292,6 +312,7 @@ def review(change: Path, base: str) -> tuple[list[str], list[str]]:
         findings.append(f"blocker: {change / 'contract.md'}:1 — range {rng} is empty: nothing to review")
     for path in check_locked(change, Path.cwd()):
         findings.append(f"blocker: {path}:1 — locked test changed")
+    findings += foreign_lock_findings(change, base, files)
     findings += evidence_findings(change)
     return [f"{s} {p}" for s, p in files], findings
 
