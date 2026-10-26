@@ -58,7 +58,7 @@ Out:
 3. The Upgrade section carries the hook block with `PreToolUse` and `.claude/hooks/specforge_lock_guard.py`, and tells the reader to run `doctor`.
 4. The In-flight PRDs section says a `Draft` PRD can finish under v1 and that `Implemented` PRDs are not converted.
 5. `mkdocs.yml` nav lists `migration-v1-to-v2.md`.
-6. `README.md` § Upgrading and `README.es.md` § Actualización (upgrade) each name specforge EVA and link `docs/migration-v1-to-v2.md`.
+6. `README.md` § Upgrading and `README.es.md` § Actualización (upgrade) each name specforge EVA and link the published page `https://angelkurten.github.io/specforge-framework/migration-v1-to-v2/`, never `docs/`, because README ships to adopters without it (PRD-005 § 9 row 14).
 7. `CHANGELOG.md` has `## [Unreleased]` before `## [0.27.3]`, naming specforge EVA and linking the guide.
 
 ## Stop and escalate
