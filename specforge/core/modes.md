@@ -44,7 +44,7 @@ Evaluate the rows in this order and take the **first** that matches:
 |---|---|---|---|
 | 1 | **Explore** | High uncertainty, at any risk | throwaway prototype, then a contract; the prototype is never merged |
 | 2 | **Controlled** | High risk, and the Controlled flag is yes | contract + evidence + decisions + approvals |
-| 3 | **Direct** | Low risk and trivial: at most 2 files, and no behaviour beyond what one sentence states | none |
+| 3 | **Direct** | Low risk and trivial: at most 2 files, and no behaviour beyond what one sentence states | one test of an edge of the change (a bound, an empty or control-character input) |
 | 4 | **Contract** | Everything else | contract + evidence report |
 
 Explore comes first because a change nobody can yet describe cannot be verified at any level of rigour; Controlled applies when it re-classifies.
@@ -67,3 +67,7 @@ Mode: Contract
 - When any field is `unsure`, the `Mode` line gives the mode with every `unsure` field resolved to high and to yes, and says so.
 - **With no human to confirm**, that resolved mode is the one used, and the contract records the proposal as unconfirmed under its `Mode` line.
 - On confirmation of Contract or Controlled, the change gets a folder `specforge/changes/<YYYY-MM-DD>-<slug>/` with a contract copied from `templates/contract.md`. Direct gets nothing; Explore gets its contract after the prototype.
+
+## Design panel
+
+Optional. For a Contract or Controlled change with high risk that touches design (schema, migration, an invariant across routes), the lead may dispatch v1's draft reviewers on the contract before Red: `specforge-backend-reviewer`, `specforge-security-reviewer` and `specforge-quality-reviewer`, each with `REVIEW_MODE: draft` and `PRD_PATH` set to the contract. Their findings go into the contract.

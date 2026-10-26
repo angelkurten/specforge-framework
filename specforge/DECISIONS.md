@@ -100,3 +100,10 @@ Append-only log of decisions with future value. Shape: [`templates/decision-log.
 **Decision**: `loop.py` keeps a cumulative ledger (`loop-runs.txt`) and refuses a run that cannot finish. It guards the ledger against accidental damage only. Against a hostile agent, the defence is review of the diff, because an agent with `Bash(python3 *)` can edit `loop.py` itself.
 **Rejected**: an open-ended hardening loop, stopped by the human after the fourth review; a CI-run check in `archive.py`, deferred because v2 has no provider-neutral CI interface.
 **Revisit if**: loop agents run without diff review, or a project needs `archive.py` to verify CI itself.
+
+## 2026-10-25 — v2 becomes the default process, with three adjustments
+
+**Context**: the v2 pilot compared v2 Contract with v1 PRD: 10 human minutes against 25, but about twice as many defects escaped per 1000 lines, 6.1 against 3.3. The pilot's only 🔴 came from a Direct change with no edge test, and the blind audit (`2026-10-25-audit-fixes`) traced the escapes to unchecked edges.
+**Decision**: v2 is the default. Three adjustments: (1) an edge checklist in `specforge/core/review.md` applies to every Contract and Controlled change; (2) Direct ships with an edge test (a bound, an empty or control-character input); (3) an optional design panel — v1's backend, security and quality draft reviewers on the contract, before Red — for high-risk changes that touch design.
+**Rejected**: keeping v1 PRD as the default, at 2.5× the human time; making the design panel mandatory, which would bring back v1's cost for every change.
+**Revisit if**: `escaped_2w` for the pilot (due 2026-11-08) shows the escape rate still above v1's 3.3 per 1000 lines, or the design panel is never used.
