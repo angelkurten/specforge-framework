@@ -52,6 +52,7 @@ nav:
       - Sibling projects: concepts/siblings.md
       - Roadmap: concepts/roadmap.md
   - Workflow: workflow/overview.md
+  - Migration from v1: migration-v1-to-v2.md
   - FAQ: faq.md
 
 markdown_extensions:

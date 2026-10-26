@@ -8,6 +8,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [Unreleased]
+
+### Added — specforge EVA (Evidence, Verification, Adaptation)
+
+specforge EVA is the v2 workflow. Teams on v1 (the PRD workflow) move over by following the [migration guide](docs/migration-v1-to-v2.md).
+
+---
+
 ## [0.27.3] - 2026-09-22
 
 ### Added — the coverage join owes every Observability log event a Test Plan row

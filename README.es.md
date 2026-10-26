@@ -252,6 +252,8 @@ npx @angelkurten/specforge update
 
 `update` refresca los archivos del framework en el lugar. **Los archivos de data de equipo** (`SIBLINGS.md`, `ROADMAP.md`, tus PRDs, tus ADRs) nunca se tocan — solo cambian cuando vos los editás. Si editaste vos mismo un archivo del framework, `update` frena y reporta el drift; pasale `--strategy=ours`, `--strategy=theirs`, o `--strategy=merge` para resolverlo.
 
+¿Pasás de v1 (el workflow de PRDs) a specforge EVA (Evidence, Verification, Adaptation)? Seguí la [guía de migración](docs/migration-v1-to-v2.md).
+
 ## Idioma
 
 - specforge mismo está escrito en inglés para que sea adoptable por cualquier equipo.

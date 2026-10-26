@@ -4,15 +4,23 @@
 
 ## Tasks
 
-- [ ] scripts/migration_guide_test.py test_1_the_guide_has_its_seven_sections_in_order_and_expands_eva
-- [ ] scripts/migration_guide_test.py test_2_every_repository_path_the_guide_names_exists
-- [ ] scripts/migration_guide_test.py test_3_upgrade_carries_the_hook_block_and_doctor
-- [ ] scripts/migration_guide_test.py test_4_in_flight_drafts_finish_under_v1_and_implemented_prds_stay
-- [ ] scripts/migration_guide_test.py test_5_mkdocs_nav_lists_the_guide
-- [ ] scripts/migration_guide_test.py test_6_both_readmes_name_eva_and_link_the_guide_from_upgrading
-- [ ] scripts/migration_guide_test.py test_7_changelog_has_an_unreleased_eva_section_first
-- [ ] every suite in `.github/workflows/v2-ci.yml` passes (run them as that file does)
+- [x] scripts/migration_guide_test.py test_1_the_guide_has_its_seven_sections_in_order_and_expands_eva
+- [x] scripts/migration_guide_test.py test_2_every_repository_path_the_guide_names_exists
+- [x] scripts/migration_guide_test.py test_3_upgrade_carries_the_hook_block_and_doctor
+- [x] scripts/migration_guide_test.py test_4_in_flight_drafts_finish_under_v1_and_implemented_prds_stay
+- [x] scripts/migration_guide_test.py test_5_mkdocs_nav_lists_the_guide
+- [x] scripts/migration_guide_test.py test_6_both_readmes_name_eva_and_link_the_guide_from_upgrading
+- [x] scripts/migration_guide_test.py test_7_changelog_has_an_unreleased_eva_section_first
+- [x] every suite in `.github/workflows/v2-ci.yml` passes (run them as that file does)
 
 ## Blocked
 
 ## Log
+- Task 1: created `docs/migration-v1-to-v2.md` (seven sections in order, EVA expanded; bodies are placeholders for later tasks); `python3 scripts/migration_guide_test.py MigrationGuideTests.test_1_...` → OK.
+- Task 2: filled What changes / What stays / v1 to v2 map in `docs/migration-v1-to-v2.md` with existing repo paths; `python3 scripts/migration_guide_test.py MigrationGuideTests.test_2_... test_1_...` → OK (2 tests).
+- Task 3: wrote Upgrade section (update step, settings hook block, `specforge doctor`) in `docs/migration-v1-to-v2.md`; `python3 scripts/migration_guide_test.py MigrationGuideTests.test_3_... test_2_... test_1_...` → OK (3 tests).
+- Task 4: wrote In-flight PRDs section in `docs/migration-v1-to-v2.md`; `python3 scripts/migration_guide_test.py MigrationGuideTests.test_4_... test_2_...` → OK (2 tests).
+- Task 5: added `Migration from v1: migration-v1-to-v2.md` to `mkdocs.yml` nav; `python3 scripts/migration_guide_test.py MigrationGuideTests.test_5_...` → OK (1 test).
+- Task 6: added specforge EVA + guide link to README.md § Upgrading and README.es.md § Actualización (upgrade); `python3 scripts/migration_guide_test.py MigrationGuideTests.test_6_...` → OK (1 test).
+- Task 7: added `## [Unreleased]` (specforge EVA + guide link) above 0.27.3 in `CHANGELOG.md`; `python3 scripts/migration_guide_test.py` → OK (7 tests).
+- Task 8: ran all 31 suites from `.github/workflows/v2-ci.yml` (`python3 scripts/<suite>.py` each, including `migration_guide_test`) → every one exit 0.
