@@ -1,0 +1,26 @@
+## Evidence
+
+- **Ran**:
+  - The four premise commands, by hand, before Red.
+  - `python3 specforge/scripts/loop.py specforge/changes/2026-10-26-sibling-repos`, three times, with `claude -p --output-format json --model sonnet --permission-mode acceptEdits` and `--allowedTools=Bash(python3 *),Bash(git diff *),Bash(git status *),Bash(git log *)`.
+  - `scripts/sibling_repos_test.py`, `scripts/sibling_repos_fix_test.py` and every suite in `.github/workflows/v2-ci.yml`.
+  - In `tools/cli`, by the lead: `pnpm run build && pnpm run prepublish && pnpm test`.
+- **Result**:
+  - **Premises.** All four hold.
+  - **Loop runs.**
+    1. Exit 2 at start: the third premise had text between its command and `→ holds`. The lead fixed the line, and no iteration ran.
+    2. Iterations 1-10: tasks 1-10 done, exit 0.
+    3. Iterations 11-12: the fix round, tasks 11-12 done, exit 0.
+  - **Totals.** 12 iterations, 3.70 USD (`loop-runs.txt`, 12 lines), against a 14-iteration, 5 USD budget.
+  - **Suites.** All v2 suites pass.
+  - **CLI.** `pnpm test` passes 514 of 514.
+- **CI**: on `b2e50a4`, the last code commit, `v2-ci` run 40403597478 and `cli-ci` run 40403597471 both succeeded. The pushed head that adds this report gets its own runs, read before review.
+- **Not checked**:
+  - A real `claude -p` iteration against a real sibling (`/Users/angelkurten/specforge` with `/Users/angelkurten/specforge-pilot`) using `--add-dir` and the env var. The prototype ran inside the scratchpad, where edits outside the working directory may already be allowed. The `--add-dir` requirement comes from code.claude.com/docs/en/permissions, not from a run.
+  - That `Bash(git -C ../<sibling> diff *)` matches as written. Taken from the same page's wildcard rules, not from a run.
+- **Deviations from the contract**:
+  - **Written by the lead.** The guard's fail-closed wrapper and the review-skill line, because `.claude/` is closed to the loop. The human agreed (`5560fbf`).
+  - **Fix round before review.** Test 10 (`scripts/sibling_repos_fix_test.py`) was raised by the lead and approved by the human, with the budget unchanged.
+  - **Tests corrected before locking.** Test 5 had passed against the old script, because argparse rejects unknown flags. Test 6's fixture had no active lock, so the guard exited early. Both were fixed before `approve`.
+  - **Premise line.** Reworded after `loop.py` refused it. The content did not change.
+  - **CI file.** `.github/workflows/v2-ci.yml` gained two suites, which Scope did not declare.
