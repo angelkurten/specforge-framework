@@ -16,11 +16,11 @@
 - [x] every suite in `.github/workflows/v2-ci.yml` passes (run them as that file does)
 - [x] scripts/sibling_repos_fix_test.py test_10_loop_md_gives_a_sibling_agent_command_with_literal_git_reads
 - [x] every suite in `.github/workflows/v2-ci.yml` passes again, sibling_repos_fix_test included
-- [ ] scripts/sibling_repos_fix2_test.py test_11_an_absolute_repo_path_still_matches_lock_entries
-- [ ] scripts/sibling_repos_fix2_test.py test_12_a_subdirectory_or_a_bad_ref_never_crashes
-- [ ] scripts/sibling_repos_fix2_test.py test_13_an_empty_sibling_range_is_a_blocker
-- [ ] scripts/sibling_repos_fix2_test.py test_14_the_packet_tells_the_reviewer_to_read_the_sibling_diff
-- [ ] every suite in `.github/workflows/v2-ci.yml` passes again, sibling_repos_fix2_test included
+- [x] scripts/sibling_repos_fix2_test.py test_11_an_absolute_repo_path_still_matches_lock_entries
+- [x] scripts/sibling_repos_fix2_test.py test_12_a_subdirectory_or_a_bad_ref_never_crashes
+- [x] scripts/sibling_repos_fix2_test.py test_13_an_empty_sibling_range_is_a_blocker
+- [x] scripts/sibling_repos_fix2_test.py test_14_the_packet_tells_the_reviewer_to_read_the_sibling_diff
+- [x] every suite in `.github/workflows/v2-ci.yml` passes again, sibling_repos_fix2_test included
 
 ## Blocked
 
@@ -46,3 +46,8 @@
   - An empty sibling range is a blocker naming the sibling and its range, like specforge's own.
   - The packet's last paragraph also names `git -C <repo> diff <repo-base>...HEAD`.
 - Lead: wrote by hand two items. The guide's sibling section now says `--repo` ships from 0.29.0 (review should-fix). The `loop.md` example command is now an indented code block (review nit).
+- Iter 13: `main()` in `review_prep.py` resolves `git -C <repo> rev-parse --show-toplevel` and reports the sibling as `os.path.relpath(toplevel, cwd)` (both resolved); ran `python3 scripts/sibling_repos_fix2_test.py ...test_11_…` → OK, and sibling_repos_test, review_test, review_fp_test, invisible_chars_test, foreign_lock_test → exit 0.
+- Iter 14: `main()` in `review_prep.py` checks `--repo-base` with `git -C <toplevel> rev-parse --verify <ref>^{commit}` and refuses it through `parser.error` (exit 2) naming the ref; ran `python3 scripts/sibling_repos_fix2_test.py ...test_12_…` → OK, and sibling_repos_test, review_test, review_fp_test, invisible_chars_test, foreign_lock_test → exit 0.
+- Iter 15: `review()` in `review_prep.py` adds a blocker naming the sibling and its range when `--repo` is given and its range is empty; ran `python3 scripts/sibling_repos_fix2_test.py` → test_13 OK (test_14 still red, next task), and sibling_repos_test, review_test, review_fp_test, invisible_chars_test, foreign_lock_test → OK.
+- Iter 16: `packet()` in `review_prep.py` now names `git -C <repo> diff <repo-base>...HEAD` in the last paragraph when `--repo` is given (unchanged without it); ran `python3 scripts/sibling_repos_fix2_test.py` → OK (tests 11-14), and sibling_repos_test, review_test, review_fp_test, invisible_chars_test, foreign_lock_test → exit 0.
+- Iter 17: ran all 39 suites of `v2-ci.yml` as that file does (`python3 scripts/<suite>.py` in a loop from the repo root, sibling_repos_fix2_test included) → every one exited 0; `pnpm test` in `tools/cli` is the lead's.

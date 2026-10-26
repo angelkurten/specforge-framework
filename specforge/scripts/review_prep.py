@@ -28,6 +28,7 @@ prints either way. Python 3 standard library and git only.
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import subprocess
 import sys
@@ -318,6 +319,8 @@ def review(change: Path, base: str, repo: Path | None = None, repo_base: str | N
                     findings.append(f"blocker: {path}:{line} — test {name} removed")
     if not files:
         findings.append(f"blocker: {change / 'contract.md'}:1 — range {rng} is empty: nothing to review")
+    if repo and not sibling:
+        findings.append(f"blocker: {repo.as_posix()}:1 — range {repo_base}...HEAD is empty: nothing to review")
     for path in check_locked(change, Path.cwd()):
         findings.append(f"blocker: {path}:1 — locked test changed")
     findings += foreign_lock_findings(change, base, files + sibling)
@@ -346,7 +349,9 @@ def packet(change: Path, base: str, files: list[str], findings: list[str], repo:
             "## For the reviewer",
             "",
             "Read specforge/core/review.md, then the contract, the evidence report and the diff "
-            f"(git diff {base}...HEAD). The findings above are settled; look for what a "
+            f"(git diff {base}...HEAD"
+            + (f"; git -C {repo.as_posix()} diff {repo_base}...HEAD" if repo else "")
+            + "). The findings above are settled; look for what a "
             "pattern cannot see.",
         ]
     )
@@ -361,9 +366,17 @@ def main(argv: list[str]) -> int:
     args = parser.parse_args(argv)
     if bool(args.repo) != bool(args.repo_base):
         parser.error("--repo and --repo-base go together")
-    if args.repo and subprocess.run(["git", "-C", str(args.repo), "rev-parse", "--git-dir"],
-                                    capture_output=True).returncode:
-        parser.error(f"--repo {args.repo} is not a git repository")
+    if args.repo:
+        top = subprocess.run(["git", "-C", str(args.repo), "rev-parse", "--show-toplevel"],
+                             capture_output=True, text=True)
+        if top.returncode:
+            parser.error(f"--repo {args.repo} is not a git repository")
+        # Report every path as lock entries write it, relative to the cwd: /abs/app, ../app and ../app/tests alike.
+        ref = subprocess.run(["git", "-C", top.stdout.strip(), "rev-parse", "--verify", f"{args.repo_base}^{{commit}}"],
+                             capture_output=True, text=True)
+        if ref.returncode:
+            parser.error(f"--repo-base {args.repo_base} is not a commit in {args.repo}")
+        args.repo = Path(os.path.relpath(Path(top.stdout.strip()).resolve(), Path.cwd().resolve()))
     files, findings = review(args.change, args.base, args.repo, args.repo_base)
     print(packet(args.change, args.base, files, findings, args.repo, args.repo_base))
     return 1 if any(f.startswith("blocker: ") for f in findings) else 0
