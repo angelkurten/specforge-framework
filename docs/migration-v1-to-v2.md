@@ -8,12 +8,14 @@ Work starts from a classified change instead of a PRD. `.claude/skills/specforge
 
 ## What stays
 
-The v1 rules in `.claude/rules/hard-rules.md` and `.claude/rules/workflow.md` are not deleted, so the PRD workflow remains available. Your team data under `specforge/changes/` and `specforge/DECISIONS.md` is never overwritten by `npx @angelkurten/specforge update` (`tools/cli/src/partition.ts`). The templates in `templates/`, your `SIBLINGS.md` registry and your frozen PRDs and ADRs also stay as they are: v2 adds files next to them and removes none.
+The v1 rules in `.claude/rules/hard-rules.md` and `.claude/rules/workflow.md` are not deleted, so the PRD workflow remains available. Your team data under `specforge/changes/` and `specforge/DECISIONS.md` is never overwritten by `npx @angelkurten/specforge update` (`tools/cli/src/partition.ts`). Your `SIBLINGS.md` registry and your frozen PRDs and ADRs also stay as they are: v2 adds files next to them and removes none. The files in `templates/` are framework files, so `update` refreshes any you have not edited; from 0.27.3 the upgrade only adds templates, but from an older v1 it rewrites them too.
 
 ## Upgrade
 
+specforge EVA ships in the CLI from **0.28.0**. Check the version you would get with `npx @angelkurten/specforge version`: an earlier CLI installs none of the v2 files, and `doctor` then has no guard to warn about.
+
 1. Run `npx @angelkurten/specforge update`. A bundled v2 file that is missing on disk is installed; a file on disk that is not in the manifest is reported as drift (`tools/cli/src/commands/update.ts`).
-2. `update` does not write `.claude/settings.json`, because that file is team data, and only `init` prints the hook block. Paste this block into your `.claude/settings.json` yourself, merging it with any `hooks` you already have:
+2. `update` does not write `.claude/settings.json`, because the CLI does not bundle that file, and only `init` prints the hook block. Paste this block into your `.claude/settings.json` yourself, merging it with any `hooks` you already have:
 
 ```json
 {

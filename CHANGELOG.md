@@ -12,7 +12,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ### Added — specforge EVA (Evidence, Verification, Adaptation)
 
-specforge EVA is the v2 workflow. Teams on v1 (the PRD workflow) move over by following the [migration guide](docs/migration-v1-to-v2.md).
+specforge EVA is the v2 workflow, shipping in 0.28.0. Teams on v1 (the PRD workflow) move over by following the [migration guide](docs/migration-v1-to-v2.md).
 
 ---
 

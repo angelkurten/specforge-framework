@@ -27,3 +27,9 @@
   - **Budget.** The human raised the budget from 9 iterations and 2.50 USD to 15 iterations and 4.50 USD.
   - **Test 6 re-approved.** The locked test required a README link to `docs/migration-v1-to-v2.md`, which contradicts PRD-005 § 9 row 14. The human approved changing it to require the published URL and no `](docs/` link (`# unlocked` and `# reapproved` lines in `locked-tests.txt`). The contract's third premise had checked only the `## Upgrading` text, not the README link rules.
   - **Contract updated.** Acceptance scenario 6 now names the published URL, to match the re-approved test.
+  - **Review (PASS with should-fix).**
+    - The human confirmed the test-6 unlock, its re-approval and the edit to the contract's scenario 6.
+    - On the human's decision, the lead fixed the version should-fix by hand: the guide and the CHANGELOG name **0.28.0** as the first CLI that ships EVA, and the guide says to check with `npx @angelkurten/specforge version`. The bump and the release itself are still to do, before the next push to `main`.
+    - The lead also fixed two nits by hand: `.claude/settings.json` is not bundled (it is not team data), and `update` refreshes unedited `templates/` files.
+  - **Scope.** `.github/workflows/v2-ci.yml` gained the two new suites. Scope did not declare that file (review nit).
+  - **Compose, written by the lead.** The two loop-skill lines in `.claude/` and the `review.md` line.
