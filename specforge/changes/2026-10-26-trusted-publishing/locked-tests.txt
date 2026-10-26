@@ -1,0 +1,1 @@
+adaeae5902c1a409ee6a70746c3781572c560deca70bc0a6da882ebe1df70769  scripts/trusted_publishing_test.py
