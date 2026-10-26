@@ -8,11 +8,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
-## [Unreleased]
+## [0.28.0] - 2026-10-26
 
 ### Added — specforge EVA (Evidence, Verification, Adaptation)
 
 specforge EVA is the v2 workflow, shipping in 0.28.0. Teams on v1 (the PRD workflow) move over by following the [migration guide](docs/migration-v1-to-v2.md).
+
+### Added — what the CLI now installs
+
+`init` and `update` now write these framework files (`tools/cli/src/partition.ts`), overwriteable on `update` like the rest:
+
+- `specforge/core/**`, the v2 core documents;
+- the five `specforge/scripts/` files: `lock_tests.py`, `loop.py`, `review_prep.py`, `archive.py`, `compose_check.py`;
+- the four skills `specforge-classify`, `specforge-loop`, `specforge-review` and `specforge-compose`, under `.claude/skills/`;
+- the lock guard, `.claude/hooks/specforge_lock_guard.py`.
+
+`specforge/changes/**` and `specforge/DECISIONS.md` are team data and never touched.
+
+**The guard only runs once registered.** `init` prints the hook block to add to `.claude/settings.json` and never writes settings itself; `update` prints nothing. `doctor` gains the `lock-guard-registered` check: a warning (never an error) when the guard is installed and neither `.claude/settings.json` nor `.claude/settings.local.json` registers it under `PreToolUse`, or when one of them is not valid JSON.
+
+### Headless blast radius
+
+**BREAKING for a headless installation**. Claude Code can invoke a skill from its description, and `specforge-classify` says to use it "at the start of every change". An installation that now carries the four skills can therefore route a headless session through `specforge-classify` and the v2 cycle instead of `workflow.md`'s PRD triage. v1 files and rules are unchanged and v2 is added beside them, but which workflow a headless session enters is no longer decided by `workflow.md` alone. Read the [migration guide](docs/migration-v1-to-v2.md) before updating a headless installation.
 
 ---
 

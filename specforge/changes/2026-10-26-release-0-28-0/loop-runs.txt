@@ -1,0 +1,6 @@
+iteration 1 usd 0.3698
+iteration 2 usd 0.3717
+iteration 3 usd 0.4362
+iteration 4 usd 0.1602
+iteration 5 usd 0.1297
+iteration 6 usd 0.2336
