@@ -1,0 +1,22 @@
+## Evidence
+
+- **Ran**:
+  - The four premise commands, by hand, before Red.
+  - `python3 specforge/scripts/loop.py specforge/changes/2026-10-26-trusted-publishing`, once, with `claude -p --output-format json --model sonnet --permission-mode acceptEdits` and `--allowedTools=Bash(python3 *),Bash(git diff *),Bash(git status *),Bash(git log *)`.
+  - `python3 scripts/trusted_publishing_test.py` and every suite in `.github/workflows/v2-ci.yml`.
+  - `python3 -c "import yaml; yaml.safe_load(...)"` on `cli-release.yml` and `v2-ci.yml`, by the lead.
+- **Result**:
+  - **Premises.** All four hold.
+  - **Loop.** 4 iterations, 4/4 tasks, exit 0. Cost 0.94 USD (`loop-runs.txt`, 4 lines).
+  - **Suites.** All pass locally.
+  - **YAML.** Both files parse.
+- **CI**:
+  - On `1b3cc24`: `cli-ci` run 40334927538 succeeded. `v2-ci` run 40334927266 **failed**: test 3's `git show 93945a7:…` returned 128 on a shallow checkout.
+  - On `c3eab3f`, the last code commit: `v2-ci` run 40335108147 and `cli-ci` run 40335108112 both succeeded.
+  - The pushed head that adds this report gets its own runs, read before review.
+- **Not checked**:
+  - The OIDC publish itself. It needs the trusted publisher registered on npmjs.com, which only the human can do: owner `angelkurten`, repository `specforge-framework`, workflow `cli-release.yml`, no environment. It also needs a tag or dispatch, which waits for the human's approval.
+  - That `npm install -g npm@11.6.2` succeeds on the Node 24 runner. Only a `cli-release` run executes that step.
+- **Deviations from the contract**:
+  - **Test 3 passes at the base.** It is a preservation guard: the publish step and `Resolve dist-tag` survive the edit. The human approved it knowing this.
+  - **CI file.** `.github/workflows/v2-ci.yml` gained `trusted_publishing_test`, and its checkout gained `fetch-depth: 0` so test 3 can read `93945a7`. The locked test was not edited. Scope did not declare this file.
