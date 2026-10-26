@@ -22,3 +22,7 @@
 - **Deviations from the contract**:
   - **Test 7 lock.** `scripts/migration_guide_test.py` test 7 was locked by the archived change `2026-10-25-migration-guide`. `lock_tests.py:120` does not enforce archived locks, so the test was edited and re-approved in this change's lock, with the human's approval. The archived `locked-tests.txt` was left untouched as a record.
   - **CI file.** `.github/workflows/v2-ci.yml` gained `release_0_28_0_test`, which Scope did not declare.
+  - **Review (PASS with should-fix).** The human confirmed the test 7 lock change, from `1060cda7…` in the archived lock to `eb1f9ae8…` here. The lead fixed one nit by hand: the CHANGELOG now says `update` does not print the hook block, instead of "prints nothing".
+  - **Risk not recorded.** The change was classified high risk, because it publishes to npm, but the contract does not say so, and review skipped the security checklist. The lead checked the items that apply here: the change adds no new dependency, secret or PII.
+  - **Known follow-up.** At the next release, `scripts/release_0_28_0_test.py` and `scripts/migration_guide_test.py` test 7 will fail. Both must be dropped from `v2-ci.yml` or re-approved.
+  - **Compose, written by the lead.** The `.claude/` skill lines, and the `review.md` line.
