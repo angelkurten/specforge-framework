@@ -69,7 +69,10 @@ class MigrationGuideTests(unittest.TestCase):
         for name, head in (("README.md", "Upgrading"), ("README.es.md", "Actualización (upgrade)")):
             body = sections((REPO / name).read_text()).get(head, "")
             self.assertIn("specforge EVA", body, name)
-            self.assertIn("docs/migration-v1-to-v2.md", body, name)
+            # README files ship to adopters without docs/ (PRD-005 § 9 row 14), so they
+            # link the published page, never the repository path.
+            self.assertIn("https://angelkurten.github.io/specforge-framework/migration-v1-to-v2/", body, name)
+            self.assertNotIn("](docs/", (REPO / name).read_text(), name)
 
     def test_7_changelog_has_an_unreleased_eva_section_first(self):
         text = (REPO / "CHANGELOG.md").read_text()

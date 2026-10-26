@@ -1,2 +1,4 @@
+# unlocked 2026-10-26 scripts/migration_guide_test.py: test 6 required a README link into docs/, which PRD-005 § 9 row 14 forbids (cli-ci 40260995159); the human approved requiring the published site URL instead
+# reapproved 2026-10-26 scripts/migration_guide_test.py
 1165e122a88e36a0605ffe015eedca278cdea4432db3acde00485cb6ed982d87  scripts/migration_guide_fix_test.py
-4e8246e8b4175ed4be0784cd7ac0ac2090dea8a6911216733b90efd79e480a62  scripts/migration_guide_test.py
+1060cda74863e7c0a3e2a0e62e11d6e3afded405958c3c4870a0dea94f722651  scripts/migration_guide_test.py
