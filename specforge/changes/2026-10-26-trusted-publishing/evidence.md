@@ -23,3 +23,4 @@
   - **CI file.** `.github/workflows/v2-ci.yml` gained `trusted_publishing_test`, and its checkout gained `fetch-depth: 0` so test 3 can read `93945a7`. The locked test was not edited. Scope did not declare this file.
   - **Review (PASS with should-fix).** The human confirmed both `v2-ci.yml` edits outside Scope. The lead added the Node 24 item to Not checked.
   - **Compose, written by the lead.** A Node 22/24 matrix in `.github/workflows/cli-ci.yml`, approved by the human.
+  - **First matrix run.** On `e518049`, `cli-ci` run 40336149663 passed with `test (22)=success` and `test (24)=success`, and `v2-ci` run 40336149655 succeeded. Build, prepublish and `pnpm test` on Node 24 are now covered by CI. The npm 11.6.2 step and the OIDC publish are still unchecked.
