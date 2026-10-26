@@ -8,11 +8,11 @@ Work starts from a classified change instead of a PRD. `.claude/skills/specforge
 
 ## What stays
 
-The v1 rules in `.claude/rules/hard-rules.md` and `.claude/rules/workflow.md` are not deleted, so the PRD workflow remains available. Your team data under `specforge/changes/` and `specforge/DECISIONS.md` is never overwritten by `specforge update` (`tools/cli/src/partition.ts`).
+The v1 rules in `.claude/rules/hard-rules.md` and `.claude/rules/workflow.md` are not deleted, so the PRD workflow remains available. Your team data under `specforge/changes/` and `specforge/DECISIONS.md` is never overwritten by `npx @angelkurten/specforge update` (`tools/cli/src/partition.ts`). The templates in `templates/`, your `SIBLINGS.md` registry and your frozen PRDs and ADRs also stay as they are: v2 adds files next to them and removes none.
 
 ## Upgrade
 
-1. Run `specforge update`. A bundled v2 file that is missing on disk is installed; a file on disk that is not in the manifest is reported as drift (`tools/cli/src/commands/update.ts`).
+1. Run `npx @angelkurten/specforge update`. A bundled v2 file that is missing on disk is installed; a file on disk that is not in the manifest is reported as drift (`tools/cli/src/commands/update.ts`).
 2. `update` does not write `.claude/settings.json`, because that file is team data, and only `init` prints the hook block. Paste this block into your `.claude/settings.json` yourself, merging it with any `hooks` you already have:
 
 ```json
@@ -33,7 +33,7 @@ The v1 rules in `.claude/rules/hard-rules.md` and `.claude/rules/workflow.md` ar
 }
 ```
 
-3. Run `specforge doctor`. It warns when the guard is installed but not registered in the settings (`tools/cli/src/validators/lock-guard-registered.ts`); a clean run means the lock guard is active.
+3. Run `npx @angelkurten/specforge doctor`. It warns when the guard is installed but not registered in the settings (`tools/cli/src/validators/lock-guard-registered.ts`); a clean run only means the hook is registered, not that it has been exercised.
 
 ## In-flight PRDs
 
@@ -49,11 +49,19 @@ The v1 rules in `.claude/rules/hard-rules.md` and `.claude/rules/workflow.md` ar
 | Reviewer panel | `.claude/skills/specforge-review` |
 | Gate block | locked tests plus the loop in `specforge/core/loop.md` |
 | Lessons in a PRD | `specforge/core/compose.md` |
+| Shipped state and history | `specforge/scripts/archive.py` closes the change |
 
 ## Your first change
 
-Details are filled in by the tasks that follow.
+1. Ask for the change and let `specforge-classify` pick a mode and scaffold `specforge/changes/<date>-<slug>/` once you confirm.
+2. Write `specforge/changes/<date>-<slug>/contract.md` and the red tests, then run `specforge/scripts/lock_tests.py approve` so the approved tests are locked.
+3. Run `specforge/scripts/loop.py` to let the clean-context loop work through `specforge/changes/<date>-<slug>/progress.md` within its budget.
+4. Run `specforge-review` for an adversarial review, then `specforge-compose` to turn each lesson into the cheapest artifact that catches it.
+5. Close the change with `specforge/scripts/archive.py`.
 
 ## Known limits
 
-Details are filled in by the tasks that follow.
+- The pilot compared v2 Contract with v1 PRD: 10 human minutes against 25, but about twice as many defects escaped per 1000 lines (6.1 against 3.3), and v2 is the default with three adjustments (`specforge/DECISIONS.md`): an edge checklist in `specforge/core/review.md` for every Contract and Controlled change; Direct ships with an edge test (a bound, an empty or control-character input); and an optional design panel (v1's backend, security and quality reviewers on the contract, before Red) for high-risk changes that touch design.
+- The pilot result is not final: `escaped_2w` for the pilot is due on 2026-11-08, and the decision in `specforge/DECISIONS.md` is revisited if the escape rate is still above v1's.
+- `specforge/scripts/loop.py` is not a sandbox. It guards its budget ledger against accidental damage only; against a hostile agent, the defence is reviewing the diff.
+- The lock guard is a hook that you register yourself in `.claude/settings.json`; `update` does not write it. The Claude Code adapter (hooks and skills) lives under `.claude/`; the core in `specforge/` works without it.
