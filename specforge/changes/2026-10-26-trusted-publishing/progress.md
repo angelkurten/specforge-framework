@@ -17,3 +17,4 @@
 - Iter: test_2 done — setup-node now Node 24 and a `npm install -g npm@11.6.2` step added before publish in `cli-release.yml`; `python3 scripts/trusted_publishing_test.py` → 3 tests OK.
 - Iter: test_3 done — no code change needed; `python3 scripts/trusted_publishing_test.py -v` → test_3 ok (3 tests OK); diff vs 93945a7 touches only setup-node, npm step, env removal and the permissions comment, `Resolve dist-tag` untouched.
 - Iter: suites done — ran all 34 suites from `v2-ci.yml` one by one with `python3 scripts/<suite>.py`; all 34 exited 0 (including trusted_publishing_test).
+- Lead: v2-ci run 40334927266 failed because test 3 runs `git show 93945a7:…`, and the default checkout is shallow. The lead added `fetch-depth: 0` to v2-ci's checkout instead of editing the locked test (deviation: CI file outside Scope).

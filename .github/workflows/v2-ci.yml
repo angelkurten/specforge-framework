@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # trusted_publishing_test reads a base commit with git show
 
       - name: Python suites
         run: |
