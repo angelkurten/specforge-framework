@@ -131,4 +131,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        code = main()
+    except Exception as e:  # fail closed: exit 1 would let the tool call through
+        print(f"lock guard error: {type(e).__name__}: {e}; denied until the guard runs cleanly", file=sys.stderr)
+        code = 2
+    sys.exit(code)
