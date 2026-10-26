@@ -11,7 +11,7 @@ on:
 
 permissions:
   contents: read
-  id-token: write   # required for npm --provenance
+  id-token: write   # npm Trusted Publishing (OIDC) and provenance; no stored token
 
 jobs:
   publish:
@@ -30,11 +30,14 @@ jobs:
         with:
           version: 11
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js 24
         uses: actions/setup-node@v7
         with:
-          node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: '24'
+
+      # Trusted Publishing needs npm 11.5.1 or later.
+      - name: Install npm 11.6.2
+        run: npm install -g npm@11.6.2
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -76,5 +79,3 @@ jobs:
 
       - name: Publish to npm with provenance
         run: npm publish --provenance --access public --tag "${{ steps.disttag.outputs.tag }}"
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
