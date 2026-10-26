@@ -14,6 +14,8 @@
 - [x] scripts/sibling_repos_test.py test_8_contract_template_and_review_skill_name_the_sibling
 - [x] scripts/sibling_repos_test.py test_9_the_guide_has_a_sibling_section
 - [x] every suite in `.github/workflows/v2-ci.yml` passes (run them as that file does)
+- [ ] scripts/sibling_repos_fix_test.py test_10_loop_md_gives_a_sibling_agent_command_with_literal_git_reads
+- [ ] every suite in `.github/workflows/v2-ci.yml` passes again, sibling_repos_fix_test included
 
 ## Blocked
 
@@ -30,3 +32,4 @@
 - Iter 8: `templates/contract.md` Context comment now asks for the sibling path and its `CLAUDE.md` (skill half was the lead's); ran `python3 scripts/sibling_repos_test.py Docs.test_8_…` → OK.
 - Iter 9: added `## Working on a sibling repository` to `docs/migration-v1-to-v2.md`; ran `python3 scripts/sibling_repos_test.py Docs` (3 tests), migration_guide_test (7), migration_guide_fix_test (5) → OK.
 - Iter 10: ran all 37 suites of `v2-ci.yml` as that file does (`python3 scripts/<suite>.py` in a loop) → every one exited 0; `pnpm test` in `tools/cli` is the lead's.
+- Lead: fix round before review, approved by the human with the budget unchanged. `loop.md` says to read the sibling with `git -C`, but no agent command allows it. Add one full example command to § Sibling repositories, on a single line: `env CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1 claude -p ... --add-dir ../<sibling> "--allowedTools=...,Bash(git -C ../<sibling> diff *),Bash(git -C ../<sibling> status *),Bash(git -C ../<sibling> log *)"`. Name the sibling literally: never `git -C *`, whose `*` also matches `-c core.fsmonitor=<program>` (code.claude.com/docs/en/permissions, Wildcard patterns).
