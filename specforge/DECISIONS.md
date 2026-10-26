@@ -107,3 +107,10 @@ Append-only log of decisions with future value. Shape: [`templates/decision-log.
 **Decision**: v2 is the default. Three adjustments: (1) an edge checklist in `specforge/core/review.md` applies to every Contract and Controlled change; (2) Direct ships with an edge test (a bound, an empty or control-character input); (3) an optional design panel — v1's backend, security and quality draft reviewers on the contract, before Red — for high-risk changes that touch design.
 **Rejected**: keeping v1 PRD as the default, at 2.5× the human time; making the design panel mandatory, which would bring back v1's cost for every change.
 **Revisit if**: `escaped_2w` for the pilot (due 2026-11-08) shows the escape rate still above v1's 3.3 per 1000 lines, or the design panel is never used.
+
+## 2026-10-25 — v2 is named specforge EVA
+
+**Context**: v2 needed a name for the README, the changelog and the migration guide, distinct from v1's PRD workflow.
+**Decision**: v2 is **specforge EVA**: Evidence (`evidence.md`), Verification (locked tests and adversarial review), Adaptation (`compose.md` turns each lesson into an artifact). The name is for prose only; paths, skills, agents and scripts keep `specforge`.
+**Rejected**: renaming paths or skills, which would break every installed copy for no behavioural gain.
+**Revisit if**: a release tool or package registry needs the name as an identifier.
