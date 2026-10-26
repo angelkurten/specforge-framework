@@ -1,6 +1,6 @@
 # Progress
 
-**Budget**: 14 iterations, 5 USD
+**Budget**: 20 iterations, 7 USD
 
 ## Tasks
 
@@ -16,6 +16,11 @@
 - [x] every suite in `.github/workflows/v2-ci.yml` passes (run them as that file does)
 - [x] scripts/sibling_repos_fix_test.py test_10_loop_md_gives_a_sibling_agent_command_with_literal_git_reads
 - [x] every suite in `.github/workflows/v2-ci.yml` passes again, sibling_repos_fix_test included
+- [ ] scripts/sibling_repos_fix2_test.py test_11_an_absolute_repo_path_still_matches_lock_entries
+- [ ] scripts/sibling_repos_fix2_test.py test_12_a_subdirectory_or_a_bad_ref_never_crashes
+- [ ] scripts/sibling_repos_fix2_test.py test_13_an_empty_sibling_range_is_a_blocker
+- [ ] scripts/sibling_repos_fix2_test.py test_14_the_packet_tells_the_reviewer_to_read_the_sibling_diff
+- [ ] every suite in `.github/workflows/v2-ci.yml` passes again, sibling_repos_fix2_test included
 
 ## Blocked
 
@@ -35,3 +40,9 @@
 - Lead: fix round before review, approved by the human with the budget unchanged. `loop.md` says to read the sibling with `git -C`, but no agent command allows it. Add one full example command to § Sibling repositories, on a single line: `env CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1 claude -p ... --add-dir ../<sibling> "--allowedTools=...,Bash(git -C ../<sibling> diff *),Bash(git -C ../<sibling> status *),Bash(git -C ../<sibling> log *)"`. Name the sibling literally: never `git -C *`, whose `*` also matches `-c core.fsmonitor=<program>` (code.claude.com/docs/en/permissions, Wildcard patterns).
 - Iter 11: added the full `env … claude -p … --add-dir ../<sibling>` command with literal `git -C ../<sibling>` diff/status/log rules to `loop.md` § Sibling repositories; ran `python3 scripts/sibling_repos_fix_test.py` → OK, and loop_budget_test, loop_budget_fix4_test, premise_challenge_test, sibling_repos_test → exit 0.
 - Iter 12: ran all 38 suites of `v2-ci.yml` as that file does (`python3 scripts/<suite>.py` in a loop, sibling_repos_fix_test included) → every one exited 0; `pnpm test` in `tools/cli` is the lead's.
+- Lead: review PASS with four should-fix in `review_prep.py`'s `--repo` path, now tests 11-14. The human approved them and raised the budget to 20 iterations, 7 USD (cumulative).
+  - Normalize `--repo` once in `main()`: resolve `git -C <repo> rev-parse --show-toplevel`, then report every sibling path as `os.path.relpath(toplevel, Path.cwd().resolve())`, so `/abs/app`, `../app` and `../app/tests` all print `../app/<file>`. On macOS, tempdirs sit under a symlinked `/var`, so resolve both sides.
+  - Check `--repo-base` with `git -C <toplevel> rev-parse --verify <ref>^{commit}` and refuse it through `parser.error` (exit 2), naming the ref.
+  - An empty sibling range is a blocker naming the sibling and its range, like specforge's own.
+  - The packet's last paragraph also names `git -C <repo> diff <repo-base>...HEAD`.
+- Lead: wrote by hand two items. The guide's sibling section now says `--repo` ships from 0.29.0 (review should-fix). The `loop.md` example command is now an indented code block (review nit).

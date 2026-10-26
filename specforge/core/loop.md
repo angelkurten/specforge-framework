@@ -78,6 +78,10 @@ When a human changes a design that approved tests encode, the tests change throu
 When the code lives in a sibling directory, the loop still runs from specforge: the change folder and its lock stay here, and the code and tests stay in `../<sibling>/`.
 - Lock entries are paths under `../<sibling>/`, for example `../<sibling>/tests/slug_test.py`. `lock_tests.py` and `loop.py` resolve them from specforge unchanged.
 - The agent command adds `--add-dir ../<sibling>`, so `acceptEdits` covers the sibling, and sets `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1`, so the sibling's `CLAUDE.md` loads. Hooks in the sibling's `.claude/settings.json` do not load.
-- Git reads in the sibling use `git -C ../<sibling>`, never a `cd`. The allow rules name the sibling literally, never `git -C *`, whose `*` also matches `-c core.fsmonitor=<program>` and lets git run a program. A full agent command:
-- `env CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1 claude -p ... --add-dir ../<sibling> "--allowedTools=...,Bash(git -C ../<sibling> diff *),Bash(git -C ../<sibling> status *),Bash(git -C ../<sibling> log *)"`
+- Git reads in the sibling use `git -C ../<sibling>`, never a `cd`. The allow rules name the sibling literally, never `git -C *`, whose `*` also matches `-c core.fsmonitor=<program>` and lets git run a program. A full agent command, with `...` standing for the flags and tools of the command above:
+
+  ```
+  env CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1 claude -p ... --add-dir ../<sibling> "--allowedTools=...,Bash(git -C ../<sibling> diff *),Bash(git -C ../<sibling> status *),Bash(git -C ../<sibling> log *)"
+  ```
+
 - `review_prep.py` takes `--repo ../<sibling> --repo-base <ref>` together, and reads the sibling's range `<ref>...HEAD` through the same code checks.

@@ -63,7 +63,7 @@ specforge EVA ships in the CLI from **0.28.0**. Check the version you would get 
 
 ## Working on a sibling repository
 
-Keep specforge as a sibling directory beside your code and run the whole change from specforge. The change folder and its lock stay in specforge, while the code and tests live in the sibling: lock entries are written as `../<sibling>/<test file>`, the agent command adds `--add-dir ../<sibling>` so edits there are accepted, and `git -C ../<sibling>` reads its history. For the review packet, pass `--repo ../<sibling>` together with `--repo-base <ref>` to `specforge/scripts/review_prep.py`, so the sibling's diff is checked like specforge's own. See `specforge/core/loop.md` for the loop details.
+Keep specforge as a sibling directory beside your code and run the whole change from specforge. The change folder and its lock stay in specforge, while the code and tests live in the sibling: lock entries are written as `../<sibling>/<test file>`, the agent command adds `--add-dir ../<sibling>` so edits there are accepted, and `git -C ../<sibling>` reads its history. For the review packet, pass `--repo ../<sibling>` together with `--repo-base <ref>` to `specforge/scripts/review_prep.py`, so the sibling's diff is checked like specforge's own. See `specforge/core/loop.md` for the loop details. The `--repo` and `--repo-base` flags ship in the CLI from **0.29.0**; the `specforge/scripts/review_prep.py` that 0.28.0 installs rejects them, so check `npx @angelkurten/specforge version` first.
 
 ## Known limits
 
