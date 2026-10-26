@@ -17,6 +17,9 @@
 - **Not checked**:
   - The OIDC publish itself. It needs the trusted publisher registered on npmjs.com, which only the human can do: owner `angelkurten`, repository `specforge-framework`, workflow `cli-release.yml`, no environment. It also needs a tag or dispatch, which waits for the human's approval.
   - That `npm install -g npm@11.6.2` succeeds on the Node 24 runner. Only a `cli-release` run executes that step.
+  - Build, prepublish and `pnpm test` on Node 24. `cli-ci` ran on Node 22 for every run cited above (review should-fix). Compose adds a Node 22/24 matrix to `cli-ci`, and its first runs are read before archive.
 - **Deviations from the contract**:
   - **Test 3 passes at the base.** It is a preservation guard: the publish step and `Resolve dist-tag` survive the edit. The human approved it knowing this.
   - **CI file.** `.github/workflows/v2-ci.yml` gained `trusted_publishing_test`, and its checkout gained `fetch-depth: 0` so test 3 can read `93945a7`. The locked test was not edited. Scope did not declare this file.
+  - **Review (PASS with should-fix).** The human confirmed both `v2-ci.yml` edits outside Scope. The lead added the Node 24 item to Not checked.
+  - **Compose, written by the lead.** A Node 22/24 matrix in `.github/workflows/cli-ci.yml`, approved by the human.
