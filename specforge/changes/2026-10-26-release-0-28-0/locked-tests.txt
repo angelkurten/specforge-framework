@@ -1,0 +1,2 @@
+eb1f9ae82214c66814120d817bc851f7dfd0f3ca39f5bfe3bfa482da6287088d  scripts/migration_guide_test.py
+27d5e7b80a8134d83e2f242e981783616b9748a70c5f9b3aeafe4502a59ddd91  scripts/release_0_28_0_test.py

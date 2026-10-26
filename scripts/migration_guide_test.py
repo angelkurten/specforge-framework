@@ -75,10 +75,12 @@ class MigrationGuideTests(unittest.TestCase):
             self.assertNotIn("](docs/", (REPO / name).read_text(), name)
 
     def test_7_changelog_has_an_unreleased_eva_section_first(self):
+        # Re-approved for specforge/changes/2026-10-26-release-0-28-0: the
+        # [Unreleased] section became the dated 0.28.0 entry.
         text = (REPO / "CHANGELOG.md").read_text()
-        self.assertIn("## [Unreleased]", text)
-        self.assertLess(text.index("## [Unreleased]"), text.index("## [0.27.3]"))
-        part = text[text.index("## [Unreleased]"):text.index("## [0.27.3]")]
+        self.assertIn("## [0.28.0]", text)
+        self.assertLess(text.index("## [0.28.0]"), text.index("## [0.27.3]"))
+        part = text[text.index("## [0.28.0]"):text.index("## [0.27.3]")]
         self.assertIn("specforge EVA", part)
         self.assertIn("docs/migration-v1-to-v2.md", part)
 
