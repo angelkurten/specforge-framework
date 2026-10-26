@@ -1,6 +1,6 @@
 # Progress
 
-**Budget**: 9 iterations, 2.50 USD
+**Budget**: 15 iterations, 4.50 USD
 
 ## Tasks
 
@@ -12,6 +12,12 @@
 - [x] scripts/migration_guide_test.py test_6_both_readmes_name_eva_and_link_the_guide_from_upgrading
 - [x] scripts/migration_guide_test.py test_7_changelog_has_an_unreleased_eva_section_first
 - [x] every suite in `.github/workflows/v2-ci.yml` passes (run them as that file does)
+- [ ] scripts/migration_guide_fix_test.py test_8_no_section_is_a_placeholder
+- [ ] scripts/migration_guide_fix_test.py test_9_first_change_walks_the_cycle_in_order
+- [ ] scripts/migration_guide_fix_test.py test_10_known_limits_names_what_is_still_open
+- [ ] scripts/migration_guide_fix_test.py test_11_cli_commands_are_written_as_npx
+- [ ] scripts/migration_guide_fix_test.py test_12_the_guide_quotes_the_pilot_and_names_direct_and_the_design_panel
+- [ ] every suite in `.github/workflows/v2-ci.yml` passes again, migration_guide_fix_test included
 
 ## Blocked
 
@@ -24,3 +30,4 @@
 - Task 6: added specforge EVA + guide link to README.md § Upgrading and README.es.md § Actualización (upgrade); `python3 scripts/migration_guide_test.py MigrationGuideTests.test_6_...` → OK (1 test).
 - Task 7: added `## [Unreleased]` (specforge EVA + guide link) above 0.27.3 in `CHANGELOG.md`; `python3 scripts/migration_guide_test.py` → OK (7 tests).
 - Task 8: ran all 31 suites from `.github/workflows/v2-ci.yml` (`python3 scripts/<suite>.py` each, including `migration_guide_test`) → every one exit 0.
+- Lead: fix round before review. The lead found two placeholder sections, `specforge update`/`doctor` written without `npx @angelkurten/`, and the contract's pilot-figures constraint unmet. Tests 8-12 approved and locked by the human; budget raised by the human to 15 iterations, 4.50 USD (cumulative: 7 iterations, 2 USD for this round). Also fix without a test: the Upgrade section says a clean `doctor` run means the guard is active, but `lock-guard-registered` only checks that the hook is registered; say that instead. Every number and claim must match `specforge/DECISIONS.md` and the code paths in the contract's Context.

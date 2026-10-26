@@ -1,1 +1,2 @@
+1165e122a88e36a0605ffe015eedca278cdea4432db3acde00485cb6ed982d87  scripts/migration_guide_fix_test.py
 4e8246e8b4175ed4be0784cd7ac0ac2090dea8a6911216733b90efd79e480a62  scripts/migration_guide_test.py
