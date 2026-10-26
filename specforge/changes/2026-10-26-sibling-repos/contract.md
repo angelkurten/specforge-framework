@@ -74,7 +74,7 @@ Out:
 
 - `acceptEdits` does not auto-accept an edit outside the working and additional directories — `grep -c "for paths in the working directory or \`additionalDirectories\`" /Users/angelkurten/.claude/projects/-Users-angelkurten-specforge/d5f1aee3-8fd2-45fb-955b-a66104b83fc3/tool-results/toolu_01LkP3ZmBXSWvUv7eJPEwNcc.txt` → holds
 - `--add-dir` loads the sibling's `CLAUDE.md` only with the env var set — `grep -c "CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1" /Users/angelkurten/.claude/projects/-Users-angelkurten-specforge/d5f1aee3-8fd2-45fb-955b-a66104b83fc3/tool-results/toolu_01LkP3ZmBXSWvUv7eJPEwNcc.txt` → holds
-- Lock entries with `../` already verify from specforge — `python3 specforge/scripts/lock_tests.py check specforge/changes/2026-10-26-proto` in the prototype → holds
+- Lock entries with `../` already verify from specforge, run in the prototype clone — `python3 specforge/scripts/lock_tests.py check specforge/changes/2026-10-26-proto` → holds
 - The guide tests allow an extra section beside the seven — `grep -c "if h in SECTIONS" scripts/migration_guide_test.py` → holds
 
 ## Acceptance evidence
