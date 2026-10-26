@@ -32,3 +32,4 @@
     - Four should-fix in `review_prep.py` went to fix round 2 as tests 11-14 (`scripts/sibling_repos_fix2_test.py`), approved by the human.
     - The lead fixed the guide's should-fix by hand: `--repo` ships from 0.29.0.
     - The lead also fixed the nit by hand: the `loop.md` example command is now an indented code block.
+  - **Budget raised.** The human raised the budget from 14 iterations and 5 USD to 20 iterations and 7 USD before fix round 2. Iteration 16 passed the original 5 USD, at 5.03 USD cumulative. The contract's Stop line now records the raise (re-verification nit).

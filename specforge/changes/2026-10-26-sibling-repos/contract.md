@@ -93,4 +93,4 @@ Out:
 
 ## Stop and escalate
 
-Stop and ask if `lock_tests.py`, `loop.py` or `archive.py` must change, or if the guard's handled paths would change. Budget: 14 iterations, 5 USD, for 10 tasks (9 scenarios and the full suite).
+Stop and ask if `lock_tests.py`, `loop.py` or `archive.py` must change, or if the guard's handled paths would change. Budget: 14 iterations, 5 USD, for 10 tasks (9 scenarios and the full suite). Raised by the human to 20 iterations, 7 USD, for fix round 2 (review should-fix).
