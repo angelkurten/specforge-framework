@@ -232,14 +232,15 @@ def foreign_lock_findings(change: Path, base: str, files: list[tuple[str, str]])
     enforces no archived lock, so without this a test approved elsewhere can be
     edited and re-locked with no finding (change 2026-10-26-release-0-28-0)."""
     own = _canonical(f"{change.as_posix().rstrip('/')}/locked-tests.txt")
-    touched = {path for status, path in files if status in ("M", "D")}
+    # ponytail: resolved on both sides so a symlinked sibling still matches its lock entry
+    touched = {(Path.cwd() / path).resolve() for status, path in files if status in ("M", "D")}
     out = []
     for key, copies in _locks_at(base).items():
         if key == own:
             continue
         for lock_path, text in copies:
             for entry in _parse_lock(text)[0]:
-                if entry in touched:
+                if (Path.cwd() / entry).resolve() in touched:
                     name = Path(lock_path).parent.name
                     out.append(f"should-fix: {entry}:1 — test locked by {name} ({lock_path}) changed in the range, confirm it")
     return out

@@ -21,8 +21,8 @@
 - [x] scripts/sibling_repos_fix2_test.py test_13_an_empty_sibling_range_is_a_blocker
 - [x] scripts/sibling_repos_fix2_test.py test_14_the_packet_tells_the_reviewer_to_read_the_sibling_diff
 - [x] every suite in `.github/workflows/v2-ci.yml` passes again, sibling_repos_fix2_test included
-- [ ] scripts/sibling_repos_fix3_test.py test_15_a_lock_entry_through_a_symlinked_sibling_still_matches
-- [ ] every suite in `.github/workflows/v2-ci.yml` passes again, sibling_repos_fix3_test included
+- [x] scripts/sibling_repos_fix3_test.py test_15_a_lock_entry_through_a_symlinked_sibling_still_matches
+- [x] every suite in `.github/workflows/v2-ci.yml` passes again, sibling_repos_fix3_test included
 
 ## Blocked
 
@@ -54,3 +54,5 @@
 - Iter 16: `packet()` in `review_prep.py` now names `git -C <repo> diff <repo-base>...HEAD` in the last paragraph when `--repo` is given (unchanged without it); ran `python3 scripts/sibling_repos_fix2_test.py` → OK (tests 11-14), and sibling_repos_test, review_test, review_fp_test, invisible_chars_test, foreign_lock_test → exit 0.
 - Iter 17: ran all 39 suites of `v2-ci.yml` as that file does (`python3 scripts/<suite>.py` in a loop from the repo root, sibling_repos_fix2_test included) → every one exited 0; `pnpm test` in `tools/cli` is the lead's.
 - Lead: the re-verification fixed all six earlier findings and raised one new should-fix: through a symlinked sibling, the foreign-lock finding disappears. The human chose fix round 3, with test 15 as described and the budget unchanged (3 iterations left). In `foreign_lock_findings`, compare resolved paths on both sides, `(Path.cwd() / entry).resolve()` against `(Path.cwd() / touched).resolve()`, and keep reporting the entry as written.
+- Iter 18: `foreign_lock_findings` in `review_prep.py` compares `(Path.cwd() / x).resolve()` on both sides, entry reported as written; ran `python3 scripts/sibling_repos_fix3_test.py` → OK, and sibling_repos_test, review_test, review_fp_test, invisible_chars_test, foreign_lock_test → exit 0.
+- Iter 19: ran all 40 suites of `v2-ci.yml` as that file does (`python3 scripts/<suite>.py` in a loop from the repo root, sibling_repos_fix3_test included) → every one exited 0; `pnpm test` in `tools/cli` is the lead's.
