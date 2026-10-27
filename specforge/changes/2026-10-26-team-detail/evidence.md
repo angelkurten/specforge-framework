@@ -1,0 +1,20 @@
+## Evidence
+
+- **Ran**:
+  - The four premise commands, by hand, before Red.
+  - From specforge, once: `python3 specforge/scripts/loop.py specforge/changes/2026-10-26-team-detail --agent 'env CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1 claude -p --output-format json --model sonnet --permission-mode acceptEdits --add-dir ../specforge-pilot "--allowedTools=Bash(python3 *),Bash(git diff *),Bash(git status *),Bash(git log *),Bash(uv run --directory ../specforge-pilot --offline *),Bash(git -C ../specforge-pilot diff *),Bash(git -C ../specforge-pilot status *),Bash(git -C ../specforge-pilot log *)"'`.
+  - `uv run --directory ../specforge-pilot --offline pytest -q`, run by the loop agent at task 5.
+  - In the sibling, by the lead: `python3 scripts/ci.py`.
+- **Result**:
+  - **Premises.** All four hold.
+  - **Loop.** 5 iterations, 5/5 tasks, exit 0. Cost 1.17 USD (`loop-runs.txt`, 5 lines).
+  - **Real-sibling run.** The agent edited `../specforge-pilot/teamtasks/app.py` and `docs/SYSTEM_ARTIFACT.md` from a session whose working directory was specforge. No permission was denied, so `--add-dir` covered the real sibling. `loop.py` checked the lock on `../specforge-pilot/tests/test_team_detail.py` after every iteration.
+  - **Sibling suite.** 185 passed.
+- **CI**:
+  - **Sibling.** Local CI `ci-runs.log` run 33, on `82a31b5`, the sibling's last code commit: pass.
+  - **specforge.** On `9a45013`, the last commit before this report: `v2-ci` run 40435331166 and `cli-ci` run 40435330743, both success. specforge's range changes only this change folder.
+- **Not checked**:
+  - Whether the sibling's `CLAUDE.md` actually loaded into the agent through `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1`. The agent's JSON output was not kept, and nothing in the diff depends on a rule only that file states.
+  - Whether `Bash(git -C ../specforge-pilot … *)` matched. The log names no `git -C` call, and the task needed none.
+  - The iteration-1 log line names `uv run --offline pytest` without `--directory`, which the allow list does not cover. Whether the agent ran it in that form, or wrote the line loosely, is unknown.
+- **Deviations from the contract**: none.
