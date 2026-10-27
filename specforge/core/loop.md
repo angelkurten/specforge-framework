@@ -87,3 +87,5 @@ When the code lives in a sibling directory, the loop still runs from specforge: 
   ```
 
 - `review_prep.py` takes `--repo ../<sibling> --repo-base <ref>` together, and reads the sibling's range `<ref>...HEAD` through the same code checks.
+- The sibling's own test runner is allowed through one literal rule, such as `Bash(uv run --directory ../<sibling> --offline *)` for a `uv` project. `--offline` keeps an iteration from installing anything. A real run from `/Users/angelkurten/specforge` against `../specforge-pilot` needed nothing else (`specforge/changes/archive/2026-10-26-team-detail`).
+- On a sibling's first change, keep the first iteration's JSON output and read it for the sibling's `CLAUDE.md` and for any denied `git -C` call. That run did not keep its output, so neither was confirmed.

@@ -18,3 +18,6 @@
   - Whether `Bash(git -C ../specforge-pilot … *)` matched. The log names no `git -C` call, and the task needed none.
   - The iteration-1 log line names `uv run --offline pytest` without `--directory`, which the allow list does not cover. Whether the agent ran it in that form, or wrote the line loosely, is unknown.
 - **Deviations from the contract**: none.
+- **Review (PASS, two nits accepted as debt by the human).**
+  - `tests/test_team_detail.py:12`: no admin case.
+  - `teamtasks/app.py:514`: a team deleted between the membership check and the name query would give `"name": null`. Nothing deletes teams today.
