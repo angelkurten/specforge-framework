@@ -1,3 +1,4 @@
 856d461b5db88cd38f9429150f0ce4e517a862bd86058a378420b86ebb62260f  ../teamtasks-web/tests/api.test.mjs
 833776748673ba643acd2e4beeb8ca361b4dda04e0ff2ce2fc10213f41f25b01  ../teamtasks-web/tests/ci.test.mjs
+4223a6c5fa675fd901164c628fdd49fef968ab4fec471203f895bbb9dc5adf77  ../teamtasks-web/tests/route.test.mjs
 38e7eef90d43697d25505d8cb0e799cd467a996285144e644b11478883abbc40  ../teamtasks-web/tests/team.test.mjs
