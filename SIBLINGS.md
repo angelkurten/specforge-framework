@@ -12,6 +12,7 @@ This file is **team data**, not framework data — upgrading specforge (pulling 
 |---|---|---|---|---|
 | **specforge** | `.` | `CLAUDE.md` | Markdown documentation framework (no runtime) | active |
 | **teamtasks** | `../specforge-pilot` | `CLAUDE.md`, `docs/SYSTEM_ARTIFACT.md` | Python 3.14, FastAPI, SQLAlchemy 2, SQLite; the sandbox product of the v2 pilot | active |
+| **teamtasks-web** | `../teamtasks-web` | `CLAUDE.md`, `docs/SYSTEM_ARTIFACT.md` | Plain HTML and ES modules, `node --test`, no dependencies; the front end of teamtasks, sandbox for a change across two code siblings | active |
 
 *This is specforge's own registry, and specforge maintains exactly one sibling: itself. Adopters get a placeholder registry written by `specforge init` — see `CONVENTIONS.md` for a worked multi-sibling example of the table shape.*
 
