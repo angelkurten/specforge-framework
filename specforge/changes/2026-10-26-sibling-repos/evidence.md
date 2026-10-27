@@ -19,7 +19,8 @@
 - **CI**:
   - On `b2e50a4`, before the review: `v2-ci` run 40403597478 and `cli-ci` run 40403597471, both success.
   - On `4d0699c`, the last code commit after fix round 2: `v2-ci` run 40405417239 and `cli-ci` run 40405417121, both success.
-  - `8e6aa12`, the last code commit after fix round 3, has **no runs of its own**: it was pushed together with `6b41e78`, and CI ran only the tip. `6b41e78` differs from it only in this file (`git diff --stat 8e6aa12 6b41e78`). On that tip, `v2-ci` run 40406604550 and `cli-ci` run 40406604486 both succeeded. This is a deviation from `.claude/skills/specforge-review/SKILL.md` step 4, by the lead.
+  - `8e6aa12` (fix round 3) has no runs of its own: it was pushed together with the evidence commit `6b41e78`, whose runs (`v2-ci` 40406604550, `cli-ci` 40406604486) succeeded. Re-verification 2 blocked on this.
+  - On `4dd4b52`, the last code commit, pushed alone: `v2-ci` run 40431409791 and `cli-ci` run 40431409792, both success.
 - **Not checked**:
   - A real `claude -p` iteration against a real sibling (`/Users/angelkurten/specforge` with `/Users/angelkurten/specforge-pilot`) using `--add-dir` and the env var. The prototype ran inside the scratchpad, where edits outside the working directory may already be allowed. The `--add-dir` requirement comes from code.claude.com/docs/en/permissions, not from a run.
   - That `Bash(git -C ../<sibling> diff *)` matches as written. Taken from the same page's wildcard rules, not from a run.
