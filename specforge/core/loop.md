@@ -86,6 +86,6 @@ When the code lives in a sibling directory, the loop still runs from specforge: 
   env CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1 claude -p ... --add-dir ../<sibling> "--allowedTools=...,Bash(git -C ../<sibling> diff *),Bash(git -C ../<sibling> status *),Bash(git -C ../<sibling> log *)"
   ```
 
-- `review_prep.py` takes `--repo ../<sibling> --repo-base <ref>` together, and reads the sibling's range `<ref>...HEAD` through the same code checks.
+- `review_prep.py` takes `--repo ../<sibling> --repo-base <ref>` together, and reads the sibling's range `<ref>...HEAD` through the same code checks. With several siblings, repeat both flags once per sibling, paired in order, and give the agent command one `--add-dir` per sibling.
 - The sibling's own test runner is allowed through one literal rule, such as `Bash(uv run --directory ../<sibling> --offline *)` for a `uv` project. `--offline` keeps an iteration from installing anything. A real run from `/Users/angelkurten/specforge` against `../specforge-pilot` needed nothing else (`specforge/changes/archive/2026-10-26-team-detail`).
 - On a sibling's first change, keep the first iteration's JSON output and read it for the sibling's `CLAUDE.md` and for any denied `git -C` call. That run did not keep its output, so neither was confirmed.

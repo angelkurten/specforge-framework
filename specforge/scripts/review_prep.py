@@ -279,15 +279,16 @@ def evidence_findings(change: Path) -> list[str]:
     return findings
 
 
-def review(change: Path, base: str, repo: Path | None = None, repo_base: str | None = None) -> tuple[list[str], list[str]]:
+def review(change: Path, base: str, pairs: list[tuple[Path, str]] = ()) -> tuple[list[str], list[str]]:
     rng = f"{base}...HEAD"
     files = changed_files(rng)
-    # The sibling's paths are reported as <repo>/<file>, the form lock entries use.
-    sibling = [(s, f"{repo.as_posix()}/{p}") for s, p in changed_files(f"{repo_base}...HEAD", repo)] if repo else []
+    # Each sibling's paths are reported as <repo>/<file>, the form lock entries use.
+    by_repo = [(repo, ref, changed_files(f"{ref}...HEAD", repo)) for repo, ref in pairs]
+    sibling = [(s, f"{repo.as_posix()}/{p}") for repo, _, fs in by_repo for s, p in fs]
     findings = []
     added = added_lines(rng)
     findings += lock_findings(base, files, added)
-    code_added = added + (added_lines(f"{repo_base}...HEAD", repo) if repo else [])
+    code_added = added + [a for repo, ref in pairs for a in added_lines(f"{ref}...HEAD", repo)]
     for path, number, text in code_added:
         if points := invisible_points(text):
             findings.append(f"should-fix: {path}:{number} — literal invisible character {', '.join(points)}; write the escape")
@@ -297,8 +298,7 @@ def review(change: Path, base: str, repo: Path | None = None, repo_base: str | N
         if STUB.search(code) or THROWN_STUB.search(text):
             findings.append(f"should-fix: {path}:{number} — stub added: {text.strip()}")
     sources = [(s, p, p, base, None) for s, p in files]
-    if repo:
-        sources += [(s, f"{repo.as_posix()}/{p}", p, repo_base, repo) for s, p in changed_files(f"{repo_base}...HEAD", repo)]
+    sources += [(s, f"{repo.as_posix()}/{p}", p, ref, repo) for repo, ref, fs in by_repo for s, p in fs]
     for status, path, rel, ref, root in sources:
         if not TEST_FILE.search(rel):
             continue
@@ -320,8 +320,9 @@ def review(change: Path, base: str, repo: Path | None = None, repo_base: str | N
                     findings.append(f"blocker: {path}:{line} — test {name} removed")
     if not files:
         findings.append(f"blocker: {change / 'contract.md'}:1 — range {rng} is empty: nothing to review")
-    if repo and not sibling:
-        findings.append(f"blocker: {repo.as_posix()}:1 — range {repo_base}...HEAD is empty: nothing to review")
+    for repo, ref, fs in by_repo:
+        if not fs:
+            findings.append(f"blocker: {repo.as_posix()}:1 — range {ref}...HEAD is empty: nothing to review")
     for path in check_locked(change, Path.cwd()):
         findings.append(f"blocker: {path}:1 — locked test changed")
     findings += foreign_lock_findings(change, base, files + sibling)
@@ -329,8 +330,8 @@ def review(change: Path, base: str, repo: Path | None = None, repo_base: str | N
     return [f"{s} {p}" for s, p in files + sibling], findings
 
 
-def packet(change: Path, base: str, files: list[str], findings: list[str], repo: Path | None = None, repo_base: str | None = None) -> str:
-    rng = f"{base}...HEAD" + (f"; {repo.as_posix()} {repo_base}...HEAD" if repo else "")
+def packet(change: Path, base: str, files: list[str], findings: list[str], pairs: list[tuple[Path, str]] = ()) -> str:
+    rng = f"{base}...HEAD" + "".join(f"; {repo.as_posix()} {ref}...HEAD" for repo, ref in pairs)
     return "\n".join(
         [
             "# Review packet",
@@ -351,7 +352,7 @@ def packet(change: Path, base: str, files: list[str], findings: list[str], repo:
             "",
             "Read specforge/core/review.md, then the contract, the evidence report and the diff "
             f"(git diff {base}...HEAD"
-            + (f"; git -C {repo.as_posix()} diff {repo_base}...HEAD" if repo else "")
+            + "".join(f"; git -C {repo.as_posix()} diff {ref}...HEAD" for repo, ref in pairs)
             + "). The findings above are settled; look for what a "
             "pattern cannot see.",
         ]
@@ -362,24 +363,29 @@ def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description="Mechanical review of a change.")
     parser.add_argument("change", type=Path, help="the change folder")
     parser.add_argument("--base", default="main", help="the ref the change branched from (default: main)")
-    parser.add_argument("--repo", type=Path, help="a code sibling, e.g. ../app; give with --repo-base")
-    parser.add_argument("--repo-base", help="the ref the sibling branched from")
+    parser.add_argument("--repo", type=Path, action="append", default=[],
+                        help="a code sibling, e.g. ../app; repeat per sibling, each with its --repo-base")
+    parser.add_argument("--repo-base", action="append", default=[], help="the ref that sibling branched from")
     args = parser.parse_args(argv)
-    if bool(args.repo) != bool(args.repo_base):
-        parser.error("--repo and --repo-base go together")
-    if args.repo:
-        top = subprocess.run(["git", "-C", str(args.repo), "rev-parse", "--show-toplevel"],
+    if len(args.repo) != len(args.repo_base):
+        parser.error(f"--repo and --repo-base go together as pairs: got {len(args.repo)} --repo, {len(args.repo_base)} --repo-base")
+    pairs = []
+    for repo, ref_name in zip(args.repo, args.repo_base):
+        top = subprocess.run(["git", "-C", str(repo), "rev-parse", "--show-toplevel"],
                              capture_output=True, text=True)
         if top.returncode:
-            parser.error(f"--repo {args.repo} is not a git repository")
+            parser.error(f"--repo {repo} is not a git repository")
         # Report every path as lock entries write it, relative to the cwd: /abs/app, ../app and ../app/tests alike.
-        ref = subprocess.run(["git", "-C", top.stdout.strip(), "rev-parse", "--verify", f"{args.repo_base}^{{commit}}"],
+        ref = subprocess.run(["git", "-C", top.stdout.strip(), "rev-parse", "--verify", f"{ref_name}^{{commit}}"],
                              capture_output=True, text=True)
         if ref.returncode:
-            parser.error(f"--repo-base {args.repo_base} is not a commit in {args.repo}")
-        args.repo = Path(os.path.relpath(Path(top.stdout.strip()).resolve(), Path.cwd().resolve()))
-    files, findings = review(args.change, args.base, args.repo, args.repo_base)
-    print(packet(args.change, args.base, files, findings, args.repo, args.repo_base))
+            parser.error(f"--repo-base {ref_name} is not a commit in {repo}")
+        norm = Path(os.path.relpath(Path(top.stdout.strip()).resolve(), Path.cwd().resolve()))
+        if dup := next((r for r, _ in pairs if r == norm), None):
+            parser.error(f"--repo {repo} given twice: {dup.as_posix()} is already paired")
+        pairs.append((norm, ref_name))
+    files, findings = review(args.change, args.base, pairs)
+    print(packet(args.change, args.base, files, findings, pairs))
     return 1 if any(f.startswith("blocker: ") for f in findings) else 0
 
 
