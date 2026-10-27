@@ -30,3 +30,8 @@
   - **Fix-round CI.**
     - Sibling: local `ci-runs.log` run 2, on `24fa026`, the sibling's last code commit: pass. The suite is 8 of 8.
     - specforge: `v2-ci` run 40441384346 and `cli-ci` run 40441384406, both success, on `6c00203`.
+  - **Re-verification (PASS).** S1 and N1 were fixed, and N2-N4 are confirmed as debt.
+    - The human confirmed the lock entry added for test 8 (`locked-tests.txt:3`), which `review_prep.py` does not flag.
+    - The contract now lists scenario 8 (re-verification nit).
+    - A nit, accepted: test 8 checks `main.mjs` by its source text.
+  - **Compose, written by the lead.** The loop-skill line and the `review.md` line.

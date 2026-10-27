@@ -63,9 +63,10 @@ Out:
 5. `renderTeam` escapes `& < > " '` in the name and the role.
 6. `index.html` loads `./src/main.mjs` as a module.
 7. `scripts/ci.mjs` logs `run 1` and `run 2` with the short SHA and `pass`, refuses a dirty tree, and logs `fail` for a failing suite.
+8. Added by the fix round after review, approved by the human: `parseTeamId` turns the URL hash into a team id only for `#` followed by a canonical positive safe integer, and returns `null` for every other form. `main.mjs` uses it before `getTeam`.
 
 The sibling's local CI passes on its last code commit. `v2-ci` and `cli-ci` pass on specforge's.
 
 ## Stop and escalate
 
-Stop and ask if anything needs a dependency. Budget: 10 iterations, 3 USD, for 8 tasks (7 scenarios and the full suite).
+Stop and ask if anything needs a dependency. Budget: 10 iterations, 3 USD, for 8 tasks (7 scenarios and the full suite); the fix round added scenario 8 and its re-run, 10 tasks in all.
