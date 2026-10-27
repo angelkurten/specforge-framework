@@ -17,3 +17,7 @@
   - **Written by the lead.** The review-skill line (`39ec8b8`), because `.claude/` is closed to the loop.
   - **Tests hardened before locking.** Tests 2, 3 and 5 first passed against argparse's last-value behaviour. They now require the first sibling to stay listed, a usage error that names the pairs, and a bad ref in the first pair.
   - **CI file.** `.github/workflows/v2-ci.yml` gained `multi_sibling_review_test`, which Scope did not declare.
+  - **Review (PASS).**
+    - The lead fixed the should-fix by hand: `loop.md` now says that the test-runner rule and the `git -C` reads repeat per sibling, and gives a two-sibling agent command.
+    - Two nits are accepted as debt by the human. The bad-ref error names the sibling as typed (`../weblink`), not normalized. Test 3 checks for "pair" only, not for the flag names.
+  - **Compose, written by the lead.** The loop-skill line.
