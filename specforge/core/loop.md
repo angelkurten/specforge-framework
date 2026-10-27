@@ -26,6 +26,8 @@ Every iteration is a fresh agent process that reads `contract.md` and `progress.
 
    A `claude -p` loop agent cannot write under `.claude/` (skills, agents, hooks) in `acceptEdits` mode: Claude Code protects that folder, and an `Edit(...)` rule in `--allowedTools` does not lift it (`specforge/changes/archive/2026-10-25-v2-adjustments`). Tasks that change those files are written by the lead and recorded as a deviation.
 
+   A loop agent loads the user's own Claude Code configuration, global `CLAUDE.md` and plugins included, so their conventions can leak into the code; one left a `# ponytail:` comment prefix that review flagged (`specforge/changes/archive/2026-10-26-sibling-repos`). Read the diff for them.
+
    Write `--allowedTools=` with an `=` and commas. The space-separated form takes every later argument as a tool, including the prompt `loop.py` appends last, and each iteration exits 1 having done nothing.
 
    A change to `loop.py`'s own gates can refuse its own contract, and then no fix round can run. Run that round on the base's copy: `git show <base>:specforge/scripts/loop.py` and `lock_tests.py` into a scratch folder, so the lock checks still apply, and record it as a deviation (`specforge/changes/archive/2026-10-24-premise-challenge`).
