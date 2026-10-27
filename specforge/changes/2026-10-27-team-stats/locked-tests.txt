@@ -1,0 +1,2 @@
+4c88c8503491753f3ca42c5456ce7660b2434fbd7b3f2745e64789d78b7f00e2  ../specforge-pilot/tests/test_team_stats.py
+4d51824817b2fcbc79e29786c3a0e79e1042a718cfd2639deed8c9ecf65a0e87  ../teamtasks-web/tests/stats.test.mjs
