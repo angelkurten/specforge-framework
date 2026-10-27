@@ -20,13 +20,14 @@ A team member opening the team page sees how many tasks the team has, in total a
 
 In:
 - **Backend `../specforge-pilot`:**
-  - `teamtasks/app.py`: `GET /teams/{team_id}/stats` (`new`), behind `team_membership`, returning `{"task_count", "by_status"}`. `by_status` holds every status of the team in `TaskStatus.id` order, zeros included, counting only that team's tasks.
+  - `teamtasks/app.py`: `GET /teams/{team_id}/stats` (`new`), behind `team_membership`, returning `{"task_count", "by_status"}`. `by_status` is a list of `{"name", "count"}`, one per status of the team in `TaskStatus.id` order, zeros included, counting only that team's tasks. A list, because a JSON object's key order does not survive a JS client (review BLOCK, option A chosen by the human).
   - `tests/test_team_stats.py` (`new`).
   - `docs/SYSTEM_ARTIFACT.md`: one line for the route.
 - **Frontend `../teamtasks-web`:**
   - `src/api.mjs`: `getTeamStats(baseUrl, token, id, fetch)` (`new`), with the same guard as `getTeam`.
   - `src/team.mjs`: `renderStats(stats)` (`new`), with the total and one entry per status in API order, every status name escaped.
-  - `src/main.mjs`: also fetches the stats and renders them under the team.
+  - `src/page.mjs`: `loadTeamPage(baseUrl, token, id, fetch)` (`new`), returning the page's HTML: the team, then its stats, or `Stats unavailable` if only the stats fail.
+  - `src/main.mjs`: wires `parseTeamId(location.hash)` to `loadTeamPage`.
   - `tests/stats.test.mjs` (`new`).
   - `docs/SYSTEM_ARTIFACT.md`: the page now shows the counts.
 
@@ -80,7 +81,7 @@ Out:
 
 Backend, `tests/test_team_stats.py`:
 
-1. A member gets `{"task_count", "by_status"}` for this team only, with every status in order, zeros included.
+1. A member gets `{"task_count", "by_status"}` for this team only. `by_status` lists every status as `{name, count}`, in order, zeros included.
 2. A status added later appears with 0. A deleted task stops counting.
 3. A non-member and a missing team get the same 404, `team not found`.
 4. Invalid tokens get 401, and out-of-bounds ids get 422.
@@ -88,11 +89,12 @@ Backend, `tests/test_team_stats.py`:
 Frontend, `tests/stats.test.mjs`:
 
 5. `getTeamStats` calls `<base>/teams/<id>/stats` with the token. Bad ids are refused before any request. A non-2xx answer rejects with its `status`.
-6. `renderStats` shows the total and each status in API order, with the names escaped.
-7. `main.mjs` fetches and renders the stats, and still takes the id from `parseTeamId(location.hash)`.
+6. `renderStats` shows the total and each status with its count, in API order, with the names escaped. A status named `2024` keeps its place.
+7. `main.mjs` hands `parseTeamId(location.hash)` to `loadTeamPage`.
+8. `loadTeamPage` returns the team and then its counts. A stats failure still shows the team, with `Stats unavailable`. A team failure rejects with its `status`. Added by the fix round.
 
 Both siblings' full suites and local CIs pass on their last code commits. `v2-ci` and `cli-ci` pass on specforge's.
 
 ## Stop and escalate
 
-Stop and ask if a locked test in either sibling must change, or if the route needs more than `team_membership` and two queries. Budget: 12 iterations, 4 USD, for 9 tasks (7 scenarios and the two full suites).
+Stop and ask if a locked test in either sibling must change, or if the route needs more than `team_membership` and two queries. Budget: 12 iterations, 4 USD, for 9 tasks (7 scenarios and the two full suites). Raised by the human to 20 iterations, 7 USD, cumulative, for the fix round.

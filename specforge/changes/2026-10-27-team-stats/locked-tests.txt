@@ -1,2 +1,7 @@
-4c88c8503491753f3ca42c5456ce7660b2434fbd7b3f2745e64789d78b7f00e2  ../specforge-pilot/tests/test_team_stats.py
-4d51824817b2fcbc79e29786c3a0e79e1042a718cfd2639deed8c9ecf65a0e87  ../teamtasks-web/tests/stats.test.mjs
+# unlocked 2026-10-27 ../specforge-pilot/tests/test_team_stats.py: review BLOCK: a JSON object loses the status order in JS (integer-like keys first); the human chose by_status as a list of {name, count} (option A), and tests 6-7 were too weak
+# unlocked 2026-10-27 ../teamtasks-web/tests/stats.test.mjs: review BLOCK: a JSON object loses the status order in JS (integer-like keys first); the human chose by_status as a list of {name, count} (option A), and tests 6-7 were too weak
+# reapproved 2026-10-27 ../specforge-pilot/tests/test_team_stats.py
+# reapproved 2026-10-27 ../teamtasks-web/tests/stats.test.mjs
+15da85fac06ab78957b5273194013daf8f4ef2b76400f1d90d65cde8221f0da6  ../specforge-pilot/tests/test_team_stats.py
+a0b15a18db83b44d827ff97189cd3c729e3a05697800bce36b9e282065098581  ../teamtasks-web/tests/page.test.mjs
+c0a277052e8552a89fe3bf1a3a9f0ebb7a6a9d48d0232ca1974c050199e5e4fd  ../teamtasks-web/tests/stats.test.mjs
