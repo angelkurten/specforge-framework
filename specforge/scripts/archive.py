@@ -8,7 +8,8 @@ before the change merges. An archived change locks nothing, so the command
 refuses while the change could still be hiding something: an evidence report
 with an empty field, or a locked test that differs from what was approved.
 It also refuses when the lock file differs from the last commit, since a
-test re-hashed into the lock would otherwise pass. A refusal changes nothing
+test re-hashed into the lock would otherwise pass, and when a compose.md
+exists that compose_check.py refuses. A refusal changes nothing
 on disk. A tracked folder moves with `git mv`. Run it from the repository
 root: paths in the lock file are relative to it.
 
@@ -42,7 +43,7 @@ def refusals(change: Path, target: Path) -> list[str]:
     if target.exists():
         return [f"{target} already exists"]
     reasons = [f.split(" — ", 1)[1] for f in evidence_findings(change)]
-    if (change / "compose.md").is_file():
+    if (change / "compose.md").exists():  # a directory too: compose_check reports it missing
         reasons += [f"compose: {p}" for p in compose_problems(change, Path.cwd())]
     lock = change / LOCK_FILE
     if lock.is_file() and tracked(lock):
