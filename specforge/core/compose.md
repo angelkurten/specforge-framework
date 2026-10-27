@@ -38,4 +38,4 @@ Climbing above rung 1 takes one line saying why the lower rungs cannot catch it.
 - a rung-1 artifact is not a test;
 - a rung-4 `AGENTS.md` or `CLAUDE.md` is over 80 lines. Past the cap, an instruction becomes a skill or an executable rule.
 
-The script checks that the record is complete and points at something real. Whether the rung is right is decided by the human who confirms it.
+An artifact may live in a code sibling, a git repository beside specforge, named as `../<sibling>/<file>`. `specforge/scripts/archive.py` refuses a change whose `compose.md` the script refuses (change `2026-10-27-compose-siblings`). The script checks that the record is complete and points at something real. Whether the rung is right is decided by the human who confirms it.

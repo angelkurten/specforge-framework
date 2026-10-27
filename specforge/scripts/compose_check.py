@@ -7,10 +7,13 @@ compose.md is one table, | Lesson | Rung | Artifact | Why not lower |, one row
 per lesson the change taught (specforge/core/compose.md). Refused, by row:
 
     a rung other than 1 test, 2 rule, 3 example, 4 instruction, 5 doc
-    an artifact that is not a file inside the repository
+    an artifact that is not a file inside the repository or a sibling repository
     a rung above 1 with no reason the lower rungs are not enough
     a rung-1 artifact that is not a test file
     a rung-4 AGENTS.md or CLAUDE.md over 80 lines
+
+A sibling repository is a directory beside the repository root that holds a
+.git; the artifact is resolved first, so a symlink counts by its target.
 
 Whether the rung is the right one is the human's call; this only checks that
 the record is complete and points at something real. Run from the repository
@@ -38,6 +41,14 @@ def rows(text: str) -> list[list[str]]:
     return [[c.strip() for c in l.strip().strip("|").split("|")] for l in table[2:]]
 
 
+def inside(path: Path, root: Path) -> bool:
+    """Inside the repository, or inside a sibling repository beside it."""
+    root = root.resolve()
+    if root in path.parents:
+        return True
+    return any(p.parent == root.parent and (p / ".git").exists() for p in path.parents)
+
+
 def problems(change: Path, root: Path) -> list[str]:
     record = change / "compose.md"
     if not record.is_file():
@@ -56,7 +67,7 @@ def problems(change: Path, root: Path) -> list[str]:
         if not artifact or not path.exists():
             found.append(f"{lesson}: artifact {artifact or '(none)'} does not exist")
             continue
-        if root.resolve() not in path.parents:
+        if not inside(path, root):
             found.append(f"{lesson}: artifact {artifact} is outside the repository")
             continue
         if not path.is_file():

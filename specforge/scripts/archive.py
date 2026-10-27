@@ -24,6 +24,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from compose_check import problems as compose_problems  # noqa: E402
 from lock_tests import LOCK_FILE, check  # noqa: E402
 from review_prep import evidence_findings  # noqa: E402
 
@@ -41,6 +42,8 @@ def refusals(change: Path, target: Path) -> list[str]:
     if target.exists():
         return [f"{target} already exists"]
     reasons = [f.split(" — ", 1)[1] for f in evidence_findings(change)]
+    if (change / "compose.md").is_file():
+        reasons += [f"compose: {p}" for p in compose_problems(change, Path.cwd())]
     lock = change / LOCK_FILE
     if lock.is_file() and tracked(lock):
         if subprocess.run(["git", "diff", "--quiet", "HEAD", "--", str(lock)]).returncode != 0:
