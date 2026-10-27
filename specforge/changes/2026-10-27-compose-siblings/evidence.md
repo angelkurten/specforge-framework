@@ -12,10 +12,19 @@
   - **Suites.** All v2 suites pass.
   - **CLI.** `pnpm test` passes 514 of 514.
   - **team-detail.** Its archived `compose.md`, which `compose_check` refused before this change, now exits 0.
-- **CI**: on `8b2c72f`, the last code commit, pushed alone: `v2-ci` run 40438002025 and `cli-ci` run 40438001972, both success.
+- **CI**:
+  - On `8b2c72f`, pushed alone: `v2-ci` run 40438002025 and `cli-ci` run 40438001972, both success.
+  - On `32c6833`, the last code commit after the review nits, pushed alone: `v2-ci` run 40438609000 and `cli-ci` run 40438609051, both success.
 - **Not checked**:
   - A sibling directory that is itself a git worktree, whose `.git` is a file rather than a directory. `exists()` accepts both, but no test covers it.
 - **Deviations from the contract**:
   - **Written by the lead.** The `specforge/core/compose.md` line, which no test asked for and the loop did not write.
   - **CI file.** `.github/workflows/v2-ci.yml` gained `compose_siblings_test`, which Scope did not declare.
   - **Why this change exists.** `team-detail` was archived (`370a714`) while `compose_check` refused it. The lead's command chained the check with `;` instead of `&&`, and `archive.py` did not run the check. That record now passes.
+  - **Scenario 2's escape form.** The contract names `../../x.md`, but locked test 2 checks `../x.md`, a file in the parent itself. The reviewer read `inside()` and confirmed that `../../x.md` is refused as well, but no test covers that form (review should-fix).
+  - **Tests that pass without the change.** Tests 2, 3, 5 and 5b pass against the pre-change scripts, on purpose. They guard against accepting any `../` path and against `archive.py` requiring a `compose.md`. Only tests 1 and 4 fail without the change (review should-fix).
+  - **Review (PASS).** The lead fixed three nits by hand in `32c6833`, approved by the human:
+    - `archive.py` checks a `compose.md` that exists in any form;
+    - its docstring now names the compose refusal;
+    - `loop.md`'s list of refusals now names it too.
+  - **Compose, written by the lead.** The loop-skill line.
