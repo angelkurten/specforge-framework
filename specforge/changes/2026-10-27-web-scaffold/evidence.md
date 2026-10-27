@@ -22,3 +22,11 @@
   - **Written by the lead.** `docs/SYSTEM_ARTIFACT.md` in the sibling, which no test asked for and the loop did not write.
   - **The full-suite task named `node --test ../teamtasks-web/tests/`,** a directory form that `node --test` does not take. The agent ran the contract's own command, in the sibling, and the glob form. The lead's wording was wrong; the contract's command was right.
   - **`src/main.mjs` carries a `ponytail:` comment** naming its ceiling, the fixed base URL. It is the inherited convention `loop.md` already warns about. It is kept because it states real debt.
+  - **Review (PASS, one should-fix, four nits).**
+    - **The should-fix.** `main.mjs` turned `#0x10`, `#1e3`, `#+7` and `#7.0` into ids through `Number()`. It went to a fix round as test 8 (`../teamtasks-web/tests/route.test.mjs`), approved by the human with the budget unchanged.
+    - **The fix.** `src/route.mjs` `parseTeamId` is used by `main.mjs`. The fix round also changed the generic error text from "Invalid team id" to "Error", which addresses one nit.
+    - **Debt.** The other three nits are accepted by the human: `Bearer null` without a token, `ci.mjs` using the PATH's `node`, and the wrong directory command in the archived task list.
+  - **Fix-round totals.** 10 iterations, 2.80 USD (`loop-runs.txt`, 10 lines), within the 10-iteration, 3 USD budget.
+  - **Fix-round CI.**
+    - Sibling: local `ci-runs.log` run 2, on `24fa026`, the sibling's last code commit: pass. The suite is 8 of 8.
+    - specforge: `v2-ci` run 40441384346 and `cli-ci` run 40441384406, both success, on `6c00203`.
