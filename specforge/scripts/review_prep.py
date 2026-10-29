@@ -175,12 +175,30 @@ def lock_findings(base: str, files: list[tuple[str, str]], added: list[tuple[str
                 for line, numbers in new_history.items():
                     for number in numbers[len(old_history.get(line, [])):]:
                         out.append(f"should-fix: {new_path}:{number} — lock history added, confirm it: {line}")
+    out += _added_entries(base, before, after)
     for key, copies in after.items():
         if key not in before:
             for path, text in copies:
                 for line, numbers in _parse_lock(text)[1].items():
                     for number in numbers:
                         out.append(f"should-fix: {path}:{number} — lock history added, confirm it: {line}")
+    return out
+
+
+def _added_entries(base: str, before: dict, after: dict) -> list[str]:
+    """Entries at HEAD that the lock's first version in the range lacks: added after the first approval."""
+    first = dict(before)
+    if any(key not in before for key in after):
+        for commit in git("rev-list", "--reverse", f"{base}..HEAD").split():
+            for key, copies in _locks_at(commit).items():
+                first.setdefault(key, copies)
+    out = []
+    for key, copies in after.items():
+        known = {e for _, text in first.get(key, []) for e in _parse_lock(text)[0]}
+        for path, text in copies:
+            for entry, (_, number) in _parse_lock(text)[0].items():
+                if entry not in known:
+                    out.append(f"should-fix: {path}:{number} — approved entry added after the first approval, confirm it: {entry}")
     return out
 
 
@@ -258,6 +276,30 @@ def _parse_lock(text: str) -> tuple[dict[str, tuple[str, int]], dict[str, list[i
     return entries, history
 
 
+def ci_commit_findings(change: Path, base: str, pairs: list[tuple[Path, str]]) -> list[str]:
+    evidence = change / "evidence.md"
+    if not evidence.is_file():
+        return []
+    text = re.sub(r"<!--.*?-->", "", evidence.read_text(), flags=re.DOTALL)
+    match = re.search(r"^- \*\*CI\*\*:(.*(?:\n[ \t]+\S.*)*)", text, re.MULTILINE)
+    tokens = re.findall(r"\b[0-9a-f]{7,40}\b", match.group(1), re.IGNORECASE) if match else []
+    findings = []
+    # The change folder's own commits (the evidence) are not code in specforge; in a sibling every file is.
+    for label, repo, ref, spec in [("specforge", None, base, ["--", ".", f":(exclude){change}"])] + [
+        (r.as_posix(), r, ref, []) for r, ref in pairs
+    ]:
+        last = git("log", "-1", "--format=%H", f"{ref}..HEAD", *spec, repo=repo).strip()
+        named = []
+        for tok in tokens:
+            try:
+                named.append(git("rev-parse", "--verify", "-q", f"{tok}^{{commit}}", repo=repo).strip())
+            except subprocess.CalledProcessError:
+                pass  # resolves to no commit here: does not count as naming one
+        if last and named and not any(last.startswith(t.lower()) for t in tokens):
+            findings.append(f"should-fix: {evidence}:1 — CI field names no run on the last code commit {last[:7]} of {label}")
+    return findings
+
+
 def evidence_findings(change: Path) -> list[str]:
     evidence = change / "evidence.md"
     if not evidence.is_file():
@@ -327,6 +369,7 @@ def review(change: Path, base: str, pairs: list[tuple[Path, str]] = ()) -> tuple
         findings.append(f"blocker: {path}:1 — locked test changed")
     findings += foreign_lock_findings(change, base, files + sibling)
     findings += evidence_findings(change)
+    findings += ci_commit_findings(change, base, list(pairs))
     return [f"{s} {p}" for s, p in files + sibling], findings
 
 
