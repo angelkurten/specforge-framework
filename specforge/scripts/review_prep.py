@@ -276,16 +276,30 @@ def _parse_lock(text: str) -> tuple[dict[str, tuple[str, int]], dict[str, list[i
     return entries, history
 
 
+def _field(text: str, field: str) -> tuple[str, int]:
+    """(value, line) of an evidence field: its own line plus indented continuation lines.
+
+    After a blank line only a sub-bullet continues the field, so an empty field
+    never borrows an indented block that follows it. Shared by evidence_findings
+    and ci_commit_findings so the two read the CI field identically."""
+    match = re.search(rf"^- \*\*{re.escape(field)}\*\*:(.*(?:\n[ \t]+\S.*|\n(?:[ \t]*\n)+[ \t]+[-*+] .*)*)", text, re.MULTILINE)
+    line = text.count("\n", 0, match.start()) + 1 if match else 1
+    return (match.group(1).strip() if match else ""), line
+
+
 def ci_commit_findings(change: Path, base: str, pairs: list[tuple[Path, str]]) -> list[str]:
     evidence = change / "evidence.md"
     if not evidence.is_file():
         return []
     text = re.sub(r"<!--.*?-->", "", evidence.read_text(), flags=re.DOTALL)
-    match = re.search(r"^- \*\*CI\*\*:(.*(?:\n[ \t]+\S.*)*)", text, re.MULTILINE)
-    tokens = re.findall(r"\b[0-9a-f]{7,40}\b", match.group(1), re.IGNORECASE) if match else []
+    value, ci_line = _field(text, "CI")
+    tokens = re.findall(r"\b[0-9a-f]{7,40}\b", value, re.IGNORECASE)
+    # The change's folder, live or archived, holds no code.
+    name, changes = change.name, (change.parent.parent if change.parent.name == "archive" else change.parent)
+    own = [f":(exclude){changes / name}", f":(exclude){changes / 'archive' / name}"]
     findings = []
     # The change folder's own commits (the evidence) are not code in specforge; in a sibling every file is.
-    for label, repo, ref, spec in [("specforge", None, base, ["--", ".", f":(exclude){change}"])] + [
+    for label, repo, ref, spec in [("specforge", None, base, ["--", ".", *own])] + [
         (r.as_posix(), r, ref, []) for r, ref in pairs
     ]:
         last = git("log", "-1", "--format=%H", f"{ref}..HEAD", *spec, repo=repo).strip()
@@ -296,7 +310,7 @@ def ci_commit_findings(change: Path, base: str, pairs: list[tuple[Path, str]]) -
             except subprocess.CalledProcessError:
                 pass  # resolves to no commit here: does not count as naming one
         if last and named and not any(last.startswith(t.lower()) for t in tokens):
-            findings.append(f"should-fix: {evidence}:1 — CI field names no run on the last code commit {last[:7]} of {label}")
+            findings.append(f"should-fix: {evidence}:{ci_line} — CI field names no run on the last code commit {last[:7]} of {label}")
     return findings
 
 
@@ -307,13 +321,7 @@ def evidence_findings(change: Path) -> list[str]:
     text = re.sub(r"<!--.*?-->", "", evidence.read_text(), flags=re.DOTALL)
     findings = []
     for field in EVIDENCE_FIELDS:
-        # A field's value is its own line plus indented continuation lines, so
-        # an empty field never borrows the text of a following section.
-        # After a blank line only a sub-bullet continues the field, so an empty
-        # field never borrows an indented block that follows it.
-        match = re.search(rf"^- \*\*{re.escape(field)}\*\*:(.*(?:\n[ \t]+\S.*|\n(?:[ \t]*\n)+[ \t]+[-*+] .*)*)", text, re.MULTILINE)
-        line = text.count("\n", 0, match.start()) + 1 if match else 1
-        value = match.group(1).strip() if match else ""
+        value, line = _field(text, field)
         if not value:
             findings.append(f"blocker: {evidence}:{line} — evidence field '{field}' is empty")
         elif field == "CI" and not NAMES_A_RUN.search(value):

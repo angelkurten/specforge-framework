@@ -10,9 +10,9 @@
 - [x] scripts/review_prep_lock_ci_test.py CiCommit test_4_no_real_commit_named_or_change_folder_commits_report_nothing
 - [x] scripts/review_prep_lock_ci_test.py SiblingCi test_5_a_stale_sibling_commit_in_ci_names_the_siblings_last_commit
 - [x] every suite in `.github/workflows/v2-ci.yml` passes (run them as that file does)
-- [ ] scripts/review_prep_lock_ci_fix_test.py FixRound test_6_an_archive_move_and_the_change_folders_own_commits_are_not_code
-- [ ] scripts/review_prep_lock_ci_fix_test.py FixRound test_7_a_sub_bullet_after_a_blank_line_belongs_to_the_ci_field_and_the_finding_cites_its_line
-- [ ] every suite in `.github/workflows/v2-ci.yml` passes again, review_prep_lock_ci_fix_test included
+- [x] scripts/review_prep_lock_ci_fix_test.py FixRound test_6_an_archive_move_and_the_change_folders_own_commits_are_not_code
+- [x] scripts/review_prep_lock_ci_fix_test.py FixRound test_7_a_sub_bullet_after_a_blank_line_belongs_to_the_ci_field_and_the_finding_cites_its_line
+- [x] every suite in `.github/workflows/v2-ci.yml` passes again, review_prep_lock_ci_fix_test included
 
 ## Blocked
 
@@ -29,3 +29,6 @@
   - In (b), a change-folder commit is any commit touching only the change's own folder, under either `specforge/changes/<name>/` or `specforge/changes/archive/<name>/`. That includes the archive move.
   - Read the CI field with exactly `evidence_findings`' regex, sharing one helper so the two cannot drift.
   - Cite the CI field's own line, not `evidence.md:1`.
+- Iter 8: in `review_prep.py` added `_field()` shared by `evidence_findings` and `ci_commit_findings`, excluded `changes/<name>` and `changes/archive/<name>` from the last-code-commit log, finding cites the CI field's line; `python3 scripts/review_prep_lock_ci_fix_test.py` → 2 tests OK (test 7 also passes), `review_prep_lock_ci_test.py` → 5 OK; locked sha256 unchanged. Ticked test 6 only.
+- Iter 9: `python3 scripts/review_prep_lock_ci_fix_test.py FixRound.test_7...` → OK (passes with iter-8 `_field()` and line citation, no code change); locked sha256 unchanged (17715545…, caa74f4d…). Ticked test 7 only.
+- Iter 10: ran all 46 suites of `v2-ci.yml` from the repo root (review_prep_lock_ci_fix_test included) → all exit 0; locked tests untouched. `pnpm test` in tools/cli is left to the lead.
