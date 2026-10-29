@@ -10,10 +10,19 @@
   - **Loop.** 5 iterations, 5/5 tasks, exit 0. Cost 1.57 USD (`loop-runs.txt`).
   - **Suites.** All 46 v2 suites pass, `release_0_30_0_test` and `release_0_29_0_test` included.
   - **CLI.** `pnpm test` passes 514 of 514 after the commit. Before it, row 13 of `framework.test.ts` fails as expected, because it reads the committed `package.json`.
-- **Exercised**: none — a release bumps version fields and writes a changelog entry. The publish is the user-visible path, and it runs after archive, on the tag.
-- **CI**: on `b10217c`, the last code commit, pushed alone: `v2-ci` run 40974757281 and `cli-ci` run 40974757459, both success.
+- **Exercised**: the CLI an adopter runs, from the packed package and with no registry publish (added after the review BLOCK). `/opt/homebrew/bin/npm pack --pack-destination <scratch>` in `tools/cli` wrote `angelkurten-specforge-0.30.0.tgz`: 331 files, with `yaml` bundled and no `CHANGELOG.md`. So the later changelog commit does not change the package. The tarball was extracted under the scratchpad and run with `node package/dist/src/cli.js`:
+  - **Fresh install.** In an empty `git init` directory, `version` printed `bundled framework version: 0.30.0`, and `init` printed `init complete: framework v0.30.0 installed (54 framework files)`, exit 0. The installed `templates/evidence-report.md` has the `Exercised` field. `specforge/core/review.md` names it twice. The review skill has step 2 `Exercise.`, the reviewer has the `may have failed` rule, and classify names `SYSTEM_ARTIFACT.md`. `specforge/DECISIONS.md` is not installed, as expected for team data.
+  - **Update from 0.29.0.** A directory initialised with the registry's 0.29.0 tarball (`npm pack @angelkurten/specforge@0.29.0`) and committed had no `Exercised` in the template. The 0.30.0 `update` printed `update complete: 6 files refreshed, 0 drifted`, exit 0. `version` then reported 0.30.0 installed. The template and `review.md` now carry `Exercised`, and the reviewer carries the new rule. `doctor` exits 0, with one warning that the lock guard is not registered in `.claude/settings.json`, which `init` never writes by design.
+- **CI**: on `417e1fd`, the last code commit (the changelog fix), pushed alone: `v2-ci` run 40975388161 and `cli-ci` run 40975388152, both success. Earlier, on `b10217c`: `v2-ci` 40974757281 and `cli-ci` 40974757459, both success.
 - **Not checked**:
-  - The publish itself. It runs on the `v0.30.0` tag, after archive, with the human's approval.
+  - The registry publish and `npx @angelkurten/specforge@0.30.0`. They run on the `v0.30.0` tag, after archive, with the human's approval. The packed tarball above is what the publish uploads.
 - **Deviations from the contract**:
   - **Changelog lines corrected by the lead.** The loop wrote that the review skill's step 2 "checks" the field; it has the lead run the path. It wrote the reviewer rule as only "enters its scratch clone"; it also forbids writing after a `cd` that may have failed. Both were corrected before the code commit, and the locked test still passes.
   - **Task 5.** `pnpm test` was moved from the loop's task to the lead before the run, because the agent's tools exclude pnpm.
+  - **Review round 1 (BLOCK).**
+    - **Blocker, fixed.** `Exercised: none` was written for a change whose CLI is user-visible, and that path was left under Not checked. The lead then exercised the packed tarball (above).
+    - **Should-fix, fixed in `417e1fd`.** The entry left out the review skill's rule that a reviewer's diagnosis enters the evidence only after the lead re-runs it, and the renumbering of steps 2-4 to 3-5. Both were added.
+    - **Nits, fixed in `417e1fd`.**
+      - The entry pointed adopters at `specforge/DECISIONS.md`, which the CLI never installs. It now names the specforge repository's own file.
+      - `none` is now qualified as a blocker only for a change that has a user-visible path.
+    - **Reviewer incident.** The reviewer's clone failed on an existing scratch path, so its suite loop ran in `/Users/angelkurten/specforge`. The lead checked afterwards: `git status` showed only the untracked `reports/` and `research_notes/` that were already there.
