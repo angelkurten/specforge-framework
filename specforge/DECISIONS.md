@@ -121,3 +121,10 @@ Append-only log of decisions with future value. Shape: [`templates/decision-log.
 **Decision**: a v2 change does not maintain `SYSTEM_ARTIFACT.md`. Current state lives in the code and its locked tests, and the why in the archived contracts (`specforge/changes/archive/`) and this log. Existing files stay as they are, since frozen PRDs cite them.
 **Rejected**: removing it from v1 now. That touches hard rule 8, the gate's `system_artifact_diff` and two CLI validators (`prd-system-artifact-diff`, `gate-fence`), and belongs with retiring v1.
 **Revisit if**: a newcomer cannot find their way around a sibling without a state summary, or v1 is retired.
+
+## 2026-10-29 — Evidence exercises the user-visible path end to end
+
+**Context**: the blind audit of the post-adjustment changes found the team page dead in a real browser: `../teamtasks-web/src/main.mjs:5` fetches `http://localhost:8000` cross-origin with an `Authorization` header, `../specforge-pilot/teamtasks/app.py` has no CORS middleware, and the preflight answered 405. All 14 tests passed on fakes, and the evidence of `web-scaffold` and `team-stats` said in Not checked that the page was never run in a browser; review read that as plausible.
+**Decision**: the evidence template gains an `Exercised` field (the user-visible path run against the real system, or `none — <why>`); `review.md` makes a Not checked entry on such a path a blocker; the review skill has the lead run the path before dispatching the reviewer, as v1's step-9 validation did.
+**Rejected**: a `review_prep.py` check that requires the field, because more than ten locked suites write evidence fixtures without it and assert no blocker.
+**Revisit if**: a user-visible defect escapes with `Exercised` filled in, or the lead skips the step often enough that a mechanical check becomes worth the fixture churn.

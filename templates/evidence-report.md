@@ -8,6 +8,7 @@
 
 - **Ran**: <!-- commands and scenarios -->
 - **Result**: <!-- pass / fail, with the relevant output -->
+- **Exercised**: <!-- the user-visible path (a page, a CLI command, an HTTP route another repository calls) run end to end against the running system: the exact command or interaction, and what it showed. When the change has no user-visible path: `none — <why>` -->
 - **CI**: <!-- the CI runs on the last code or test commit before the commit that holds this report: each by name and run number (or URL), and what it returned -->
 - **Not checked**: <!-- what was left unverified, and why -->
 - **Deviations from the contract**: <!-- what changed, and whether the contract was updated -->
