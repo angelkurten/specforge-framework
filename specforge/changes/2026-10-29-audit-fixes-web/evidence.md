@@ -18,14 +18,16 @@
   - The only console errors are the 404 for `favicon.ico` and the expected 404 for `/teams/999`. There is no CORS error. Before this change, the audit's run of the same page was blocked by CORS.
   - With curl, before seeding (so both answered 404), `GET /teams/1/stats` with `Origin: http://127.0.0.1:5500` carried `access-control-allow-origin: http://127.0.0.1:5500`, and the same request with `Origin: http://evil.test` carried none.
 - **CI**:
-  - backend: local run 36 on `1569d9a`, pass;
-  - frontend: local run 6 on `7668e5e`, pass (run 5 on `1cc15d3` before the fix round);
-  - specforge: this change adds no code outside its change folder. The last code commit, `45d96ff`, has `v2-ci` run 40946426481 and `cli-ci` run 40946426388, both success.
+  - backend: local run 37 on `f3be36f`, pass (run 36 on `1569d9a` before the SYSTEM_ARTIFACT revert);
+  - frontend: local run 7 on `4e86e1e`, pass (run 6 on `7668e5e` after the fix round, run 5 on `1cc15d3` before it);
+  - specforge: the last code commit is the compose instructions, `bda14f0`, pushed alone: `v2-ci` run 40973292418 and `cli-ci` run 40973292293, both success. All 45 v2 suites also passed locally before the push.
 - **Not checked**:
   - A browser other than Chromium.
   - The stale-response drop (scenario 6) in a real browser. It is timing-dependent, and only the fake-globals test covers it.
 - **Deviations from the contract**:
-  - **Written by the lead.** Both `docs/SYSTEM_ARTIFACT.md` lines and the frontend `README.md` section on serving the page. No test covers them.
+  - **Written by the lead.** The frontend `README.md` section on serving the page. No test covers it.
+  - **SYSTEM_ARTIFACT, written and reverted.** The lead put `docs/SYSTEM_ARTIFACT.md` lines in Scope out of v1 habit, against `specforge/DECISIONS.md` 2026-10-29, and wrote them in both siblings. At compose the human chose to revert them: `../specforge-pilot` `f3be36f`, `../teamtasks-web` `4e86e1e`.
+  - **Reviewer incident.** In re-verification the reviewer's `cd` into a scratch clone failed, and its next commands ran in `../teamtasks-web`. They deleted line 21 of `src/main.mjs` in the real tree. The reviewer restored the line with `git checkout`. The lead checked afterwards: the tree was clean, HEAD was unchanged at `7668e5e`, and 6b's hash matched the lock.
   - **Stale-response check.** `main.mjs` compares `location.hash` before and after the request, with no counter. Going A → B → A while the first A is still pending would show the first A's answer, which is the same team.
   - **Review (PASS, one should-fix, three nits).**
     - **Should-fix, fixed by a test.** No test covered dropping a stale *error*. The lead re-ran the reviewer's mutant: with `src/main.mjs:21` deleted, both tests in `main.test.mjs` still passed. Test 6b (`tests/main_fix.test.mjs`) was approved and locked by the human. The code already did the drop, so the fix round changed no code and ran no loop.

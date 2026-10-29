@@ -22,14 +22,14 @@ In:
 - **Backend `../specforge-pilot`:**
   - `teamtasks/app.py`: `create_app(db_path, cors_origins=None)` adds `CORSMiddleware` with an explicit origin list, `GET` only, the `Authorization` header only, no credentials. `None` reads `TEAMTASKS_CORS_ORIGINS` (`new`, comma-separated), defaulting to `http://localhost:5500,http://127.0.0.1:5500`. A `*` entry is refused at startup with `ValueError`.
   - `tests/test_cors.py` (`new`).
-  - `docs/SYSTEM_ARTIFACT.md`: one line for CORS and the variable.
+  - ~~`docs/SYSTEM_ARTIFACT.md`: one line for CORS and the variable.~~ Removed at compose: v2 changes no longer maintain it (`specforge/DECISIONS.md`, 2026-10-29).
 - **Frontend `../teamtasks-web`:**
   - `src/page.mjs`: the stats fallback also catches an exception thrown by `renderStats`.
   - `src/main.mjs`: renders on load and on every `hashchange`. A response for a hash that is no longer current is dropped.
   - `scripts/ci.mjs`: runs from the repository root wherever it is started. It runs only the tracked `tests/*.test.mjs` files, and with none tracked it logs a fail.
   - `README.md`: how to serve the page (`python3 -m http.server 5500 --bind 127.0.0.1`).
   - `tests/page_fix.test.mjs`, `tests/main.test.mjs`, `tests/ci_fix.test.mjs` (`new`), and `tests/main_fix.test.mjs` (`new`), added by the fix round.
-  - `docs/SYSTEM_ARTIFACT.md`: the three behaviours.
+  - ~~`docs/SYSTEM_ARTIFACT.md`: the three behaviours.~~ Removed at compose, as above.
 
 Out:
 - The two 🟢 membership races (team-detail, team-stats): debt, the older read routes behave the same.
