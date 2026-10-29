@@ -1,0 +1,28 @@
+## Evidence
+
+- **Ran**:
+  - The five premise commands, by hand, before Red.
+  - The nine red tests against a throwaway draft implementation in scratch clones of both siblings, before locking: 20/20 frontend, 199/199 backend. The clones were deleted.
+  - `python3 specforge/scripts/loop.py specforge/changes/2026-10-29-audit-fixes-web --max-iterations 12 --max-cost 4`, once, with the two-sibling agent command of `specforge/core/loop.md` § Sibling repositories (`--add-dir ../specforge-pilot --add-dir ../teamtasks-web`, the `uv run --directory ../specforge-pilot --offline *` and `node --test ../teamtasks-web/*` rules, and the six `git -C` reads).
+  - Backend: `python3 scripts/ci.py` in `../specforge-pilot`. Frontend: `node scripts/ci.mjs` in `../teamtasks-web`.
+- **Result**:
+  - **Premises.** All five hold.
+  - **Loop.** 10 iterations, 10/10 tasks, exit 0. Cost 1.73 USD (`loop-runs.txt`).
+  - **Backend.** 199 passed, the 196 earlier tests and the 3 in `tests/test_cors.py`.
+  - **Frontend.** 20 of 20 pass, the 14 earlier tests and the 6 new ones.
+- **Exercised**: the backend ran on a throwaway `TEAMTASKS_DB` under the scratchpad (`uv run --offline uvicorn teamtasks.app:app --host 127.0.0.1 --port 8000`), and the page was served with `python3 -m http.server 5500 --bind 127.0.0.1`. A seeded user owns team 1, `Platform`, with tasks todo 1 and doing 2, and team 2, `Design <b>&</b>`. In Chromium, through Playwright, with the token in `sessionStorage`:
+  - `#1` shows `Platform`, role owner, `Tasks: 3`, and todo 1, doing 2, done 0. The network log has `GET http://localhost:8000/teams/1` 200 and `/teams/1/stats` 200.
+  - A hash change to `#2` shows team 2 with its name escaped (`Design &lt;b&gt;&amp;&lt;/b&gt;`). `#abc` shows `Invalid team id`. `#999` shows `Error 404`.
+  - After a reload of `#1` (navigation type `reload`), the page shows team 1 again.
+  - The only console errors are the 404 for `favicon.ico` and the expected 404 for `/teams/999`. There is no CORS error. Before this change, the audit's run of the same page was blocked by CORS.
+  - With curl, before seeding (so both answered 404), `GET /teams/1/stats` with `Origin: http://127.0.0.1:5500` carried `access-control-allow-origin: http://127.0.0.1:5500`, and the same request with `Origin: http://evil.test` carried none.
+- **CI**:
+  - backend: local run 36 on `1569d9a`, pass;
+  - frontend: local run 5 on `1cc15d3`, pass;
+  - specforge: this change adds no code outside its change folder. The last code commit, `45d96ff`, has `v2-ci` run 40946426481 and `cli-ci` run 40946426388, both success.
+- **Not checked**:
+  - A browser other than Chromium.
+  - The stale-response drop (scenario 6) in a real browser. It is timing-dependent, and only the fake-globals test covers it.
+- **Deviations from the contract**:
+  - **Written by the lead.** Both `docs/SYSTEM_ARTIFACT.md` lines and the frontend `README.md` section on serving the page. No test covers them.
+  - **Stale-response check.** `main.mjs` compares `location.hash` before and after the request, with no counter. Going A → B → A while the first A is still pending would show the first A's answer, which is the same team.
