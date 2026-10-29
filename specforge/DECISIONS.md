@@ -114,3 +114,10 @@ Append-only log of decisions with future value. Shape: [`templates/decision-log.
 **Decision**: v2 is **specforge EVA**: Evidence (`evidence.md`), Verification (locked tests and adversarial review), Adaptation (`compose.md` turns each lesson into an artifact). The name is for prose only; paths, skills, agents and scripts keep `specforge`.
 **Rejected**: renaming paths or skills, which would break every installed copy for no behavioural gain.
 **Revisit if**: a release tool or package registry needs the name as an identifier.
+
+## 2026-10-29 — v2 changes no longer maintain SYSTEM_ARTIFACT.md
+
+**Context**: v2's core never asked for `SYSTEM_ARTIFACT.md`; the lead kept adding it to contracts out of v1 habit. In the sibling changes the loop left it unwritten twice in a row and the lead wrote it by hand, and no review found a defect through it.
+**Decision**: a v2 change does not maintain `SYSTEM_ARTIFACT.md`. Current state lives in the code and its locked tests, and the why in the archived contracts (`specforge/changes/archive/`) and this log. Existing files stay as they are, since frozen PRDs cite them.
+**Rejected**: removing it from v1 now. That touches hard rule 8, the gate's `system_artifact_diff` and two CLI validators (`prd-system-artifact-diff`, `gate-fence`), and belongs with retiring v1.
+**Revisit if**: a newcomer cannot find their way around a sibling without a state summary, or v1 is retired.

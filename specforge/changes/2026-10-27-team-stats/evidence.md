@@ -9,7 +9,7 @@
   - **Premises.** All three hold.
   - **Loop.** 9 iterations, 9/9 tasks, exit 0. Cost 1.88 USD (`loop-runs.txt`, 9 lines).
   - **Two-sibling run.** In one run, the agent edited both siblings from a session whose working directory was specforge, with no permission denied. `loop.py` checked both locked tests after every iteration.
-  - **Suites.** Backend: 196 passed. Frontend: 11 passed.
+  - **Suites, first run.** Backend: 196 passed. Frontend: 11 passed. After the fix round there are 14 frontend tests (see below).
 - **CI**:
   - **Backend.** `ci-runs.log` run 34, on `0b42b02`, its last code commit: pass.
   - **Frontend.** `ci-runs.log` run 3, on `36f5610`, its last code commit: pass.
@@ -25,12 +25,18 @@
   - `src/page.mjs` `loadTeamPage` shows the team when only the stats fail.
   - The budget was raised by the human to 20 iterations, 7 USD, cumulative.
 - **Fix-round loop.**
-  - Iterations 10-17 ticked the test tasks, then stopped `BLOCKED`: the agent reported the backend suite hanging.
+  - Iterations 10-17, by `loop-runs.txt`, ticked the test tasks, then stopped `BLOCKED`: the agent reported the backend suite hanging. The agent's own log lines number them differently ("Iter 10" to "Iter 16"), so the ledger is the count of record.
   - The lead found no stray process, and the suite passed (196, in 72 s). The run fell while the session was paused at its usage limit; the cause is unconfirmed.
-  - The human cleared the line, and iterations 18-19 ran both full suites.
+  - The human cleared the line, and iterations 18-19, by the ledger, ticked both full-suite tasks.
   - Totals: 19 iterations, 4.65 USD.
 - **Written by the lead.** Both siblings' `docs/SYSTEM_ARTIFACT.md` updates to the list shape. Scope named them, no test asked for them, and the loop did not write them.
 - **Fix-round CI.**
   - Backend: `ci-runs.log` run 35, on `92586cf`, its last code commit, pass, 196 tests.
   - Frontend: `ci-runs.log` run 4, on `33ef266`, its last code commit, pass, 14 tests.
   - specforge: on `4332188`, `v2-ci` run 40887240534 and `cli-ci` run 40887240540, both success.
+- **Re-verification (PASS).** All five findings were fixed.
+  - The human confirmed the lock changes: the two `# unlocked` lines, the two `# reapproved` lines and the `page.test.mjs` entry, which `review_prep.py` does not report.
+  - The lead fixed by hand the contract's Scope and scenario heading, its task count and this report's iteration numbering (one should-fix and two nits).
+- **Compose, written by the lead.**
+  - The `review.md` edge line and the loop-skill line.
+  - The `DECISIONS.md` entry, on the human's decision, that v2 no longer maintains `SYSTEM_ARTIFACT.md`.

@@ -28,7 +28,7 @@ In:
   - `src/team.mjs`: `renderStats(stats)` (`new`), with the total and one entry per status in API order, every status name escaped.
   - `src/page.mjs`: `loadTeamPage(baseUrl, token, id, fetch)` (`new`), returning the page's HTML: the team, then its stats, or `Stats unavailable` if only the stats fail.
   - `src/main.mjs`: wires `parseTeamId(location.hash)` to `loadTeamPage`.
-  - `tests/stats.test.mjs` (`new`).
+  - `tests/stats.test.mjs` (`new`), and `tests/page.test.mjs` (`new`), added by the fix round.
   - `docs/SYSTEM_ARTIFACT.md`: the page now shows the counts.
 
 Out:
@@ -86,7 +86,7 @@ Backend, `tests/test_team_stats.py`:
 3. A non-member and a missing team get the same 404, `team not found`.
 4. Invalid tokens get 401, and out-of-bounds ids get 422.
 
-Frontend, `tests/stats.test.mjs`:
+Frontend, `tests/stats.test.mjs` (scenarios 5-7) and `tests/page.test.mjs` (scenario 8):
 
 5. `getTeamStats` calls `<base>/teams/<id>/stats` with the token. Bad ids are refused before any request. A non-2xx answer rejects with its `status`.
 6. `renderStats` shows the total and each status with its count, in API order, with the names escaped. A status named `2024` keeps its place.
@@ -97,4 +97,4 @@ Both siblings' full suites and local CIs pass on their last code commits. `v2-ci
 
 ## Stop and escalate
 
-Stop and ask if a locked test in either sibling must change, or if the route needs more than `team_membership` and two queries. Budget: 12 iterations, 4 USD, for 9 tasks (7 scenarios and the two full suites). Raised by the human to 20 iterations, 7 USD, cumulative, for the fix round.
+Stop and ask if a locked test in either sibling must change, or if the route needs more than `team_membership` and two queries. Budget: 12 iterations, 4 USD, for 9 tasks (7 scenarios and the two full suites); the fix round made it 10 tasks for 8 scenarios. Raised by the human to 20 iterations, 7 USD, cumulative, for the fix round.
