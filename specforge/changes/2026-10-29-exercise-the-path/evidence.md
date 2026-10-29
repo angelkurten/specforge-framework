@@ -17,3 +17,7 @@
 - **Deviations from the contract**:
   - **Written by the lead.** The review skill's new step 2 (`.claude/` is closed to the loop). It renumbers the later steps 2-4 to 3-5.
   - **CI file.** `.github/workflows/v2-ci.yml` gained `exercise_path_test`, which Scope did not declare.
+  - **Review (PASS, three nits).**
+    - The lead fixed two of them by hand. In `review.md`, a missing `Exercised` line, or a `none` written for a change that has a user-visible path, is a blocker too. The Evidence bullet now says Not checked is plausible "except for a user-visible path".
+    - The third nit is accepted as debt by the human: the agent's `progress.md` log says 46 suites, where `v2-ci.yml` lists 45.
+  - **Compose, written by the lead.** No new artifact: the review skill's step 2 is the instruction.
