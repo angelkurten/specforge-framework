@@ -17,4 +17,20 @@
 - **Not checked**:
   - The page in a browser against a running backend. It has no test, and CORS is out of Scope.
   - Whether either sibling's `CLAUDE.md` loaded into the agent. Its output was not kept.
-- **Deviations from the contract**: none.
+- **Deviations from the contract**: none in the first loop run. The fix round is below.
+- **Review (BLOCK).** `by_status` as a JSON object lost its order in the browser, because JS lists integer-like keys first. Each sibling's tests passed alone, and the defect sat at the boundary between them. The reviewer also raised two should-fix items, weak tests 6 and 7, and two nits: `Promise.all` blanking the page, and the lock entries to confirm.
+- **Fix round (option A, chosen by the human).**
+  - `by_status` is a list of `{name, count}`.
+  - Backend tests 1 and 2 and frontend tests 6 and 7 were unlocked with a reason and re-approved by the human. `tests/page.test.mjs` (8a-8c) was added.
+  - `src/page.mjs` `loadTeamPage` shows the team when only the stats fail.
+  - The budget was raised by the human to 20 iterations, 7 USD, cumulative.
+- **Fix-round loop.**
+  - Iterations 10-17 ticked the test tasks, then stopped `BLOCKED`: the agent reported the backend suite hanging.
+  - The lead found no stray process, and the suite passed (196, in 72 s). The run fell while the session was paused at its usage limit; the cause is unconfirmed.
+  - The human cleared the line, and iterations 18-19 ran both full suites.
+  - Totals: 19 iterations, 4.65 USD.
+- **Written by the lead.** Both siblings' `docs/SYSTEM_ARTIFACT.md` updates to the list shape. Scope named them, no test asked for them, and the loop did not write them.
+- **Fix-round CI.**
+  - Backend: `ci-runs.log` run 35, on `92586cf`, its last code commit, pass, 196 tests.
+  - Frontend: `ci-runs.log` run 4, on `33ef266`, its last code commit, pass, 14 tests.
+  - specforge: on `4332188`, `v2-ci` run 40887240534 and `cli-ci` run 40887240540, both success.
