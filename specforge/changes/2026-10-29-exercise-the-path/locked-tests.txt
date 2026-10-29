@@ -1,0 +1,1 @@
+f625bfc26737b44174089c5c4f142198a14c9e5f52fb872fb3a9a4aa08e14c4b  scripts/exercise_path_test.py
