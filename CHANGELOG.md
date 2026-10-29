@@ -8,6 +8,31 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.29.0] - 2026-10-29
+
+### Added — specforge EVA from a sibling directory
+
+specforge can sit beside your code and run a whole v2 change over it. `docs/migration-v1-to-v2.md` § Working on a sibling repository and `specforge/core/loop.md` § Sibling repositories describe the setup: lock entries as `../<sibling>/<test file>`, `--add-dir ../<sibling>` on the agent command, `git -C ../<sibling>` for reads.
+
+- **`review_prep.py`** takes `--repo` and `--repo-base` together, repeatable once per sibling, and reads each sibling's `<ref>...HEAD` range through the same code checks. It also reports a test locked by another change, archived or not, that the range edits or deletes.
+- **`compose_check.py`** accepts an artifact inside a sibling repository (a directory beside the repository root that holds a `.git`), named `../<sibling>/<file>`.
+- **`archive.py`** refuses a change whose `compose.md` `compose_check.py` refuses.
+- **`templates/contract.md`** asks for the sibling's path and its `CLAUDE.md` when the code lives in one.
+
+### Changed — v2 no longer maintains `SYSTEM_ARTIFACT.md`
+
+v2 drops `SYSTEM_ARTIFACT.md` as a living document: the change folder's contract, evidence and compose record carry what it did. v1 PRDs and their gate are unchanged.
+
+### Fixed — the lock guard
+
+`.claude/hooks/specforge_lock_guard.py` crashed on a locked test outside the repository root (`../<sibling>/...`), because it used `relative_to`; it now uses `os.path.relpath`. It also fails closed: any error of its own now exits 2, where it used to exit 1, which a `PreToolUse` hook treats as non-blocking and lets the tool call through.
+
+### Headless blast radius
+
+**BREAKING for a headless installation**. Two refusals are new. The lock guard exits 2 on any error of its own, so a guard that breaks denies the tool call until it runs cleanly, where it used to let the call through. `archive.py` refuses a change whose `compose.md` fails `compose_check.py`, where it used to archive it. Either can stop a headless session that used to go on.
+
+---
+
 ## [0.28.0] - 2026-10-26
 
 ### Added — specforge EVA (Evidence, Verification, Adaptation)
