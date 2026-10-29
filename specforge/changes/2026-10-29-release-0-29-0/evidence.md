@@ -17,3 +17,4 @@
   - An upgrade from a published 0.28.0 install with `npx @angelkurten/specforge@0.29.0 update`.
 - **Deviations from the contract**:
   - **Premise line.** Reworded after `loop.py` refused it. The content did not change. It is the same format slip as in change `2026-10-26-sibling-repos`.
+  - **Review (PASS, two nits accepted as debt by the human).** Scenario 2's `--repo` needle also matches `--repo-base`. Scenario 3 checks `archive.py` and `compose` apart. Both hold at HEAD.
