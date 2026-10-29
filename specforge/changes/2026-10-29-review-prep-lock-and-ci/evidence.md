@@ -9,13 +9,15 @@
 - **Result**:
   - **Premises.** All three hold.
   - **Loop.** 7 iterations, 6/6 tasks, exit 0. Cost 1.69 USD (`loop-runs.txt`, 7 lines).
-  - **Suites.** All 44 v2 suites pass.
+  - **Suites.** All 43 v2 suites pass. The report first said 44, which was a lead's miscount.
   - **CLI.** `pnpm test` passes 514 of 514.
   - **Replay.**
     - (a) reports `../teamtasks-web/tests/page.test.mjs` as added after the first approval. Change `2026-10-27-team-stats`'s review found that only by hand.
     - (b) reports that team-stats' CI field names its first run's sibling commits (`0b42b02`, `36f5610`), not the fix round's (`92586cf`, `33ef266`). Those were written further down the report.
-    - (b) also reports specforge's `e5d103b`. That one is an artifact of replaying an archived change against today's HEAD, not a defect of that record.
+    - (b) also reported a specforge commit. The lead first blamed replaying against today's HEAD. Review traced it to the tool: an archive move and earlier change-folder commits counted as code (should-fix, fix round test 6). The recorded SHA `e5d103b` also came from a run before `8419f0f` was committed.
 - **CI**: on `8419f0f`, the last code commit, pushed alone: `v2-ci` run 40926310243 and `cli-ci` run 40926310337, both success.
 - **Not checked**:
-  - A CI field that names a commit only in a nested sub-bullet beyond the field's own block. The field is read as `evidence_findings` reads it.
-- **Deviations from the contract**: none.
+  - Nothing further. An earlier line here claimed the CI field was read as `evidence_findings` reads it. Review showed that it was not (should-fix, fix round test 7).
+- **Deviations from the contract**:
+  - **Tests that pass without the change.** Test 4, and the second half of test 2, pass without it, on purpose. They guard against flagging fake hex and change-folder commits, and against reporting a single approval.
+  - **Fix round after review.** Tests 6 and 7, with the budget raised by the human.
