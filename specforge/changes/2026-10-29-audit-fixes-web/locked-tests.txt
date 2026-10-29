@@ -1,4 +1,5 @@
 0d58299322b196d50815af3635b3630248f2c43c2a5db78b3dec93fca0d3a7ab  ../specforge-pilot/tests/test_cors.py
 b3694cd9596495acf78f6c27ed76fa3fd569010c4dcea48c4bdb60466f9bae9b  ../teamtasks-web/tests/ci_fix.test.mjs
 88f860d5a0cb67bde0b5c9630351e24bbb4fa6ecc3008be253690cb10b627219  ../teamtasks-web/tests/main.test.mjs
+e04465b6600dcb1a5136f849c4819c1a475463a93f6554e025991a32e0aca522  ../teamtasks-web/tests/main_fix.test.mjs
 7c97f974732d4c46caf27b90575250e9cf00af3ff10ce0e42cd334de4488d6cb  ../teamtasks-web/tests/page_fix.test.mjs

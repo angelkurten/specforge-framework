@@ -28,7 +28,7 @@ In:
   - `src/main.mjs`: renders on load and on every `hashchange`. A response for a hash that is no longer current is dropped.
   - `scripts/ci.mjs`: runs from the repository root wherever it is started. It runs only the tracked `tests/*.test.mjs` files, and with none tracked it logs a fail.
   - `README.md`: how to serve the page (`python3 -m http.server 5500 --bind 127.0.0.1`).
-  - `tests/page_fix.test.mjs`, `tests/main.test.mjs`, `tests/ci_fix.test.mjs` (`new`).
+  - `tests/page_fix.test.mjs`, `tests/main.test.mjs`, `tests/ci_fix.test.mjs` (`new`), and `tests/main_fix.test.mjs` (`new`), added by the fix round.
   - `docs/SYSTEM_ARTIFACT.md`: the three behaviours.
 
 Out:
@@ -81,6 +81,7 @@ Frontend:
 4. `tests/page_fix.test.mjs`: a stats answer of 200 whose body is `null`, has no `by_status`, or has `by_status` as an object still shows the team, followed by `Stats unavailable`.
 5. `tests/main.test.mjs`: with fake `document`, `location`, `sessionStorage`, `fetch` and `addEventListener`, importing `main.mjs` renders team 1. Firing `hashchange` with `#2` renders team 2, and with `#abc` shows `Invalid team id`. Fails against a page that reads the hash once.
 6. `tests/main.test.mjs`: when `#1`'s response arrives after `#2`'s, the page shows team 2. Fails against assigning every response as it lands.
+   6b. `tests/main_fix.test.mjs`: a late error for an old hash does not replace the newer hash's page either. Added by the fix round (review should-fix).
 7. `tests/ci_fix.test.mjs`: a test file that is present but ignored (`.git/info/exclude`) is not run, and the log line counts only the tracked ones. With no tracked test file, the run logs `fail` and exits non-zero.
 8. `tests/ci_fix.test.mjs`: started from `scripts/` with a failing tracked test, the run exits non-zero and writes `fail` to the root `ci-runs.log`, and no `scripts/ci-runs.log` appears.
 

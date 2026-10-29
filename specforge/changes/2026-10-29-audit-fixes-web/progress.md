@@ -10,6 +10,7 @@
 - [x] ../teamtasks-web/tests/page_fix.test.mjs 4 a malformed stats body still shows the team
 - [x] ../teamtasks-web/tests/main.test.mjs 5 the page renders on load and again on every hashchange
 - [x] ../teamtasks-web/tests/main.test.mjs 6 a stale response never overwrites a newer hash
+- [x] ../teamtasks-web/tests/main_fix.test.mjs 6b a stale error never overwrites a newer hash (fix round, by the lead: the code already passed)
 - [x] ../teamtasks-web/tests/ci_fix.test.mjs 7a/7b only tracked tests run; none tracked logs fail
 - [x] ../teamtasks-web/tests/ci_fix.test.mjs 8 started from scripts/, a failing tracked test logs fail at the root
 - [x] every backend test passes: `uv run --directory ../specforge-pilot --offline pytest -q`

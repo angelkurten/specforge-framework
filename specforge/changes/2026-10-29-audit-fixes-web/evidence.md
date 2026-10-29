@@ -9,7 +9,8 @@
   - **Premises.** All five hold.
   - **Loop.** 10 iterations, 10/10 tasks, exit 0. Cost 1.73 USD (`loop-runs.txt`).
   - **Backend.** 199 passed, the 196 earlier tests and the 3 in `tests/test_cors.py`.
-  - **Frontend.** 20 of 20 pass, the 14 earlier tests and the 6 new ones.
+  - **Frontend.** 21 of 21 pass: the 14 earlier tests, the 6 new ones, and 6b from the fix round.
+  - **Red.** On base `33ef266`, the six new frontend tests fail (the reviewer re-ran them in a scratch clone). The three backend tests cannot pass on base, which has no `cors_origins` and no middleware. 6b passes on HEAD and fails once `src/main.mjs:21` (`if (location.hash !== hash) return`) is deleted in a scratch clone.
 - **Exercised**: the backend ran on a throwaway `TEAMTASKS_DB` under the scratchpad (`uv run --offline uvicorn teamtasks.app:app --host 127.0.0.1 --port 8000`), and the page was served with `python3 -m http.server 5500 --bind 127.0.0.1`. A seeded user owns team 1, `Platform`, with tasks todo 1 and doing 2, and team 2, `Design <b>&</b>`. In Chromium, through Playwright, with the token in `sessionStorage`:
   - `#1` shows `Platform`, role owner, `Tasks: 3`, and todo 1, doing 2, done 0. The network log has `GET http://localhost:8000/teams/1` 200 and `/teams/1/stats` 200.
   - A hash change to `#2` shows team 2 with its name escaped (`Design &lt;b&gt;&amp;&lt;/b&gt;`). `#abc` shows `Invalid team id`. `#999` shows `Error 404`.
@@ -18,7 +19,7 @@
   - With curl, before seeding (so both answered 404), `GET /teams/1/stats` with `Origin: http://127.0.0.1:5500` carried `access-control-allow-origin: http://127.0.0.1:5500`, and the same request with `Origin: http://evil.test` carried none.
 - **CI**:
   - backend: local run 36 on `1569d9a`, pass;
-  - frontend: local run 5 on `1cc15d3`, pass;
+  - frontend: local run 6 on `7668e5e`, pass (run 5 on `1cc15d3` before the fix round);
   - specforge: this change adds no code outside its change folder. The last code commit, `45d96ff`, has `v2-ci` run 40946426481 and `cli-ci` run 40946426388, both success.
 - **Not checked**:
   - A browser other than Chromium.
@@ -26,3 +27,9 @@
 - **Deviations from the contract**:
   - **Written by the lead.** Both `docs/SYSTEM_ARTIFACT.md` lines and the frontend `README.md` section on serving the page. No test covers them.
   - **Stale-response check.** `main.mjs` compares `location.hash` before and after the request, with no counter. Going A → B → A while the first A is still pending would show the first A's answer, which is the same team.
+  - **Review (PASS, one should-fix, three nits).**
+    - **Should-fix, fixed by a test.** No test covered dropping a stale *error*. The lead re-ran the reviewer's mutant: with `src/main.mjs:21` deleted, both tests in `main.test.mjs` still passed. Test 6b (`tests/main_fix.test.mjs`) was approved and locked by the human. The code already did the drop, so the fix round changed no code and ran no loop.
+    - **Nits, accepted as debt.**
+      - Starlette's `CORSMiddleware` does not check the method on a simple, non-preflighted request. So `GET` only limits preflighted requests. Any request carrying `Authorization` is preflighted.
+      - A `TEAMTASKS_CORS_ORIGINS` entry that is not an origin (a trailing slash, a path, an uppercase scheme) is accepted silently and never matches. It fails closed.
+      - The red run was missing from this report. It is now under Result.
