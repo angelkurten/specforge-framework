@@ -8,6 +8,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 
 ---
 
+## [0.30.0] - 2026-10-29
+
+### Added — evidence that exercises the user-visible path
+
+- **`review_prep.py`** reports two new should-fix findings: a lock entry added after the first approval, and a CI field that names a commit but not each repository's last code commit.
+- **`templates/evidence-report.md`** gains an `Exercised` field: the user-visible path (a page, a CLI command, an HTTP route another repository calls) run against the real system, or `none — <why>`. In `specforge/core/review.md`, a change with such a path gets a blocker when the line is missing, when it says `none`, or when the path sits under Not checked. The review skill's new step 2 has the lead run the path before dispatching the reviewer. The decision is in `specforge/DECISIONS.md`, 2026-10-29.
+
+### Changed — reviewer and classify
+
+- **`specforge-reviewer.md`**: the reviewer enters its scratch clone in the same command that uses it (`cd <clone> && …`), and never writes after a `cd` that may have failed.
+- `specforge-classify` keeps `SYSTEM_ARTIFACT.md` out of a v2 Scope.
+
+### Headless blast radius
+
+**BREAKING for a headless installation**: no script's exit code changes, since both new `review_prep.py` findings are should-fix and it exits 1 only on a blocker. The reviewer's verdict does change: a change with a user-visible path now gets `BLOCK` if its evidence has no `Exercised` line, says `none` for that path, or leaves the path under Not checked. A headless session that gates on the verdict can now stop where it went on before.
+
+---
+
 ## [0.29.0] - 2026-10-29
 
 ### Added — specforge EVA from a sibling directory
