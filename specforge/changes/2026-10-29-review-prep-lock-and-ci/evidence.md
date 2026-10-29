@@ -26,3 +26,7 @@
   - **Fix round after review.** Tests 6 and 7, with the budget raised by the human.
   - **Fix-round loop.** Iterations 8-10, 3 of 3 tasks, exit 0. Cumulative cost 2.73 USD (`loop-runs.txt`, 10 lines). All 44 v2 suites pass, and `pnpm test` passes 514 of 514.
   - **Re-verification 1 (BLOCK).** S1, S2 and N1 were fixed. The blocker was this report's replay attribution, now corrected above, and Ran now lists both loop runs. A nit is accepted as debt: the agent's `progress.md` log says 46 suites, where `v2-ci.yml` lists 44.
+  - **Re-verification 2 (PASS).** B1 and S4 were fixed, and N4 is confirmed as debt.
+    - The human confirmed the lock entry added for `scripts/review_prep_lock_ci_fix_test.py`. This change's own check (a) reported it, the first time the check fired.
+    - A nit, fixed here: the replay also prints an (a) line for that same entry. It has the same cause as the replay's specforge line: the replay's range reaches today's HEAD.
+  - **Compose, written by the lead.** The review-skill line.
