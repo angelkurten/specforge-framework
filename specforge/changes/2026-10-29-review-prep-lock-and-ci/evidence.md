@@ -2,7 +2,7 @@
 
 - **Ran**:
   - The three premise commands, by hand, before Red.
-  - `python3 specforge/scripts/loop.py specforge/changes/2026-10-29-review-prep-lock-and-ci`, once, with `claude -p --output-format json --model sonnet --permission-mode acceptEdits` and `--allowedTools=Bash(python3 *),Bash(git diff *),Bash(git status *),Bash(git log *)`.
+  - `python3 specforge/scripts/loop.py specforge/changes/2026-10-29-review-prep-lock-and-ci`, twice: the first run, then the fix round, with `claude -p --output-format json --model sonnet --permission-mode acceptEdits` and `--allowedTools=Bash(python3 *),Bash(git diff *),Bash(git status *),Bash(git log *)`.
   - Every suite in `.github/workflows/v2-ci.yml`.
   - In `tools/cli`: `pnpm run build && pnpm run prepublish && pnpm test`.
   - A replay on a real record: `review_prep.py specforge/changes/archive/2026-10-27-team-stats --base 0fd92fd --repo ../specforge-pilot --repo-base 82a31b5 --repo ../teamtasks-web --repo-base 24fa026`.
@@ -14,7 +14,8 @@
   - **Replay.**
     - (a) reports `../teamtasks-web/tests/page.test.mjs` as added after the first approval. Change `2026-10-27-team-stats`'s review found that only by hand.
     - (b) reports that team-stats' CI field names its first run's sibling commits (`0b42b02`, `36f5610`), not the fix round's (`92586cf`, `33ef266`). Those were written further down the report.
-    - (b) also reported a specforge commit. The lead first blamed replaying against today's HEAD. Review traced it to the tool: an archive move and earlier change-folder commits counted as code (should-fix, fix round test 6). The recorded SHA `e5d103b` also came from a run before `8419f0f` was committed.
+    - (b) also reports a specforge commit. The cause is the replay itself: the range `0fd92fd..HEAD` holds later changes' commits, this one's included, and Scope (b) counts those as code. It is not a defect of the team-stats record. The re-verification confirmed this by re-running the replay with S1 fixed: it still reports the HEAD commit.
+    - The first review had traced this line to S1, the archive-move defect. S1 was real and is fixed by test 6, but it does not explain this line. The recorded SHA `e5d103b` came from a run made before `8419f0f` was committed.
 - **CI**:
   - On `8419f0f`, before the review: `v2-ci` run 40926310243 and `cli-ci` run 40926310337, both success.
   - On `3c599a1`, the last code commit after the fix round, pushed alone: `v2-ci` run 40933600390 and `cli-ci` run 40933600297, both success.
@@ -24,3 +25,4 @@
   - **Tests that pass without the change.** Test 4, and the second half of test 2, pass without it, on purpose. They guard against flagging fake hex and change-folder commits, and against reporting a single approval.
   - **Fix round after review.** Tests 6 and 7, with the budget raised by the human.
   - **Fix-round loop.** Iterations 8-10, 3 of 3 tasks, exit 0. Cumulative cost 2.73 USD (`loop-runs.txt`, 10 lines). All 44 v2 suites pass, and `pnpm test` passes 514 of 514.
+  - **Re-verification 1 (BLOCK).** S1, S2 and N1 were fixed. The blocker was this report's replay attribution, now corrected above, and Ran now lists both loop runs. A nit is accepted as debt: the agent's `progress.md` log says 46 suites, where `v2-ci.yml` lists 44.
