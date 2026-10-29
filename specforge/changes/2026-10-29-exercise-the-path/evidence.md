@@ -1,0 +1,19 @@
+## Evidence
+
+- **Ran**:
+  - The two premise commands, by hand, before Red.
+  - `python3 specforge/scripts/loop.py specforge/changes/2026-10-29-exercise-the-path`, once, with `claude -p --output-format json --model sonnet --permission-mode acceptEdits` and `--allowedTools=Bash(python3 *),Bash(git diff *),Bash(git status *),Bash(git log *)`.
+  - Every suite in `.github/workflows/v2-ci.yml`.
+  - In `tools/cli`: `pnpm run build && pnpm run prepublish && pnpm test`.
+- **Result**:
+  - **Premises.** Both hold.
+  - **Loop.** 5 iterations, 5/5 tasks, exit 0. Cost 1.56 USD (`loop-runs.txt`, 5 lines).
+  - **Suites.** All 45 v2 suites pass.
+  - **CLI.** `pnpm test` passes 514 of 514.
+- **Exercised**: none — this change edits rules, a template and a decision, and has no page, command or route to run.
+- **CI**: on `d398d85`, the last code commit, pushed alone: `v2-ci` run 40944121536 and `cli-ci` run 40944121648, both success.
+- **Not checked**:
+  - Whether the new rule catches the next user-visible defect. Only a later change can show that.
+- **Deviations from the contract**:
+  - **Written by the lead.** The review skill's new step 2 (`.claude/` is closed to the loop). It renumbers the later steps 2-4 to 3-5.
+  - **CI file.** `.github/workflows/v2-ci.yml` gained `exercise_path_test`, which Scope did not declare.
