@@ -13,7 +13,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow 
 ### Added — evidence that exercises the user-visible path
 
 - **`review_prep.py`** reports two new should-fix findings: a lock entry added after the first approval, and a CI field that names a commit but not each repository's last code commit.
-- **`templates/evidence-report.md`** gains an `Exercised` field: the user-visible path (a page, a CLI command, an HTTP route another repository calls) run against the real system, or `none — <why>`. In `specforge/core/review.md`, a change with such a path gets a blocker when the line is missing, when it says `none`, or when the path sits under Not checked. The review skill's new step 2 has the lead run the path before dispatching the reviewer. The decision is in `specforge/DECISIONS.md`, 2026-10-29.
+- **`templates/evidence-report.md`** gains an `Exercised` field: the user-visible path (a page, a CLI command, an HTTP route another repository calls) run against the real system, or `none — <why>`. In `specforge/core/review.md`, a change that has such a path gets a blocker when the line is missing, when it says `none` anyway, or when the path sits under Not checked. The review skill's new step 2 has the lead run the path before dispatching the reviewer; the old steps 2-4 are now 3-5. The decision is recorded in the specforge repository's own `specforge/DECISIONS.md` (2026-10-29), which the CLI does not install, since that file is team data.
+- **`specforge-review` skill**: a reviewer's diagnosis enters the evidence only after the lead re-runs the command that shows it.
 
 ### Changed — reviewer and classify
 
