@@ -58,7 +58,7 @@ Out:
 
 ## Premises
 
-- Only release_0_28_0_test's first two tests fail on a bump — `python3 scripts/release_0_28_0_test.py` in the bumped scratch clone → holds
+- Only release_0_28_0_test's first two tests fail on a bump, run in the bumped scratch clone — `python3 scripts/release_0_28_0_test.py` → holds
 - Trusted Publishing is configured, since 0.28.0 published through it — `npm view @angelkurten/specforge@0.28.0 dist.attestations.provenance.predicateType` → holds
 - No migration is needed, because team data is unchanged — `git diff --stat v0.28.0..HEAD -- tools/cli/migrations` → holds
 
