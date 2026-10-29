@@ -15,3 +15,5 @@ iteration 14 usd 0.0946
 iteration 15 usd 0.0962
 iteration 16 usd 0.2015
 iteration 17 usd 0.4387
+iteration 18 usd 0.3929
+iteration 19 usd 0.3801

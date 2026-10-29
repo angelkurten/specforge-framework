@@ -12,8 +12,8 @@
 - [x] ../teamtasks-web/tests/stats.test.mjs 6 renderStats shows the total and each status with its count, in API order, escaped
 - [x] ../teamtasks-web/tests/stats.test.mjs 7 the entry point hands the parsed hash to loadTeamPage
 - [x] ../teamtasks-web/tests/page.test.mjs 8a/8b/8c loadTeamPage: team then counts; stats failure still shows the team; team failure rejects
-- [ ] every backend test passes: `uv run --directory ../specforge-pilot --offline pytest -q`
-- [ ] every frontend test passes: `node --test ../teamtasks-web/tests/*.test.mjs`
+- [x] every backend test passes: `uv run --directory ../specforge-pilot --offline pytest -q`
+- [x] every frontend test passes: `node --test ../teamtasks-web/tests/*.test.mjs`
 
 ## Blocked
 
@@ -37,3 +37,5 @@
 - Iter 13: main.mjs now only wires parseTeamId(location.hash) to loadTeamPage (../teamtasks-web/src/main.mjs; page.mjs is the next task); ran `node --test --test-name-pattern="^7 " tests/stats.test.mjs` in ../teamtasks-web -> 1 passed, 0 failed; route.test.mjs and team.test.mjs still green.
 - Iter 14: added ../teamtasks-web/src/page.mjs `loadTeamPage` (awaits getTeam, stats failure caught into `<p>Stats unavailable</p>`); ran `node --test ../teamtasks-web/tests/page.test.mjs` -> 3 passed, 0 failed.
 - Lead: the BLOCKED line (pytest hanging in the agent's environment) was cleared by the human. With no stray processes, the lead ran `uv run --directory ../specforge-pilot --offline pytest -q`: 196 passed in 72 s. The run fell inside a period when the session was paused at its usage limit. Left: both `docs/SYSTEM_ARTIFACT.md` files to the list shape of `by_status` (backend: the `/stats` row; frontend: the `getTeamStats` line and the page row, plus `loadTeamPage`), then the two full suites. The backend suite takes about 70 s; let it finish.
+- Iter 15: ran `uv run --directory ../specforge-pilot --offline pytest -q` from specforge -> 196 passed, 0 failed in 100.80 s.
+- Iter 16: ran `node --test ../teamtasks-web/tests/*.test.mjs` from specforge -> 14 tests, 14 passed, 0 failed.
