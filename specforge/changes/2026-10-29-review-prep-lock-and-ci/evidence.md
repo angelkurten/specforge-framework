@@ -1,0 +1,21 @@
+## Evidence
+
+- **Ran**:
+  - The three premise commands, by hand, before Red.
+  - `python3 specforge/scripts/loop.py specforge/changes/2026-10-29-review-prep-lock-and-ci`, once, with `claude -p --output-format json --model sonnet --permission-mode acceptEdits` and `--allowedTools=Bash(python3 *),Bash(git diff *),Bash(git status *),Bash(git log *)`.
+  - Every suite in `.github/workflows/v2-ci.yml`.
+  - In `tools/cli`: `pnpm run build && pnpm run prepublish && pnpm test`.
+  - A replay on a real record: `review_prep.py specforge/changes/archive/2026-10-27-team-stats --base 0fd92fd --repo ../specforge-pilot --repo-base 82a31b5 --repo ../teamtasks-web --repo-base 24fa026`.
+- **Result**:
+  - **Premises.** All three hold.
+  - **Loop.** 7 iterations, 6/6 tasks, exit 0. Cost 1.69 USD (`loop-runs.txt`, 7 lines).
+  - **Suites.** All 44 v2 suites pass.
+  - **CLI.** `pnpm test` passes 514 of 514.
+  - **Replay.**
+    - (a) reports `../teamtasks-web/tests/page.test.mjs` as added after the first approval. Change `2026-10-27-team-stats`'s review found that only by hand.
+    - (b) reports that team-stats' CI field names its first run's sibling commits (`0b42b02`, `36f5610`), not the fix round's (`92586cf`, `33ef266`). Those were written further down the report.
+    - (b) also reports specforge's `e5d103b`. That one is an artifact of replaying an archived change against today's HEAD, not a defect of that record.
+- **CI**: on `8419f0f`, the last code commit, pushed alone: `v2-ci` run 40926310243 and `cli-ci` run 40926310337, both success.
+- **Not checked**:
+  - A CI field that names a commit only in a nested sub-bullet beyond the field's own block. The field is read as `evidence_findings` reads it.
+- **Deviations from the contract**: none.
