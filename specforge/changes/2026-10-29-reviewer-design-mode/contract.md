@@ -49,7 +49,7 @@ Out:
 ## Constraints
 
 - `review.md` stays one rule file the reviewer reads whole; the new section stays under 25 lines.
-- No test in `v2-ci.yml` other than test_3 changes. All 48 suites pass.
+- No test in `v2-ci.yml` other than test_3 changes. All 48 suites pass, 49 after the fix round (corrected at compose).
 
 ## Premises
 

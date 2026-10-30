@@ -149,3 +149,10 @@ Append-only log of decisions with future value. Shape: [`templates/decision-log.
 **Decision**: `specforge-reviewer` gains `Mode: design` with a `Perspective` (backend, security, quality); `review.md` § Design mode defines what each reads and checks, and `modes.md` § Design panel dispatches it once per perspective. The plan to retire v1 is revised from four changes to five changes: 1 `update` removes declared retired files; 2 this design mode; 3 the file swap (a v2 `CLAUDE.md`, a short unscoped rule, v1 files out of the repo and the bundle); 4 v1 validators out of `doctor`; 5 release 1.0.0.
 **Rejected**: a separate design report format (the report follows § Report); keeping three v1 agents only for the panel.
 **Revisit if**: the design mode's findings are routinely ignored before Red, or a perspective needs a report shape § Report cannot carry.
+
+## 2026-10-29 — The design mode is required before Red in Controlled mode
+
+**Context**: the first real dispatch of `specforge-reviewer` in its design mode (backend perspective) ran against the shipped contract of change `2026-10-29-update-removes-retired`, a Controlled change that had skipped the optional panel. It found a blocker that the post-code review and two re-verifications had missed: an `update` that exits 10 after refreshing files leaves a manifest that makes the next run halt on drift.
+**Decision**: in Controlled mode the lead dispatches the design mode before Red, once per perspective (backend, security, quality), and puts the findings into the contract. It stays optional for a high-risk Contract change.
+**Rejected**: keeping it optional everywhere, since the one Controlled change that skipped it shipped a blocker; making it required for every high-risk Contract change too, which would bring back v1's draft-panel cost on most changes.
+**Revisit if**: three Controlled changes in a row get no blocker or should-fix from it.

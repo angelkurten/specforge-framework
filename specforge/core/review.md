@@ -38,7 +38,7 @@ The checklist comes from the blind audit of the pilot (`../specforge-pilot/specf
 
 ## Design mode
 
-Optional, before Red, for a high-risk change that touches design (schema, migration, an invariant across routes). The lead dispatches `specforge-reviewer` with `Mode: design`, one `Perspective` and a `Contract:` field holding the path to the contract, once per perspective. The reviewer reads the contract and the code it names, with no diff and no evidence.
+Before Red: required in Controlled mode, optional for a high-risk Contract change that touches design (schema, migration, an invariant across routes). The lead dispatches `specforge-reviewer` with `Mode: design`, one `Perspective` and a `Contract:` field holding the path to the contract, once per perspective. The reviewer reads the contract and the code it names, with no diff and no evidence.
 
 - **backend**: the data model, migration and rollback, public-contract compatibility, and invariants across routes.
 - **security**: the security checklist above.
