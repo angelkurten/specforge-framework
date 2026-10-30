@@ -25,7 +25,7 @@
   - **Fix round 2**, same variant built from `ee21b70`, on a fresh 0.30.0 install with `examples/system-artifact-example.md` set to mode 000:
     - `update --dry-run` exited 0 and printed `remove  examples/prd-001-login-example.md`, `error   examples/system-artifact-example.md (EACCES)` and `… 1 retired removed, 0 retired kept`.
     - `update` exited 10 with `error: I/O error during update: EACCES: permission denied, open '…/examples/system-artifact-example.md'`.
-- **CI**: on `ee21b70`, the last code commit (fix round 2), pushed alone: `v2-ci` run 40997133311 and `cli-ci` run 40997133332, both success. On `3a9fad7`: `v2-ci` 40996435669 and `cli-ci` 40996435737. On `dc72e78`: `v2-ci` 40993405063 and `cli-ci` 40993405049, both success.
+- **CI**: on `9c14c29`, the last code commit (the compose instructions), pushed alone: `v2-ci` run 40997744211 and `cli-ci` run 40997744115, both success. On `ee21b70` (fix round 2), pushed alone: `v2-ci` run 40997133311 and `cli-ci` run 40997133332, both success. On `3a9fad7`: `v2-ci` 40996435669 and `cli-ci` 40996435737. On `dc72e78`: `v2-ci` 40993405063 and `cli-ci` 40993405049, both success.
 - **Not checked**:
   - An I/O error midway through the removals. The manifest is written after them, so a re-run sees the same set; no test covers it.
 - **Deviations from the contract**:
@@ -39,3 +39,4 @@
     - **Nits, accepted.** `isTeamData` is a one-line export outside Scope's list. The locked test's `exists("")` cannot fail. Scenario 4 checks one file rather than the whole disk.
   - **Lead nit.** A missing space in `export type Classification ="framework"` was fixed by hand before the code commit.
   - **Design changed before locking**, approved by the human: removal is limited to declared files (`RETIRED_FILES`). See Approvals and `specforge/DECISIONS.md`.
+  - **Re-verification 2 (PASS).** S2, N4 and N5 were fixed. The reviewer judged the non-atomic exit-10 run consistent with the Constraints: nothing rolls back, the manifest is unchanged, and a re-run sees the same set. One nit is accepted as debt: an error with no `code` would print `(undefined)`.
