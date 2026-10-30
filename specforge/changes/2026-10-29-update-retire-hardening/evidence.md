@@ -1,0 +1,43 @@
+## Evidence
+
+- **Ran**:
+  - **Design mode before Red**, required in Controlled mode: `specforge-reviewer` with `Mode: design` and `Contract:`, once per perspective (backend, security, quality).
+    - Round 0: BLOCK from all three, 3 blockers.
+    - Round 1: security and backend PASS, quality BLOCK on the hard-link scenario.
+    - Round 2: PASS from all three.
+    - The should-fixes and nits were applied to the contract before Red; see Approvals.
+  - The premise commands, by hand.
+  - The 9 red tests against a draft in a scratch clone, before locking: 540/540 and `tsc` clean, scenario 3 run on macOS. The clone was deleted.
+  - `python3 specforge/scripts/loop.py specforge/changes/2026-10-29-update-retire-hardening --max-iterations 16 --max-cost 7`, twice, with `claude -p --output-format json --model sonnet --permission-mode acceptEdits` and `--allowedTools=Bash(python3 *),Bash(git diff *),Bash(git status *),Bash(git log *),Bash(pnpm --dir tools/cli exec vitest *),Bash(pnpm --dir tools/cli test),Bash(pnpm --dir tools/cli exec tsc *)`.
+  - By the lead: `pnpm test` and `tsc` in `tools/cli`, and every suite in `v2-ci.yml`.
+- **Result**:
+  - **Premises.** Both hold.
+  - **Red.** All 9 failed on `1d5a535`: scenarios 5 and 6 by a 10 s timeout on a FIFO, the rest by assertion. The suite did not hang, because each test opens a FIFO's write end in `afterEach`.
+  - **Loop.**
+    - Run 1: 11 iterations, 11/11 tasks, 2.88 USD.
+    - After run 1, the lead found that the Scope's re-check just before each unlink was missing, along with escaping in the exit-10 message and the `same file as` name. The lead added two tasks to `progress.md`.
+    - Run 2: 2 more iterations, 13/13 tasks, exit 0, 3.73 USD cumulative (`loop-runs.txt`).
+  - **CLI.** 540 of 540 pass, scenario 3 run on this macOS (case-insensitive APFS). `tsc` is clean.
+  - **Suites.** All 49 v2 suites pass.
+  - **Mutation sample (Controlled), run by the lead** on `update.ts` at `05c75ee` in a scratch clone. It ran against `update-retire-hardening.test.ts`, the three locked `update-retire*` files and `doctor.test.ts`, 44 tests. 7 of 8 mutants were killed:
+    - drop the `dev`+`ino` check (2 tests fail);
+    - drop the ancestor walk (1);
+    - drop the lexical check (1);
+    - drop `O_NONBLOCK` (1);
+    - make an unlink error fatal (1);
+    - print `kept` through `info` (1);
+    - drop the path escaping (1).
+    - The survivor is dropping the re-check just before the unlink. The contract records that no deterministic scenario can open that window.
+- **Exercised**: a real CLI variant built from `05c75ee` in a scratch clone, with `examples/**` moved to `RETIRED_FILES` and the version at 0.31.0, packed with `/opt/homebrew/bin/npm pack`. It ran over a repo initialised with the registry's 0.30.0 and committed.
+  - **Restart.** `examples/system-artifact-example.md` was replaced by a directory. `update` exited 10 with `error: cannot read retired file examples/system-artifact-example.md (EISDIR)` and a remediation ending `nothing was written`. `CLAUDE.md` and `.specforge/manifest.json` stayed byte-identical. With the file restored, the next `update` exited 0, printed `remove` for both examples and `update complete: 6 files refreshed, 0 drifted (strategy: none), 2 retired removed, 0 retired kept`.
+  - **Recovery.** `git checkout HEAD -- examples/prd-001-login-example.md` brought the file back. The next `update` exited 0 with `0 retired removed, 0 retired kept`, and the file was still there.
+  - **Case alias.** Exercised by scenario 3 against this machine's real case-insensitive APFS, not through the packed binary: the variant ships no case-renamed path.
+  - The clone was deleted.
+- **CI**: on `05c75ee`, the last code commit: `v2-ci` run 41004522479 and `cli-ci` run 41004522485, both success. It was pushed together with the run-1 commit `2a8e1d9`; CI ran on the tip, which is the last code commit. On both Node versions the CI log prints `DEVIATION: case-sensitive filesystem; scenario 3 did not run`, as the human accepted. Scenario 7 ran in CI, which is not uid 0.
+- **Not checked**:
+  - The re-check just before each unlink. It is read in the code and is the one mutation-sample survivor; no deterministic scenario opens the race.
+  - A Unicode-normalization alias (NFC against NFD). It rests on the same `dev`+`ino` mechanism as the case alias.
+  - Windows (NTFS file IDs, `EBUSY`).
+- **Deviations from the contract**:
+  - **Tasks added by the lead after loop run 1**: the unlink re-check and escaping two more printed paths, both in Scope.
+  - **`bundleIds` uses `fs.stat`**, which follows a link, not `lstat`. A bundle path that is a symlink to a retired file therefore protects that file. That is the safer side.
