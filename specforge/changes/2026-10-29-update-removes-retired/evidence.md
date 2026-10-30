@@ -1,0 +1,26 @@
+## Evidence
+
+- **Ran**:
+  - The two premise commands, by hand, before Red.
+  - The 8 red tests against a draft in a scratch clone before locking: 523/523, and `tsc` clean. The clone was deleted.
+  - `python3 specforge/scripts/loop.py specforge/changes/2026-10-29-update-removes-retired --max-iterations 10 --max-cost 4`, once, with `claude -p --output-format json --model sonnet --permission-mode acceptEdits` and `--allowedTools=Bash(python3 *),Bash(git diff *),Bash(git status *),Bash(git log *),Bash(pnpm --dir tools/cli exec vitest *),Bash(pnpm --dir tools/cli test),Bash(pnpm --dir tools/cli exec tsc *)`.
+  - By the lead after the loop: `pnpm test` and `pnpm exec tsc -p tsconfig.json --noEmit` in `tools/cli`.
+- **Result**:
+  - **Premises.** Both hold.
+  - **Red.** All 8 tests failed on `9083554`, because `update` neither removes nor reports anything.
+  - **Loop.** 7 iterations, 7/7 tasks, exit 0. Cost 1.67 USD (`loop-runs.txt`).
+  - **CLI.** 523 of 523 pass. That includes both `doctor.test.ts` tests that pin undeclared paths, the pre-0.10 one and PRD-006 row 9. `tsc` is clean.
+- **Exercised**: the real CLI binary, `update` path. With `RETIRED_FILES` empty, the shipped code removes nothing, so the lead built a variant in a scratch clone of `dc72e78`: `examples/**` moved from `FRAMEWORK_FILES` to `RETIRED_FILES`, and the version bumped to 0.31.0. It was packed with `/opt/homebrew/bin/npm pack` (328 files, no `examples/`).
+  - A repo initialised with the registry's 0.30.0 tarball was committed. Then the team appended a line to `examples/system-artifact-example.md`.
+  - **Dry run.** `node <0.31.0>/dist/src/cli.js update --dry-run --strategy=theirs` printed `remove  examples/prd-001-login-example.md` and `kept    examples/system-artifact-example.md (edited; retired from the framework, no longer tracked)`. It wrote nothing.
+  - **Update.** `update` printed the same two lines and `update complete: 1 files refreshed, 0 drifted (strategy: none), 1 retired removed, 1 retired kept`, then exited 0.
+  - **After.** `examples/` holds only the edited file. The manifest has no `examples` entry, and `version` reports 0.31.0 installed. `doctor` exits 0, with only the expected lock-guard-registration warning.
+  - The clone was deleted.
+- **CI**: on `dc72e78`, the last code commit, pushed alone: `v2-ci` run 40993405063 and `cli-ci` run 40993405049, both success.
+- **Not checked**:
+  - A retired path that is a symlink. `safeUnlink` refuses it, and the error reaches the exit-10 path; no test covers it.
+  - An I/O error midway through the removals. The manifest is written after them, so a re-run sees the same set; no test covers it.
+- **Deviations from the contract**:
+  - **Dry-run summary.** The dry-run summary line does not gain the `retired removed / retired kept` counts. Only the real run's does, though Scope lists the summary next to the dry-run. Scenario 4 checks only the `remove` and `kept` lines.
+  - **Lead nit.** A missing space in `export type Classification ="framework"` was fixed by hand before the code commit.
+  - **Design changed before locking**, approved by the human: removal is limited to declared files (`RETIRED_FILES`). See Approvals and `specforge/DECISIONS.md`.
