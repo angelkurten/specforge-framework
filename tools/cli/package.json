@@ -23,7 +23,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && tsc -p tsconfig.scripts.json",
+    "build": "node -e \"for (const d of ['dist', 'dist-scripts']) require('fs').rmSync(d, { recursive: true, force: true })\" && tsc -p tsconfig.json && tsc -p tsconfig.scripts.json",
     "prepack": "npm run build && npm run prepublish",
     "prepublish": "node dist-scripts/scripts/prepublish.js",
     "prepublishOnly": "npm run build && npm run prepublish",
