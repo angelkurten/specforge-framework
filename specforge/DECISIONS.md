@@ -163,3 +163,10 @@ Append-only log of decisions with future value. Shape: [`templates/decision-log.
 **Decision**: four choices. (1) Recovery of a retired file is `git restore`, `git checkout <commit> -- <path>` or the previous package, documented in `docs/migration-v1-to-v2.md`; `init --force` is not a recovery. (2) No git-tree guard on `update`'s removal: the removed bytes equal the install bytes, which are in the package and in git. (3) `RETIRED_FILES` is append-only across releases. (4) One accepted gap: an edit saved, or an ancestor swapped for a link, between the last re-check and the unlink; the re-check narrows the window but cannot close it, since the check is path-based.
 **Rejected**: `init --force` as recovery (downgrades the install); a git guard (more mechanism for bytes that are already recoverable).
 **Revisit if**: an adopter loses an edit to the accepted gap.
+
+## 2026-10-30 — Lock checks move from instructions to scripts
+
+**Context**: in change `2026-10-29-update-retire-hardening` the file tool decoded a typed `‮` into the literal character in a test that was then locked. The loop skill's instruction to scan for category Cf before approval was skipped. `review_prep.py` reported the characters, but it did not report the test's re-approval: the lock's first version was inside the range, not at the base, so the hash change went unreported.
+**Decision**: a small change, `lock-checks`, runs before the v1 file swap. It makes `lock_tests.py approve` refuse a file holding a Cf character, and makes `review_prep.py` report a hash that changes between a lock's first version in the range and HEAD.
+**Rejected**: keeping the instruction alone, which this change shows can be skipped.
+**Revisit if**: a legitimate test needs a literal Cf character; it can then be written as an escape.

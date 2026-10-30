@@ -17,8 +17,8 @@
     - Run 1: 11 iterations, 11/11 tasks, 2.88 USD.
     - After run 1, the lead found that the Scope's re-check just before each unlink was missing, along with escaping in the exit-10 message and the `same file as` name. The lead added two tasks to `progress.md`.
     - Run 2: 2 more iterations, 13/13 tasks, exit 0, 3.73 USD cumulative.
-    - Fix round 1, after review: 2 more iterations, 15/15 tasks, exit 0, 4.55 USD cumulative.
-    - Fix round 2, after re-verification: 1 more iteration, 16/16 tasks, exit 0, 4.97 USD cumulative (`loop-runs.txt`). Its test failed on `eba4248`, on the summary line, and a draft passed 543/543 first. Its 2 tests failed on the code at `ba9f43b`, and a draft passed 542/542 and `tsc` first.
+    - Fix round 1, after review: 2 more iterations, 15/15 tasks, exit 0, 4.55 USD cumulative. Its 2 tests failed on the code at `ba9f43b`, and a draft passed 542/542 and `tsc` first.
+    - Fix round 2, after re-verification: 1 more iteration, 16/16 tasks, exit 0, 4.97 USD cumulative (`loop-runs.txt`). Its test failed on `eba4248`, on the summary line, and a draft passed 543/543 first.
   - **CLI.** 543 of 543 pass after fix round 2 (542 after round 1, 540 before), scenario 3 run on this macOS (case-insensitive APFS). `tsc` is clean.
   - **Suites.** All 49 v2 suites pass.
   - **Mutation sample (Controlled), run by the lead** on `update.ts` at `05c75ee` in a scratch clone. It ran against `update-retire-hardening.test.ts`, the three locked `update-retire*` files and `doctor.test.ts`, 44 tests. 7 of 8 mutants were killed:
@@ -40,7 +40,7 @@
     - `update --strategy=theirs` exited 0 with the same two lines and `… 0 retired removed, 1 retired kept`.
     - On disk afterwards is `PRD-001-login-example.md`, whose sha256 (`3683f3bbe05e…`) equals the bundle's.
   - The clone was deleted.
-- **CI**: on `d57348c`, the last code commit (fix round 2), pushed alone: `v2-ci` run 41104698329 and `cli-ci` run 41104698352, both success. On `7806824` (fix round 1), pushed alone: `v2-ci` run 41006054229 and `cli-ci` run 41006054030, both success. On `ba9f43b` (the re-approved test), pushed alone: `v2-ci` run 41004939075 and `cli-ci` run 41004939033, both success. On `05c75ee`, the last code commit in `src/`: `v2-ci` run 41004522479 and `cli-ci` run 41004522485, both success. It was pushed together with the run-1 commit `d4850ff`; CI ran on the tip, which is the last code commit. On both Node versions the CI log prints `DEVIATION: case-sensitive filesystem; scenario 3 did not run`, as the human accepted. Scenario 7 ran in CI, which is not uid 0.
+- **CI**: on `475b797`, the last code commit (the compose line in `review.md`), pushed alone: `v2-ci` run 41106569565 and `cli-ci` run 41106569598, both success. On `d57348c` (fix round 2), pushed alone: `v2-ci` run 41104698329 and `cli-ci` run 41104698352, both success. On `7806824` (fix round 1), pushed alone: `v2-ci` run 41006054229 and `cli-ci` run 41006054030, both success. On `ba9f43b` (the re-approved test), pushed alone: `v2-ci` run 41004939075 and `cli-ci` run 41004939033, both success. On `05c75ee`, the last code commit in `src/`: `v2-ci` run 41004522479 and `cli-ci` run 41004522485, both success. It was pushed together with the run-1 commit `d4850ff`; CI ran on the tip, which is the last code commit. On both Node versions the CI log prints `DEVIATION: case-sensitive filesystem; scenario 3 did not run`, as the human accepted. Scenario 7 ran in CI, which is not uid 0.
 - **Not checked**:
   - The re-check just before each unlink. It is read in the code and is the one mutation-sample survivor; no deterministic scenario opens the race.
   - A Unicode-normalization alias (NFC against NFD). It rests on the same `dev`+`ino` mechanism as the case alias.
@@ -60,3 +60,4 @@
       - The lock hash changed in range unreported by `review_prep` (the lock's first version is inside the range, not at the base): recorded, the script gap goes to compose.
   - **Dry run on an unreadable bundle identity** prints the `error` line and the usual summary with `retired files not checked`, exits 0, and does not list retired files. Scenario 12 (fix round 2) pins it, after the re-verification raised it as a should-fix.
   - **Re-verification (PASS, one should-fix).** All six round-1 findings were fixed. The should-fix was the dry-run half of scenario 11, fixed in fix round 2.
+  - **Re-verification 2 (PASS).** S2 was fixed. Two nits: the round-2 bullet carried round 1's last sentence, now moved back. The other is accepted as debt: test 12 does not assert `retired files not checked`, so a mutant printing `0 retired removed, 0 retired kept` there would pass. The test is locked, and this was the last round.
