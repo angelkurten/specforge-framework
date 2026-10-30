@@ -219,7 +219,7 @@ export async function runUpdate(opts: UpdateOptions): Promise<number> {
     const ids = await bundleIds(opts.cwd, bundleHashes.keys());
     if (!(ids instanceof Map)) {
       summary(opts, `  error   ${esc(ids.rel)} (${ids.code})`);
-      summary(opts, "dry-run: bundle path identity unreadable; retired files not checked");
+      summary(opts, `dry-run: ${toUpdate.length} updates, ${drifted.length} drifted (strategy: ${opts.strategy ?? "halt"}), retired files not checked`);
       return 0;
     }
     for (const rel of retiredRels) {

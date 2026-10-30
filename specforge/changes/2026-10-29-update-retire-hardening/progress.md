@@ -19,7 +19,7 @@
 - [x] escape the path everywhere it is printed: `esc(rel)` in the exit-10 `printError` message and remediation, and `esc(twin)` in the `same file as` reason. Keep all 540 tests green and tsc clean.
 - [x] tools/cli/tests/integration/update-retire-hardening-fix.test.ts 10 a socket at a retired path is kept and never opened (branch on lstat's type before any open; also add O_NOFOLLOW to the open)
 - [x] tools/cli/tests/integration/update-retire-hardening-fix.test.ts 11 a bundle path whose identity cannot be read stops a real run before any write (bundleIds ignores only ENOENT; the dry run prints an error line and exits 0); and in docs/migration-v1-to-v2.md the "Getting a retired file back" note says this behaviour ships from 1.0.0. Keep all 542 tests green and tsc clean.
-- [ ] tools/cli/tests/integration/update-retire-hardening-fix2.test.ts 12 a dry run with an unreadable bundle identity prints the error line and the usual `dry-run: <n> updates, <m> drifted (strategy: …)` summary with `, retired files not checked`, exits 0, writes nothing. Keep all 543 tests green and tsc clean.
+- [x] tools/cli/tests/integration/update-retire-hardening-fix2.test.ts 12 a dry run with an unreadable bundle identity prints the error line and the usual `dry-run: <n> updates, <m> drifted (strategy: …)` summary with `, retired files not checked`, exits 0, writes nothing. Keep all 543 tests green and tsc clean.
 
 ## Blocked
 
@@ -39,3 +39,4 @@
 - Task 13: `esc(rel)` now in the exit-10 `printError` message and remediation, and `esc(twin)` in the `same file as` reason. `pnpm --dir tools/cli test` 540/540, `tsc --noEmit` exit 0, locked test hash OK.
 - Task 14: `classifyRetired` keeps any non-file, non-directory `lstat` type as `not a regular file; not read` before the open, and the open adds `O_NOFOLLOW`. `vitest run tests/integration/update-retire`: 26/27 (scenario 10 passes; the one failure is scenario 11, task 15); `tsc --noEmit` exit 0; locked test hashes match.
 - Task 15: `bundleIds` ignores only `ENOENT` and returns the failing path; the real run exits 10 naming it before any write, the dry run prints an `error` line and exits 0; the migration note says the behaviour ships from 1.0.0. `pnpm --dir tools/cli test` 542/542, `tsc --noEmit` exit 0, locked test hashes OK.
+- Task 16: the dry run with an unreadable bundle identity now prints the usual `dry-run: <n> updates, <m> drifted (strategy: …)` line with `, retired files not checked` after the error line, and exits 0. `pnpm --dir tools/cli test` 543/543, `tsc --noEmit` exit 0, locked test hashes OK.
