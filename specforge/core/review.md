@@ -1,6 +1,6 @@
 # Review
 
-After the loop finishes, a reviewer that did not write the change looks for ways it breaks its contract. Its job is to find failures, not to confirm the work. Independence comes from a clean context: same model, no memory of writing the code.
+After the loop finishes, a reviewer that did not write the change looks for ways it breaks its contract. Its job is to find failures, not to confirm the work. Independence comes from a clean context: same model, no memory of writing the code. A second moment, the Design mode (below), reviews a high-risk contract before Red, with no diff to read.
 
 ## Two halves
 
@@ -38,13 +38,13 @@ The checklist comes from the blind audit of the pilot (`../specforge-pilot/specf
 
 ## Design mode
 
-Optional, before Red, for a high-risk change that touches design (schema, migration, an invariant across routes). The lead dispatches `specforge-reviewer` with `Mode: design` and one `Perspective`, once per perspective. The reviewer reads the contract and the code it names, with no diff and no evidence.
+Optional, before Red, for a high-risk change that touches design (schema, migration, an invariant across routes). The lead dispatches `specforge-reviewer` with `Mode: design`, one `Perspective` and a `Contract:` field holding the path to the contract, once per perspective. The reviewer reads the contract and the code it names, with no diff and no evidence.
 
 - **backend**: the data model, migration and rollback, public-contract compatibility, and invariants across routes.
 - **security**: the security checklist above.
 - **quality**: every Scope item has an Acceptance scenario that would fail without it, premises are checkable, and the edge checklist holds.
 
-The report follows § Report, with each `file:line` pointing into the contract or the code it names. The lead puts the findings into the contract before Red.
+The report follows § Report, with each `file:line` pointing into the contract or the code it names. `CHECKED` lists the items of the perspective the reviewer ran, one line each. The lead puts the findings into the contract before Red.
 
 ## Report
 

@@ -6,3 +6,6 @@ iteration 5 usd 0.3651
 iteration 6 usd 0.4024
 iteration 7 usd 0.3615
 iteration 8 usd 0.0991
+iteration 9 usd 0.3857
+iteration 10 usd 0.3719
+iteration 11 usd 0.2525

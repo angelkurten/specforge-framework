@@ -12,9 +12,9 @@
 - [x] scripts/design_mode_test.py test_6_decisions_records_the_design_mode_and_the_five_changes
 - [x] scripts/v2_adjustments_test.py passes (test_3 already edited by the lead; do not edit it)
 - [x] `design_mode_test` is in `.github/workflows/v2-ci.yml`, and every suite listed there passes
-- [ ] scripts/design_mode_fix_test.py test_7 and test_10 (modes.md and review.md: the `Contract:` field; what CHECKED lists)
-- [ ] scripts/design_mode_fix_test.py test_8 (the reviewer's step 3, written by the lead; just confirm it passes) and test_9 (review.md's opening paragraph)
-- [ ] `design_mode_fix_test` is in `.github/workflows/v2-ci.yml`, and every suite listed there passes
+- [x] scripts/design_mode_fix_test.py test_7 and test_10 (modes.md and review.md: the `Contract:` field; what CHECKED lists)
+- [x] scripts/design_mode_fix_test.py test_8 (the reviewer's step 3, written by the lead; just confirm it passes) and test_9 (review.md's opening paragraph)
+- [x] `design_mode_fix_test` is in `.github/workflows/v2-ci.yml`, and every suite listed there passes
 
 ## Blocked
 
@@ -27,3 +27,6 @@
 - Task 6: añadí la entrada de DECISIONS.md (Mode: design + cinco cambios); `python3 scripts/design_mode_test.py` → OK.
 - Task 7: `python3 scripts/v2_adjustments_test.py` → 5 tests OK; sin cambios de código.
 - Task 8: añadí `design_mode_test` a .github/workflows/v2-ci.yml; las 48 suites de v2-ci corrieron con `python3 scripts/<suite>.py` → todas OK, sin FAIL.
+- Task 9: añadí el campo `Contract:` al despacho en modes.md y review.md, y que `CHECKED` lista los ítems de la perspectiva; `python3 scripts/design_mode_fix_test.py` → test_7, 8 y 10 OK, solo falla test_9 (siguiente tarea); `design_mode_test.py` → OK.
+- Task 10: añadí a la apertura de review.md el segundo momento (Design mode, antes de Red); `python3 scripts/design_mode_fix_test.py` → 4 tests OK (test_8 ya pasaba) y `design_mode_test.py` → OK.
+- Task 11: añadí `design_mode_fix_test` a .github/workflows/v2-ci.yml; las 49 suites de v2-ci corrieron con `python3 scripts/<suite>.py` → todas OK, sin FAIL.

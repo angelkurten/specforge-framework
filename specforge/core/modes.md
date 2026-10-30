@@ -70,4 +70,4 @@ Mode: Contract
 
 ## Design panel
 
-Optional. For a Contract or Controlled change with high risk that touches design (schema, migration, an invariant across routes), the lead may dispatch `specforge-reviewer` on the contract before Red, once per perspective (backend, security and quality), each with `Mode: design` and a `Perspective`. The reviewer reads the contract and the code it names, no diff and no evidence, as `core/review.md` § Design mode says. Findings judge Scope, Constraints, Premises and Acceptance evidence, and go into the contract before Red.
+Optional. For a Contract or Controlled change with high risk that touches design (schema, migration, an invariant across routes), the lead may dispatch `specforge-reviewer` on the contract before Red, once per perspective (backend, security and quality), each with `Mode: design`, a `Perspective` and a `Contract:` field holding the path to the contract. The reviewer reads the contract and the code it names, no diff and no evidence, as `core/review.md` § Design mode says. Findings judge Scope, Constraints, Premises and Acceptance evidence, and go into the contract before Red.
