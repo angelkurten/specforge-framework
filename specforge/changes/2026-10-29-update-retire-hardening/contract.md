@@ -96,6 +96,10 @@ Fix round 1, after review (BLOCK), in `tools/cli/tests/integration/update-retire
 10. A socket at a retired path is kept and never opened, printed `(not a regular file; not read)` in the dry run and the real run, with exit 0. A character or block device takes the same branch; the type check on `lstat` runs before any open.
 11. A bundle path whose identity cannot be read (`stat` gives anything but `ENOENT`, here `ELOOP`) stops a real run with exit 10 before any write, naming the path. The dry run prints an `error` line and exits 0. The read also opens with `O_NOFOLLOW`; no deterministic scenario opens that race.
 
+Fix round 2, after re-verification (PASS, one should-fix), in `tools/cli/tests/integration/update-retire-hardening-fix2.test.ts` (`new`):
+
+12. A dry run with an unreadable bundle identity prints `  error   <path> (<code>)` and the usual `dry-run: <n> updates, <m> drifted (strategy: …)` summary line, with `retired files not checked` added, and exits 0 with nothing written.
+
 `pnpm --dir tools/cli test` and `tsc` pass. The lead's Controlled mutation sample is recorded. Exercised, with a real packed variant:
 - scenario 1's restart;
 - on this macOS machine (case-insensitive APFS), scenario 3's case alias under `--strategy=theirs`;
@@ -111,7 +115,8 @@ Fix round 1, after review (BLOCK), in `tools/cli/tests/integration/update-retire
 - The red tests in `tools/cli/tests/integration/update-retire-hardening.test.ts`, approved and locked: the human, 2026-10-29. That includes the two `DEVIATION:` early returns, scenario 3 on a case-sensitive filesystem and scenario 7 under uid 0. A draft in a scratch clone passed 540/540 and `tsc` before locking, with scenario 3 run on macOS.
 - The locked test re-approved after a mechanical review finding: two literal U+202E characters, which the file tool had decoded from a typed escape, became the escape `\u202E`. It is the same JavaScript string, with no change in behaviour, and no Cf character is left: the human, 2026-10-29.
 - Fix round 1 after the post-code review (BLOCK: a socket at a retired path made every update exit 10), with its test `update-retire-hardening-fix.test.ts` approved and locked: the human, 2026-10-29. A draft passed 542/542 and `tsc` first. The human also approved, in the same round, `O_NOFOLLOW`, `bundleIds` ignoring only `ENOENT`, the recovery note naming 1.0.0, and the case alias exercised with the packed binary.
+- Fix round 2 after re-verification, with its test `update-retire-hardening-fix2.test.ts` approved and locked: the human, 2026-10-30. A draft passed 543/543 and `tsc` first. It is the last round before escalation.
 
 ## Stop and escalate
 
-Stop and ask if a locked test must change, or if classifying before any write needs a change to `compareAll`'s contract. Budget: 16 iterations, 7 USD, for 11 tasks (9 scenarios, the full suite, the docs and decision). Raised by the human to 20 iterations, 8 USD, cumulative, for fix round 1.
+Stop and ask if a locked test must change, or if classifying before any write needs a change to `compareAll`'s contract. Budget: 16 iterations, 7 USD, for 11 tasks (9 scenarios, the full suite, the docs and decision). Raised by the human to 20 iterations, 8 USD, cumulative, for fix round 1, and to 22 iterations, 9 USD, for fix round 2.
