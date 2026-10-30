@@ -420,6 +420,8 @@ def main(argv: list[str]) -> int:
     args = parser.parse_args(argv)
     if len(args.repo) != len(args.repo_base):
         parser.error(f"--repo and --repo-base go together as pairs: got {len(args.repo)} --repo, {len(args.repo_base)} --repo-base")
+    if subprocess.run(["git", "rev-parse", "--verify", "-q", f"{args.base}^{{commit}}"], capture_output=True).returncode:
+        parser.error(f"--base {args.base!r} is not a commit")
     pairs = []
     for repo, ref_name in zip(args.repo, args.repo_base):
         top = subprocess.run(["git", "-C", str(repo), "rev-parse", "--show-toplevel"],
