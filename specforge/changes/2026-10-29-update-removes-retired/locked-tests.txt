@@ -1,2 +1,3 @@
 0ade299950611315f13f2e10ad3390fca5efa10d485670daf4b3f8a509ed7cd4  tools/cli/tests/integration/update-retire-fix.test.ts
+339f9e208e7611c90e5963ecc1f2afd0ec651d2ae421d00ca4818332eca1adfe  tools/cli/tests/integration/update-retire-fix2.test.ts
 eda9bf978c6bba940a3f97530e1cb586dbae3a7df23f8c1b2cc02ffb1e573682  tools/cli/tests/integration/update-retire.test.ts

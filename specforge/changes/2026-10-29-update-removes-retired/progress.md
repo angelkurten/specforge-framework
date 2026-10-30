@@ -1,6 +1,6 @@
 # Progress
 
-**Budget**: 16 iterations, 6 USD, cumulative (raised by the human for the fix round)
+**Budget**: 20 iterations, 7 USD, cumulative (raised by the human for fix rounds 1 and 2)
 
 ## Tasks
 
@@ -15,6 +15,8 @@
 - [x] tools/cli/tests/integration/update-retire-fix.test.ts 7 a symlink at a retired path is kept, reported and never followed (dangling, other bytes, install bytes)
 - [x] tools/cli/tests/integration/update-retire-fix.test.ts 8 a directory or an unreadable file at a retired path exits 10 and leaves the manifest unchanged
 - [x] tools/cli/tests/integration/update-retire-fix.test.ts 9 the dry-run summary carries the retired counts, and the full CLI suite and tsc still pass
+
+- [ ] tools/cli/tests/integration/update-retire-fix2.test.ts 10 a dry run with a directory or an unreadable file at a retired path prints an error line and exits 0; the full CLI suite and tsc still pass
 
 ## Blocked
 

@@ -31,7 +31,7 @@ In:
     - **Edited**: the sha differs. It is kept, under any `--strategy`, and the line `kept    <path> (edited; retired from the framework, no longer tracked)` is printed. It never halts the update.
     - **Already gone** (the path does not exist, `ENOENT`): nothing happens. Any other error reading it (`EACCES`, `EISDIR`) exits 10 and leaves the manifest unchanged. Fix round.
     - **Symlink**, checked with `lstat` before any read: it is never followed or removed. It is kept, the line `kept    <path> (symlink; not followed)` is printed, and the run exits 0, as for an edited file. Fix round, decided by the human after review; this replaces the earlier Out line "reported and the run exits 10".
-    - **Dry run**: lists `remove` and `kept` lines and writes nothing. Its summary carries the same counts (fix round).
+    - **Dry run**: lists `remove` and `kept` lines and writes nothing. Its summary carries the same counts (fix round). A retired path whose read fails with anything but `ENOENT` prints `  error   <path> (<code>)`, and the preview still exits 0 (fix round 2).
     - **Summary**: the line gains `, <n> retired removed, <m> retired kept`.
     - Either way, the path leaves `framework_files`, as it does today.
 - `tools/cli/tests/integration/update-retire.test.ts` (`new`).
@@ -81,16 +81,21 @@ Fix round, in `tools/cli/tests/integration/update-retire-fix.test.ts` (`new`):
 8. A directory or an unreadable file at a retired path exits 10, and the manifest stays byte-identical.
 9. The dry-run summary carries `<n> retired removed, <m> retired kept`.
 
+Fix round 2, in `tools/cli/tests/integration/update-retire-fix2.test.ts` (`new`):
+
+10. A dry run with a directory or an unreadable file at a retired path prints `  error   <path> (EISDIR)` or `(EACCES)` and exits 0, writing nothing.
+
 `pnpm --dir tools/cli test` passes in full, both `doctor.test.ts` tests above included. `v2-ci` and `cli-ci` pass on the last code commit.
 
 ## Approvals
 
 - Mode Controlled and the 4-change split: the human, 2026-10-29.
 - Only declared files are removed (`RETIRED_FILES`), not every untouched file the bundle dropped: the human, 2026-10-29, after the draft broke the pre-0.10 test.
-- The red tests in `tools/cli/tests/integration/update-retire.test.ts`, approved and locked: the human, 2026-10-29.
-- Fix round after review (PASS, one should-fix): a symlink is kept with exit 0; only `ENOENT` is already gone; the dry-run summary gains the counts. The human, 2026-10-29. Its test `update-retire-fix.test.ts` was approved and locked by the human; a draft in a scratch clone passed 529/529 and `tsc` first. A draft in a scratch clone passed 523/523 and `tsc` before locking.
+- The red tests in `tools/cli/tests/integration/update-retire.test.ts`, approved and locked: the human, 2026-10-29. A draft in a scratch clone passed 523/523 and `tsc` before locking.
+- Fix round after review (PASS, one should-fix): a symlink is kept with exit 0; only `ENOENT` is already gone; the dry-run summary gains the counts. The human, 2026-10-29. Its test `update-retire-fix.test.ts` was approved and locked by the human; a draft in a scratch clone passed 529/529 and `tsc` first.
+- Fix round 2 after re-verification (PASS, one should-fix): the dry run prints `error   <path> (<code>)` for an unreadable retired path and still exits 0. Its test `update-retire-fix2.test.ts`, approved and locked: the human, 2026-10-29; a draft passed 531/531 and `tsc` first. The lead ran the Controlled mutation sample, because the reviewer's brief is read-only: 6 of 6 mutants killed, recorded in the evidence.
 - Decisions recorded in `specforge/DECISIONS.md`, 2026-10-29: retiring v1 in 1.0.0, and removing declared retired files only.
 
 ## Stop and escalate
 
-Stop and ask if a locked test must change, if a scenario needs a change outside `update.ts`, or if removing a file needs a new exit code. Budget: 10 iterations, 4 USD, for 7 tasks (6 scenarios and the full suite). Raised by the human to 16 iterations, 6 USD, cumulative, for the fix round's 3 tasks.
+Stop and ask if a locked test must change, if a scenario needs a change outside `update.ts`, or if removing a file needs a new exit code. Budget: 10 iterations, 4 USD, for 7 tasks (6 scenarios and the full suite). Raised by the human to 16 iterations, 6 USD, cumulative, for the fix round's 3 tasks. Raised again to 20 iterations, 7 USD, cumulative, for fix round 2's one task.
