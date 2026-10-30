@@ -8,19 +8,27 @@
 - **Result**:
   - **Premises.** Both hold.
   - **Red.** All 8 tests failed on `9083554`, because `update` neither removes nor reports anything.
-  - **Loop.** 7 iterations, 7/7 tasks, exit 0. Cost 1.67 USD (`loop-runs.txt`).
-  - **CLI.** 523 of 523 pass. That includes both `doctor.test.ts` tests that pin undeclared paths, the pre-0.10 one and PRD-006 row 9. `tsc` is clean.
+  - **Loop.** 7 iterations, 7/7 tasks, exit 0, 1.67 USD. The fix round took 3 more iterations, 10/10 tasks, exit 0, 2.75 USD cumulative (`loop-runs.txt`).
+  - **Fix-round red.** The 6 tests in `update-retire-fix.test.ts` failed on `dc72e78`. A draft in a scratch clone passed 529/529 and `tsc` before locking.
+  - **CLI.** 529 of 529 pass after the fix round (523 before it). That includes both `doctor.test.ts` tests that pin undeclared paths, the pre-0.10 one and PRD-006 row 9. `tsc` is clean.
 - **Exercised**: the real CLI binary, `update` path. With `RETIRED_FILES` empty, the shipped code removes nothing, so the lead built a variant in a scratch clone of `dc72e78`: `examples/**` moved from `FRAMEWORK_FILES` to `RETIRED_FILES`, and the version bumped to 0.31.0. It was packed with `/opt/homebrew/bin/npm pack` (328 files, no `examples/`).
   - A repo initialised with the registry's 0.30.0 tarball was committed. Then the team appended a line to `examples/system-artifact-example.md`.
   - **Dry run.** `node <0.31.0>/dist/src/cli.js update --dry-run --strategy=theirs` printed `remove  examples/prd-001-login-example.md` and `kept    examples/system-artifact-example.md (edited; retired from the framework, no longer tracked)`. It wrote nothing.
   - **Update.** `update` printed the same two lines and `update complete: 1 files refreshed, 0 drifted (strategy: none), 1 retired removed, 1 retired kept`, then exited 0.
   - **After.** `examples/` holds only the edited file. The manifest has no `examples` entry, and `version` reports 0.31.0 installed. `doctor` exits 0, with only the expected lock-guard-registration warning.
   - The clone was deleted.
-- **CI**: on `dc72e78`, the last code commit, pushed alone: `v2-ci` run 40993405063 and `cli-ci` run 40993405049, both success.
+  - **Fix round**, same variant built from `3a9fad7`, on a fresh 0.30.0 install where `examples/system-artifact-example.md` was replaced by a dangling symlink:
+    - `update --dry-run` printed `remove  examples/prd-001-login-example.md`, `kept    examples/system-artifact-example.md (symlink; not followed)` and `dry-run: … 1 retired removed, 1 retired kept`.
+    - `update` printed the same two lines and `update complete: … 1 retired removed, 1 retired kept`. That line is printed only on the exit-0 path, but the shell did not capture the exit code itself.
+- **CI**: on `3a9fad7`, the last code commit (the fix round), pushed alone: `v2-ci` run 40996435669 and `cli-ci` run 40996435737, both success. Before it, on `dc72e78`: `v2-ci` 40993405063 and `cli-ci` 40993405049, both success.
 - **Not checked**:
-  - A retired path that is a symlink. `safeUnlink` refuses it, and the error reaches the exit-10 path; no test covers it.
   - An I/O error midway through the removals. The manifest is written after them, so a re-run sees the same set; no test covers it.
 - **Deviations from the contract**:
-  - **Dry-run summary.** The dry-run summary line does not gain the `retired removed / retired kept` counts. Only the real run's does, though Scope lists the summary next to the dry-run. Scenario 4 checks only the `remove` and `kept` lines.
+  - **Dry-run summary.** Fixed by the fix round (scenario 9).
+  - **Dry-run errors.** The dry run still reads a retired file with `.catch(() => null)`, so an `EACCES` or `EISDIR` there is skipped silently and the preview exits 0. Scope says any non-`ENOENT` error exits 10. Scenario 8 tests only the real run, which does exit 10.
+  - **Review round 1 (PASS, one should-fix, three nits).**
+    - **Should-fix, fixed by the fix round.** Symlinks were hashed through the link: a dangling link was dropped silently, and a link to other bytes read as edited. The lead re-ran all three cases in a scratch clone before writing them here.
+    - **Nits, fixed by the fix round.** `.catch(() => null)` treated every error as already gone (real run).
+    - **Nits, accepted.** `isTeamData` is a one-line export outside Scope's list. The locked test's `exists("")` cannot fail. Scenario 4 checks one file rather than the whole disk.
   - **Lead nit.** A missing space in `export type Classification ="framework"` was fixed by hand before the code commit.
   - **Design changed before locking**, approved by the human: removal is limited to declared files (`RETIRED_FILES`). See Approvals and `specforge/DECISIONS.md`.
