@@ -156,3 +156,10 @@ Append-only log of decisions with future value. Shape: [`templates/decision-log.
 **Decision**: in Controlled mode the lead dispatches the design mode before Red, once per perspective (backend, security, quality), and puts the findings into the contract. It stays optional for a high-risk Contract change.
 **Rejected**: keeping it optional everywhere, since the one Controlled change that skipped it shipped a blocker; making it required for every high-risk Contract change too, which would bring back v1's draft-panel cost on most changes.
 **Revisit if**: three Controlled changes in a row get no blocker or should-fix from it.
+
+## 2026-10-29 — `update`'s retired-file removal is safe to fail and to restart
+
+**Context**: the design mode's backend run on change `2026-10-29-update-removes-retired` found that a read error on a retired file landed after the refresh had written files, so the next `update` halted on drift. Further design rounds found aliases (hard link, case-only or normalization alias), symlinked parents, FIFOs and manifest paths that leave the repository.
+**Decision**: four choices. (1) Recovery of a retired file is `git restore`, `git checkout <commit> -- <path>` or the previous package, documented in `docs/migration-v1-to-v2.md`; `init --force` is not a recovery. (2) No git-tree guard on `update`'s removal: the removed bytes equal the install bytes, which are in the package and in git. (3) `RETIRED_FILES` is append-only across releases. (4) One accepted gap: an edit saved, or an ancestor swapped for a link, between the last re-check and the unlink; the re-check narrows the window but cannot close it, since the check is path-based.
+**Rejected**: `init --force` as recovery (downgrades the install); a git guard (more mechanism for bytes that are already recoverable).
+**Revisit if**: an adopter loses an edit to the accepted gap.

@@ -98,6 +98,8 @@ export const IGNORED_PATTERNS: ReadonlyArray<string> = [
 /**
  * Globs (FRAMEWORK_FILES syntax) the framework declares retired: `update`
  * removes them from an adopter's repo when untouched. Empty until v1 is removed.
+ * This list is append-only across releases: an entry is never removed or narrowed, so an
+ * install from any earlier version still retires the same files.
  */
 export const RETIRED_FILES: ReadonlyArray<string> = [];
 

@@ -1,6 +1,6 @@
 // `specforge update` — PRD-003 § 5.2, § 4.2.
 
-import { promises as fs } from "node:fs";
+import { constants as fsConstants, promises as fs } from "node:fs";
 import * as path from "node:path";
 
 import {
@@ -17,9 +17,14 @@ import {
   writeManifest,
 } from "../manifest.js";
 import { isRetired, isTeamData } from "../partition.js";
-import { safeUnlink, safeWriteFile } from "../safe-fs.js";
+import { lexicalResolve, safeUnlink, safeWriteFile } from "../safe-fs.js";
 import { sha256OfBytes, sha256OfFile } from "../sha.js";
 import { info, printError, summary } from "../output.js";
+
+// Printed paths are untrusted: escape backslash, C0/DEL/C1 controls and bidi/zero-width characters.
+const esc = (p: string): string =>
+  p.replace(/[\\\u0000-\u001f\u007f-\u009f]/g, (ch) => `\\x${ch.charCodeAt(0).toString(16).padStart(2, "0")}`)
+    .replace(/[\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, (ch) => `\\u{${ch.charCodeAt(0).toString(16).toUpperCase().padStart(4, "0")}}`);
 
 export interface UpdateOptions {
   cwd: string;
@@ -75,9 +80,66 @@ async function compareAll(
   return out;
 }
 
-/** lstat before any read: a link at a retired path is never followed. */
-const isSymlink = (cwd: string, rel: string) =>
-  fs.lstat(path.join(cwd, rel)).then((st) => st.isSymbolicLink(), () => false);
+type Retired =
+  | { kind: "gone" }
+  | { kind: "kept"; reason: string }
+  | { kind: "error"; code: string | undefined }
+  | { kind: "file"; sha: string };
+
+/** Classify a retired path before any write; a link is never followed. */
+async function classifyRetired(
+  cwd: string,
+  rel: string,
+  ids: ReadonlyMap<string, string>,
+): Promise<Retired> {
+  const abs = path.join(cwd, rel);
+  // Lexical check first, no I/O: a path that leaves the repository is never read.
+  try {
+    if (rel.split(/[\\/]/).includes("..")) throw new Error("dot-dot segment");
+    lexicalResolve(cwd, rel);
+  } catch {
+    return { kind: "kept", reason: "outside the repository; not read" };
+  }
+  try {
+    // Walk the ancestors first: a linked directory means the path is not ours to touch.
+    const parts = path.normalize(rel).split(path.sep).slice(0, -1);
+    for (let i = 1; i <= parts.length; i++) {
+      const dir = await fs.lstat(path.join(cwd, ...parts.slice(0, i)));
+      if (dir.isSymbolicLink()) return { kind: "kept", reason: "symlink in path; not followed" };
+    }
+    const st = await fs.lstat(abs, { bigint: true });
+    if (st.isSymbolicLink()) return { kind: "kept", reason: "symlink; not followed" };
+    const twin = ids.get(`${st.dev}:${st.ino}`);
+    if (twin !== undefined) return { kind: "kept", reason: `same file as ${twin}` };
+    // O_NONBLOCK so a FIFO cannot hang the open; fstat the handle before reading.
+    const fh = await fs.open(abs, fsConstants.O_RDONLY | fsConstants.O_NONBLOCK);
+    try {
+      const h = await fh.stat();
+      if (h.isDirectory()) return { kind: "error", code: "EISDIR" };
+      if (!h.isFile()) return { kind: "kept", reason: "not a regular file; not read" };
+      return { kind: "file", sha: sha256OfBytes(await fh.readFile()) };
+    } finally {
+      await fh.close();
+    }
+  } catch (e) {
+    const code = (e as NodeJS.ErrnoException).code;
+    return code === "ENOENT" || code === "ENOTDIR" ? { kind: "gone" } : { kind: "error", code };
+  }
+}
+
+/** dev:ino of every bundle path that exists on disk, taken before any write. */
+async function bundleIds(cwd: string, rels: Iterable<string>): Promise<Map<string, string>> {
+  const ids = new Map<string, string>();
+  for (const rel of rels) {
+    try {
+      const st = await fs.stat(path.join(cwd, rel), { bigint: true });
+      ids.set(`${st.dev}:${st.ino}`, rel);
+    } catch {
+      // not on disk: nothing to alias
+    }
+  }
+  return ids;
+}
 
 export async function runUpdate(opts: UpdateOptions): Promise<number> {
   if (!(await manifestExists(opts.cwd))) {
@@ -151,29 +213,25 @@ export async function runUpdate(opts: UpdateOptions): Promise<number> {
     for (const d of drifted) info(opts, `  ${opts.strategy ?? "drift-halt"}  ${d.rel}`);
     let dryRemoved = 0;
     let dryKept = 0;
+    const ids = await bundleIds(opts.cwd, bundleHashes.keys());
     for (const rel of retiredRels) {
-      if (await isSymlink(opts.cwd, rel)) {
-        info(opts, `  kept    ${rel} (symlink; not followed)`);
+      const c = await classifyRetired(opts.cwd, rel, ids);
+      if (c.kind === "gone") continue;
+      if (c.kind === "error") {
+        summary(opts, `  error   ${esc(rel)} (${c.code})`);
+        continue;
+      }
+      if (c.kind === "kept") {
+        summary(opts, `  kept    ${esc(rel)} (${c.reason})`);
         dryKept++;
         continue;
       }
-      let sha: string;
-      try {
-        sha = await sha256OfFile(path.join(opts.cwd, rel));
-      } catch (e) {
-        const code = (e as NodeJS.ErrnoException).code;
-        if (code !== "ENOENT") info(opts, `  error   ${rel} (${code})`);
-        continue;
-      }
+      const sha = c.sha;
       const untouched = sha === installed.get(rel);
       if (untouched) dryRemoved++;
       else dryKept++;
-      info(
-        opts,
-        untouched
-          ? `  remove  ${rel}`
-          : `  kept    ${rel} (edited; retired from the framework, no longer tracked)`,
-      );
+      if (untouched) info(opts, `  remove  ${esc(rel)}`);
+      else summary(opts, `  kept    ${esc(rel)} (edited; retired from the framework, no longer tracked)`);
     }
     summary(opts, `dry-run: ${toUpdate.length} updates, ${drifted.length} drifted (strategy: ${opts.strategy ?? "halt"}), ${dryRemoved} retired removed, ${dryKept} retired kept`);
     return 0;
@@ -208,6 +266,23 @@ export async function runUpdate(opts: UpdateOptions): Promise<number> {
   }
 
   try {
+    // Classify every retired path before the first write, so a read error
+    // leaves the install exactly as the next run expects to find it.
+    const retiredPlan = new Map<string, Retired>();
+    const ids = await bundleIds(opts.cwd, bundleHashes.keys());
+    for (const rel of retiredRels) {
+      const c = await classifyRetired(opts.cwd, rel, ids);
+      if (c.kind === "error") {
+        printError({
+          message: `cannot read retired file ${rel} (${c.code})`,
+          remediation: `fix or remove ${rel}, then re-run \`specforge update\`; nothing was written`,
+          exitCode: 10,
+        });
+        return 10;
+      }
+      retiredPlan.set(rel, c);
+    }
+
     // Update non-drifted files.
     for (const u of toUpdate) {
       const src = bundleFileAbs(opts.importMetaUrl, u.rel);
@@ -232,23 +307,28 @@ export async function runUpdate(opts: UpdateOptions): Promise<number> {
     let retiredRemoved = 0;
     let retiredKept = 0;
     for (const rel of retiredRels) {
-      if (await isSymlink(opts.cwd, rel)) {
-        info(opts, `kept    ${rel} (symlink; not followed)`);
+      const c = retiredPlan.get(rel)!;
+      if (c.kind === "gone") continue;
+      if (c.kind === "kept") {
+        summary(opts, `kept    ${esc(rel)} (${c.reason})`);
         retiredKept++;
         continue;
       }
-      const sha = await sha256OfFile(path.join(opts.cwd, rel)).catch((e) => {
-        if ((e as NodeJS.ErrnoException).code === "ENOENT") return null;
-        throw e; // EACCES, EISDIR...: exit 10 via the outer catch, manifest untouched
-      });
-      if (sha === null) continue; // already gone
+      if (c.kind !== "file") continue;
+      const sha = c.sha;
       if (sha !== installed.get(rel)) {
-        info(opts, `kept    ${rel} (edited; retired from the framework, no longer tracked)`);
+        summary(opts, `kept    ${esc(rel)} (edited; retired from the framework, no longer tracked)`);
         retiredKept++;
         continue;
       }
-      await safeUnlink(opts.cwd, rel);
-      info(opts, `remove  ${rel}`);
+      try {
+        await safeUnlink(opts.cwd, rel);
+      } catch (e) {
+        summary(opts, `kept    ${esc(rel)} (${(e as NodeJS.ErrnoException).code ?? "error"})`);
+        retiredKept++;
+        continue;
+      }
+      info(opts, `remove  ${esc(rel)}`);
       retiredRemoved++;
       for (let dir = path.dirname(rel); dir !== "."; dir = path.dirname(dir)) {
         try {

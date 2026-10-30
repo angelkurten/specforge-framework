@@ -65,6 +65,10 @@ specforge EVA ships in the CLI from **0.28.0**. Check the version you would get 
 
 Keep specforge as a sibling directory beside your code and run the whole change from specforge. The change folder and its lock stay in specforge, while the code and tests live in the sibling: lock entries are written as `../<sibling>/<test file>`, the agent command adds `--add-dir ../<sibling>` so edits there are accepted, and `git -C ../<sibling>` reads its history. For the review packet, pass `--repo ../<sibling>` together with `--repo-base <ref>` to `specforge/scripts/review_prep.py`, so the sibling's diff is checked like specforge's own. See `specforge/core/loop.md` for the loop details. The `--repo` and `--repo-base` flags ship in the CLI from **0.29.0**; the `specforge/scripts/review_prep.py` that 0.28.0 installs rejects them, so check `npx @angelkurten/specforge version` first.
 
+## Getting a retired file back
+
+`update` removes a file the framework retired only when you have not edited it, and the bytes it removes are the ones in the package and in git. To get one back, restore that single file with `git restore <path>` or `git checkout <commit> -- <path>`, or extract it from the previous package (`npm pack @angelkurten/specforge@<previous>`). A file restored this way is not in the manifest, so `update` never touches it again. `init --force` from an older version is not a recovery: it overwrites edited framework files and downgrades the install.
+
 ## Known limits
 
 - The pilot compared v2 Contract with v1 PRD: 10 human minutes against 25, but about twice as many defects escaped per 1000 lines (6.1 against 3.3), and v2 is the default with three adjustments (`specforge/DECISIONS.md`): an edge checklist in `specforge/core/review.md` for every Contract and Controlled change; Direct ships with an edge test (a bound, an empty or control-character input); and an optional design panel (the reviewer's `Mode: design`, once each for backend, security and quality, on the contract before Red) for high-risk changes that touch design.
