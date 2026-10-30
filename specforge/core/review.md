@@ -36,6 +36,15 @@ A Contract change with high risk once passed review with a login that answered i
 
 The checklist comes from the blind audit of the pilot (`../specforge-pilot/specforge/changes/archive/2026-10-25-audit-fixes`).
 
+## Design mode
+
+Optional, before Red, for a high-risk change that touches design (schema, migration, an invariant across routes). The lead dispatches `specforge-reviewer` with `Mode: design` and one `Perspective`, once per perspective. The reviewer reads the contract and the code it names, with no diff and no evidence.
+
+- **backend**: the data model, migration and rollback, public-contract compatibility, and invariants across routes.
+- **security**: the security checklist above.
+- **quality**: every Scope item has an Acceptance scenario that would fail without it, premises are checkable, and the edge checklist holds.
+
+The report follows § Report, with each `file:line` pointing into the contract or the code it names. The lead puts the findings into the contract before Red.
 
 ## Report
 

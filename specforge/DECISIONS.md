@@ -142,3 +142,10 @@ Append-only log of decisions with future value. Shape: [`templates/decision-log.
 **Decision**: `partition.ts` `RETIRED_FILES` lists the globs the framework retires. `update` removes a file only when it is untracked by the new bundle, matches that list, is not team data, and is byte-equal to its recorded install sha. An edited file is kept and reported under any strategy.
 **Rejected**: removing every untouched dropped file; a `RETIRED` file shipped in the bundle (more mechanism; tests inject the list as an option instead, as `runPrepublish` does with `bundleOnly`).
 **Revisit if**: an adopter needs a declared retired file back. Pin the previous version, or copy the file in as team-owned.
+
+## 2026-10-29 — The design panel becomes the reviewer's design mode
+
+**Context**: the optional pre-Red design review of a high-risk contract dispatched v1's backend, security and quality reviewer agents. Retiring v1 from the package removes all 14 v1 agents, so the panel needs a home that survives.
+**Decision**: `specforge-reviewer` gains `Mode: design` with a `Perspective` (backend, security, quality); `review.md` § Design mode defines what each reads and checks, and `modes.md` § Design panel dispatches it once per perspective. The plan to retire v1 is revised from four changes to five changes: 1 `update` removes declared retired files; 2 this design mode; 3 the file swap (a v2 `CLAUDE.md`, a short unscoped rule, v1 files out of the repo and the bundle); 4 v1 validators out of `doctor`; 5 release 1.0.0.
+**Rejected**: a separate design report format (the report follows § Report); keeping three v1 agents only for the panel.
+**Revisit if**: the design mode's findings are routinely ignored before Red, or a perspective needs a report shape § Report cannot carry.

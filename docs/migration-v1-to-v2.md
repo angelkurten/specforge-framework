@@ -67,7 +67,7 @@ Keep specforge as a sibling directory beside your code and run the whole change 
 
 ## Known limits
 
-- The pilot compared v2 Contract with v1 PRD: 10 human minutes against 25, but about twice as many defects escaped per 1000 lines (6.1 against 3.3), and v2 is the default with three adjustments (`specforge/DECISIONS.md`): an edge checklist in `specforge/core/review.md` for every Contract and Controlled change; Direct ships with an edge test (a bound, an empty or control-character input); and an optional design panel (v1's backend, security and quality reviewers on the contract, before Red) for high-risk changes that touch design.
+- The pilot compared v2 Contract with v1 PRD: 10 human minutes against 25, but about twice as many defects escaped per 1000 lines (6.1 against 3.3), and v2 is the default with three adjustments (`specforge/DECISIONS.md`): an edge checklist in `specforge/core/review.md` for every Contract and Controlled change; Direct ships with an edge test (a bound, an empty or control-character input); and an optional design panel (the reviewer's `Mode: design`, once each for backend, security and quality, on the contract before Red) for high-risk changes that touch design.
 - The pilot result is not final: `escaped_2w` for the pilot is due on 2026-11-08, and the decision in `specforge/DECISIONS.md` is revisited if the escape rate is still above v1's.
 - `specforge/scripts/loop.py` is not a sandbox. It guards its budget ledger against accidental damage only; against a hostile agent, the defence is reviewing the diff.
 - The lock guard is a hook that you register yourself in `.claude/settings.json`; `update` does not write it. The Claude Code adapter (hooks and skills) lives under `.claude/`; the core in `specforge/` works without it.
