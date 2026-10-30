@@ -9,8 +9,10 @@
   - **Premises.** Both hold.
   - **Red.** All 8 tests failed on `9083554`, because `update` neither removes nor reports anything.
   - **Loop.** 7 iterations, 7/7 tasks, exit 0, 1.67 USD. The fix round took 3 more iterations, 10/10 tasks, exit 0, 2.75 USD cumulative (`loop-runs.txt`).
+  - **Fix round 2.** 1 more iteration, 11/11 tasks, exit 0, 3.15 USD cumulative. Its 2 tests failed on `3a9fad7`, and a draft passed 531/531 and `tsc` before locking.
   - **Fix-round red.** The 6 tests in `update-retire-fix.test.ts` failed on `dc72e78`. A draft in a scratch clone passed 529/529 and `tsc` before locking.
-  - **CLI.** 529 of 529 pass after the fix round (523 before it). That includes both `doctor.test.ts` tests that pin undeclared paths, the pre-0.10 one and PRD-006 row 9. `tsc` is clean.
+  - **CLI.** 531 of 531 pass after fix round 2 (529 after round 1, 523 before it).
+  - **Mutation sample (Controlled), run by the lead.** The reviewer's brief is read-only, so it predicted the kills without running them. The lead ran 6 mutants of `update.ts` at `6baac2d` in a scratch clone against `update-retire.test.ts`, `update-retire-fix.test.ts` and `doctor.test.ts` (33 tests). Every one was killed: drop the `lstat` (3 tests fail), flip the sha comparison (7), drop the team-data guard (1), drop the `rmdir` loop (2), swallow non-`ENOENT` in the real run (2), drop the `RETIRED_FILES` filter (3). The one known survivor, swallowing in the dry run, was the code at that commit; fix round 2 removed it. That includes both `doctor.test.ts` tests that pin undeclared paths, the pre-0.10 one and PRD-006 row 9. `tsc` is clean.
 - **Exercised**: the real CLI binary, `update` path. With `RETIRED_FILES` empty, the shipped code removes nothing, so the lead built a variant in a scratch clone of `dc72e78`: `examples/**` moved from `FRAMEWORK_FILES` to `RETIRED_FILES`, and the version bumped to 0.31.0. It was packed with `/opt/homebrew/bin/npm pack` (328 files, no `examples/`).
   - A repo initialised with the registry's 0.30.0 tarball was committed. Then the team appended a line to `examples/system-artifact-example.md`.
   - **Dry run.** `node <0.31.0>/dist/src/cli.js update --dry-run --strategy=theirs` printed `remove  examples/prd-001-login-example.md` and `kept    examples/system-artifact-example.md (edited; retired from the framework, no longer tracked)`. It wrote nothing.
@@ -20,12 +22,17 @@
   - **Fix round**, same variant built from `3a9fad7`, on a fresh 0.30.0 install where `examples/system-artifact-example.md` was replaced by a dangling symlink:
     - `update --dry-run` printed `remove  examples/prd-001-login-example.md`, `kept    examples/system-artifact-example.md (symlink; not followed)` and `dry-run: … 1 retired removed, 1 retired kept`.
     - `update` printed the same two lines and `update complete: … 1 retired removed, 1 retired kept`. That line is printed only on the exit-0 path, but the shell did not capture the exit code itself.
-- **CI**: on `3a9fad7`, the last code commit (the fix round), pushed alone: `v2-ci` run 40996435669 and `cli-ci` run 40996435737, both success. Before it, on `dc72e78`: `v2-ci` 40993405063 and `cli-ci` 40993405049, both success.
+  - **Fix round 2**, same variant built from `ee21b70`, on a fresh 0.30.0 install with `examples/system-artifact-example.md` set to mode 000:
+    - `update --dry-run` exited 0 and printed `remove  examples/prd-001-login-example.md`, `error   examples/system-artifact-example.md (EACCES)` and `… 1 retired removed, 0 retired kept`.
+    - `update` exited 10 with `error: I/O error during update: EACCES: permission denied, open '…/examples/system-artifact-example.md'`.
+- **CI**: on `ee21b70`, the last code commit (fix round 2), pushed alone: `v2-ci` run 40997133311 and `cli-ci` run 40997133332, both success. On `3a9fad7`: `v2-ci` 40996435669 and `cli-ci` 40996435737. On `dc72e78`: `v2-ci` 40993405063 and `cli-ci` 40993405049, both success.
 - **Not checked**:
   - An I/O error midway through the removals. The manifest is written after them, so a re-run sees the same set; no test covers it.
 - **Deviations from the contract**:
   - **Dry-run summary.** Fixed by the fix round (scenario 9).
-  - **Dry-run errors.** The dry run still reads a retired file with `.catch(() => null)`, so an `EACCES` or `EISDIR` there is skipped silently and the preview exits 0. Scope says any non-`ENOENT` error exits 10. Scenario 8 tests only the real run, which does exit 10.
+  - **Dry-run errors.** Fixed by fix round 2 (scenario 10). The re-verification raised it as a should-fix.
+  - **A failing real run is not atomic.** In the fix-round-2 exercise, the run exiting 10 had already removed `examples/prd-001-login-example.md` (untouched, so nothing is lost) and refreshed the files it updates, before it hit the unreadable file. The manifest stays as it was, so a re-run finds the removed file already gone and fails on the same unreadable one. No test pins this order.
+  - **Re-verification (PASS, one should-fix, two nits).** The should-fix is above. One nit was fixed: a first-round sentence in the fix-round Approvals bullet. The other nit is the uncaptured exit code of the fix-round-1 exercise; the fix-round-2 exercise captures both exit codes.
   - **Review round 1 (PASS, one should-fix, three nits).**
     - **Should-fix, fixed by the fix round.** Symlinks were hashed through the link: a dangling link was dropped silently, and a link to other bytes read as edited. The lead re-ran all three cases in a scratch clone before writing them here.
     - **Nits, fixed by the fix round.** `.catch(() => null)` treated every error as already gone (real run).
