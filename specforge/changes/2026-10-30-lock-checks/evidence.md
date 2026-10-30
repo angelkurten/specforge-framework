@@ -1,0 +1,24 @@
+## Evidence
+
+- **Ran**:
+  - The two premise commands, by hand, before Red.
+  - The 5 red tests against a draft in a scratch clone. A top-level import broke 38 suites on the circular import between `review_prep.py` and `lock_tests.py`, so the draft imported inside `approve()`, and every suite then passed.
+  - `python3 specforge/scripts/loop.py specforge/changes/2026-10-30-lock-checks --max-iterations 8 --max-cost 3`, once, with `claude -p --output-format json --model sonnet --permission-mode acceptEdits` and `--allowedTools=Bash(python3 *),Bash(git diff *),Bash(git status *),Bash(git log *)`.
+  - Every suite in `.github/workflows/v2-ci.yml`, by the lead.
+- **Result**:
+  - **Premises.** Both hold.
+  - **Red.** Tests 1, 2, 3 and 5 failed on `HEAD` before the loop. Test 4 passed by design: it guards against reporting a base lock's change twice.
+  - **Loop.** 7 iterations, 7/7 tasks, exit 0. Cost 2.14 USD (`loop-runs.txt`).
+  - **Suites.** All 50 v2 suites pass, `lock_checks_test` included.
+- **Exercised**: the user-visible path is the `lock_tests.py approve` command and the `review_prep.py` packet. Both ran in a scratch clone of `acca84f`.
+  - `approve` on a test holding U+202E, written with `chr(0x202E)`, printed `lock_tests: refused — scripts/probe_test.py:2 holds U+202E; write the escape`, exited 1, and wrote no lock.
+  - With the escape `‮` written instead, `approve` exited 0.
+  - After that lock was committed, the test was edited and re-approved in a second commit. `review_prep.py` from the first commit's parent printed `should-fix: …/locked-tests.txt:1 — approved entry changed after the first approval, confirm it: scripts/probe_test.py`.
+  - The clone was deleted.
+- **CI**: on `acca84f`, the last code commit, pushed alone: `v2-ci` run 41108551986 and `cli-ci` run 41108552194, both success.
+- **Not checked**:
+  - A file that is not valid UTF-8 passed to `approve`: `read_text` raises before anything is written.
+- **Deviations from the contract**:
+  - **Import inside `approve()`.** Recorded in the contract before Red, after the draft found the circular import.
+  - **Refusal lines go to stderr.** Scope did not name a stream.
+  - **`UNLOCKED` entries are never reported as changed.** An entry the unlock command set is not a re-approval.
