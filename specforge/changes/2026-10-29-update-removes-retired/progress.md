@@ -1,6 +1,6 @@
 # Progress
 
-**Budget**: 10 iterations, 4 USD
+**Budget**: 16 iterations, 6 USD, cumulative (raised by the human for the fix round)
 
 ## Tasks
 
@@ -11,6 +11,10 @@
 - [x] tools/cli/tests/integration/update-retire.test.ts 5 the repository root and a directory with a non-framework file are never removed
 - [x] tools/cli/tests/integration/update-retire.test.ts 6 an undeclared dropped file stays as today, and a declared file still in the bundle is refreshed
 - [x] the full CLI suite passes: `pnpm --dir tools/cli test`, and `pnpm --dir tools/cli exec tsc -p tsconfig.json --noEmit` is clean
+
+- [ ] tools/cli/tests/integration/update-retire-fix.test.ts 7 a symlink at a retired path is kept, reported and never followed (dangling, other bytes, install bytes)
+- [ ] tools/cli/tests/integration/update-retire-fix.test.ts 8 a directory or an unreadable file at a retired path exits 10 and leaves the manifest unchanged
+- [ ] tools/cli/tests/integration/update-retire-fix.test.ts 9 the dry-run summary carries the retired counts, and the full CLI suite and tsc still pass
 
 ## Blocked
 
