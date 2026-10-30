@@ -12,7 +12,7 @@
   - **Suites.** All 50 v2 suites pass, `lock_checks_test` included.
 - **Exercised**: the user-visible path is the `lock_tests.py approve` command and the `review_prep.py` packet. Both ran in a scratch clone of `acca84f`.
   - `approve` on a test holding U+202E, written with `chr(0x202E)`, printed `lock_tests: refused — scripts/probe_test.py:2 holds U+202E; write the escape`, exited 1, and wrote no lock.
-  - With the escape `‮` written instead, `approve` exited 0.
+  - With the escape `\u202E` written instead, `approve` exited 0.
   - After that lock was committed, the test was edited and re-approved in a second commit. `review_prep.py` from the first commit's parent printed `should-fix: …/locked-tests.txt:1 — approved entry changed after the first approval, confirm it: scripts/probe_test.py`.
   - The clone was deleted.
 - **CI**: on `acca84f`, the last code commit, pushed alone: `v2-ci` run 41108551986 and `cli-ci` run 41108552194, both success.
