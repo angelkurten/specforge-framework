@@ -128,3 +128,17 @@ Append-only log of decisions with future value. Shape: [`templates/decision-log.
 **Decision**: the evidence template gains an `Exercised` field (the user-visible path run against the real system, or `none — <why>`); `review.md` makes a Not checked entry on such a path a blocker; the review skill has the lead run the path before dispatching the reviewer, as v1's step-9 validation did.
 **Rejected**: a `review_prep.py` check that requires the field, because more than ten locked suites write evidence fixtures without it and assert no blocker.
 **Revisit if**: a user-visible defect escapes with `Exercised` filled in, or the lead skips the step often enough that a mechanical check becomes worth the fixture churn.
+
+## 2026-10-29 — Retire v1 from the package in 1.0.0, before `escaped_2w`
+
+**Context**: v2 has been the default since 2026-10-25 (Contract 10 human minutes against v1's 25 in the pilot). The pilot's `escaped_2w`, which the earlier decisions waited on, is due 2026-11-08. The human chose to retire v1 now rather than wait. v1 ships 8 rules (6 load every session), 14 agents, 5 templates, 2 examples, `scripts/prd-check.py` and 12 of doctor's 17 validators.
+**Decision**: remove v1 from the npm package in four changes: `update` learns to remove declared retired files; v2 foundations (a v2 `CLAUDE.md`, the general invariants v2 still relies on in a short rule, the design panel's reviewers rehomed); v1 removed from the bundle and the CLI; release 1.0.0 (MAJOR). The frozen PRDs, ADRs and AgDRs at this repository's root stay as history. Every change runs in Controlled mode, because the external kubbo installation depends on v1's `workflow.md`.
+**Rejected**: deprecating now and removing in 1.0 (v1 would keep loading every session meanwhile); waiting for `escaped_2w` (the human's call); one large change (too big to review or revert as a unit).
+**Revisit if**: `escaped_2w` on 2026-11-08 shows v2's escape rate still above v1's. That is a reason to strengthen v2's review, not to reinstate v1 as it was.
+
+## 2026-10-29 — `update` removes only files the framework declares retired
+
+**Context**: an untouched file that leaves the bundle stays on the adopter's disk, untracked and unchecked. A first draft removed every such file. It broke the test that pins installs from before 0.10: those tracked `CHANGELOG.md`, `VERSION`, `mkdocs.yml` and `.github/workflows/cli-release.yml` as framework files, and an adopter may own those paths now.
+**Decision**: `partition.ts` `RETIRED_FILES` lists the globs the framework retires. `update` removes a file only when it is untracked by the new bundle, matches that list, is not team data, and is byte-equal to its recorded install sha. An edited file is kept and reported under any strategy.
+**Rejected**: removing every untouched dropped file; a `RETIRED` file shipped in the bundle (more mechanism; tests inject the list as an option instead, as `runPrepublish` does with `bundleOnly`).
+**Revisit if**: an adopter needs a declared retired file back. Pin the previous version, or copy the file in as team-owned.
