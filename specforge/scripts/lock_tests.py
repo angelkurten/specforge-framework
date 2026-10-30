@@ -78,7 +78,17 @@ def _today() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
 
-def approve(change: Path, paths: list[str], root: Path) -> None:
+def approve(change: Path, paths: list[str], root: Path) -> list[str]:
+    """Approve paths; return one refusal line per invisible character found, writing nothing then."""
+    from review_prep import invisible_points  # inside: review_prep imports this module
+
+    refused = []
+    for path in paths:
+        for number, line in enumerate((root / path).read_text().split("\n"), 1):  # not splitlines: U+2028
+            for point in invisible_points(line):
+                refused.append(f"lock_tests: refused — {path}:{number} holds {point}; write the escape")
+    if refused:
+        return refused
     entries = read_lock(change)
     history = [l for l in _lines(change) if l.startswith("#")]
     for path in paths:
@@ -86,6 +96,7 @@ def approve(change: Path, paths: list[str], root: Path) -> None:
             history.append(f"# reapproved {_today()} {path}")
         entries[path] = digest(root / path)
     _write(change, entries, history)
+    return []
 
 
 def unlock(change: Path, paths: list[str], reason: str) -> list[str]:
@@ -141,8 +152,10 @@ def lock_files(root: Path) -> set[Path]:
 
 def main(argv: list[str]) -> int:
     if len(argv) >= 3 and argv[0] == "approve":
-        approve(Path(argv[1]), argv[2:], Path.cwd())
-        return 0
+        refused = approve(Path(argv[1]), argv[2:], Path.cwd())
+        if refused:
+            print("\n".join(refused), file=sys.stderr)
+        return 1 if refused else 0
     if len(argv) >= 2 and argv[0] == "unlock":
         args, reason = list(argv[2:]), ""
         if "--reason" in args:

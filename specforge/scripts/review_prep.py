@@ -194,11 +194,13 @@ def _added_entries(base: str, before: dict, after: dict) -> list[str]:
                 first.setdefault(key, copies)
     out = []
     for key, copies in after.items():
-        known = {e for _, text in first.get(key, []) for e in _parse_lock(text)[0]}
+        known = {e: sha for _, text in first.get(key, []) for e, (sha, _) in _parse_lock(text)[0].items()}
         for path, text in copies:
-            for entry, (_, number) in _parse_lock(text)[0].items():
+            for entry, (sha, number) in _parse_lock(text)[0].items():
                 if entry not in known:
                     out.append(f"should-fix: {path}:{number} — approved entry added after the first approval, confirm it: {entry}")
+                elif key not in before and sha not in (known[entry], "UNLOCKED"):
+                    out.append(f"should-fix: {path}:{number} — approved entry changed after the first approval, confirm it: {entry}")
     return out
 
 
