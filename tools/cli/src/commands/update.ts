@@ -75,6 +75,10 @@ async function compareAll(
   return out;
 }
 
+/** lstat before any read: a link at a retired path is never followed. */
+const isSymlink = (cwd: string, rel: string) =>
+  fs.lstat(path.join(cwd, rel)).then((st) => st.isSymbolicLink(), () => false);
+
 export async function runUpdate(opts: UpdateOptions): Promise<number> {
   if (!(await manifestExists(opts.cwd))) {
     printError({
@@ -145,17 +149,27 @@ export async function runUpdate(opts: UpdateOptions): Promise<number> {
     info(opts, "dry-run: would perform the following operations:");
     for (const u of toUpdate) info(opts, `  write   ${u.rel}`);
     for (const d of drifted) info(opts, `  ${opts.strategy ?? "drift-halt"}  ${d.rel}`);
+    let dryRemoved = 0;
+    let dryKept = 0;
     for (const rel of retiredRels) {
+      if (await isSymlink(opts.cwd, rel)) {
+        info(opts, `  kept    ${rel} (symlink; not followed)`);
+        dryKept++;
+        continue;
+      }
       const sha = await sha256OfFile(path.join(opts.cwd, rel)).catch(() => null);
       if (sha === null) continue;
+      const untouched = sha === installed.get(rel);
+      if (untouched) dryRemoved++;
+      else dryKept++;
       info(
         opts,
-        sha === installed.get(rel)
+        untouched
           ? `  remove  ${rel}`
           : `  kept    ${rel} (edited; retired from the framework, no longer tracked)`,
       );
     }
-    summary(opts, `dry-run: ${toUpdate.length} updates, ${drifted.length} drifted (strategy: ${opts.strategy ?? "halt"})`);
+    summary(opts, `dry-run: ${toUpdate.length} updates, ${drifted.length} drifted (strategy: ${opts.strategy ?? "halt"}), ${dryRemoved} retired removed, ${dryKept} retired kept`);
     return 0;
   }
 
@@ -212,7 +226,15 @@ export async function runUpdate(opts: UpdateOptions): Promise<number> {
     let retiredRemoved = 0;
     let retiredKept = 0;
     for (const rel of retiredRels) {
-      const sha = await sha256OfFile(path.join(opts.cwd, rel)).catch(() => null);
+      if (await isSymlink(opts.cwd, rel)) {
+        info(opts, `kept    ${rel} (symlink; not followed)`);
+        retiredKept++;
+        continue;
+      }
+      const sha = await sha256OfFile(path.join(opts.cwd, rel)).catch((e) => {
+        if ((e as NodeJS.ErrnoException).code === "ENOENT") return null;
+        throw e; // EACCES, EISDIR...: exit 10 via the outer catch, manifest untouched
+      });
       if (sha === null) continue; // already gone
       if (sha !== installed.get(rel)) {
         info(opts, `kept    ${rel} (edited; retired from the framework, no longer tracked)`);
