@@ -1,1 +1,2 @@
+69657300d6c5e1cac42679c98252655c012d6c83ede7a6742de47404051bb681  scripts/design_mode_fix_test.py
 40c87204969b4d0d3bcc322209b195d17e503b2c227e1c1fb5bbb80c045106ab  scripts/design_mode_test.py

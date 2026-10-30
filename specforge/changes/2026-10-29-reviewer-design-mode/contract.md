@@ -67,6 +67,13 @@ Out:
 5. The migration guide names the design mode and no longer says "v1's backend, security and quality reviewers".
 6. `DECISIONS.md` has an entry on the design mode that names the 5-change plan.
 
+Fix round, after review (PASS, two should-fix and two nits), in `scripts/design_mode_fix_test.py` (`new`):
+
+7. `modes.md` § Design panel and `review.md` § Design mode name the `Contract:` field the dispatch carries.
+8. The reviewer's step 3 lets a `Mode: design` review run the contract's Premise commands and read the named code at a ref, read-only.
+9. `review.md`'s opening paragraph names both moments: after the loop, and the design mode before Red.
+10. § Design mode says that `CHECKED` lists the perspective's items.
+
 `v2-ci` and `cli-ci` pass on the last code commit.
 
 ## Approvals
@@ -75,6 +82,8 @@ Out:
 - The red tests in `scripts/design_mode_test.py`, approved and locked: the human, 2026-10-29.
 - The lead's edit to `scripts/v2_adjustments_test.py` test_3, made before the loop: the human, 2026-10-29. That test is locked by `2026-10-25-v2-adjustments`.
 
+- Fix round after review, with its test `scripts/design_mode_fix_test.py` approved and locked: the human, 2026-10-29. The test_3 edit the packet reports is the one already approved above.
+
 ## Stop and escalate
 
-Stop and ask if another locked test must change, or if the design mode needs its own report shape. Budget: 8 iterations, 3 USD, for 8 tasks (6 scenarios, test_3, the full suites).
+Stop and ask if another locked test must change, or if the design mode needs its own report shape. Budget: 8 iterations, 3 USD, for 8 tasks (6 scenarios, test_3, the full suites). Raised by the human to 12 iterations, 4 USD, cumulative, for the fix round's 3 tasks.

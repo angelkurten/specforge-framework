@@ -1,6 +1,6 @@
 # Progress
 
-**Budget**: 8 iterations, 3 USD
+**Budget**: 12 iterations, 4 USD, cumulative (raised by the human for the fix round)
 
 ## Tasks
 
@@ -12,6 +12,9 @@
 - [x] scripts/design_mode_test.py test_6_decisions_records_the_design_mode_and_the_five_changes
 - [x] scripts/v2_adjustments_test.py passes (test_3 already edited by the lead; do not edit it)
 - [x] `design_mode_test` is in `.github/workflows/v2-ci.yml`, and every suite listed there passes
+- [ ] scripts/design_mode_fix_test.py test_7 and test_10 (modes.md and review.md: the `Contract:` field; what CHECKED lists)
+- [ ] scripts/design_mode_fix_test.py test_8 (the reviewer's step 3, written by the lead; just confirm it passes) and test_9 (review.md's opening paragraph)
+- [ ] `design_mode_fix_test` is in `.github/workflows/v2-ci.yml`, and every suite listed there passes
 
 ## Blocked
 
