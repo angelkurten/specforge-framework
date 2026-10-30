@@ -103,6 +103,8 @@ Out:
 - Mode Controlled and change 1b ahead of change 3: the human, 2026-10-29.
 - Design mode (required in Controlled), all three perspectives: BLOCK from each, 3 blockers. The resolutions above were applied by the lead and approved by the human, 2026-10-29: lexical check first; recovery by `git restore` and not `init --force`; the climb out of Scope. Re-verification round 1: security PASS, plus one should-fix (the walk before the read); backend PASS, plus should-fix S2 (hard link); quality BLOCK on the same S2. Fix round 1 applied by the lead: identity taken at classification, walk before read, a case-alias scenario, FIFO fixtures for never-read, the early returns. Re-verification round 2: PASS from all three. The should-fixes were applied by the lead before Red: scenario 3 names `--strategy=theirs`, and scenario 4's second case uses a regular file and asserts the reason. The nits were applied too: four choices, the same reader at the re-check, and a `dev:ino` map.
 
+- The red tests in `tools/cli/tests/integration/update-retire-hardening.test.ts`, approved and locked: the human, 2026-10-29. That includes the two `DEVIATION:` early returns, scenario 3 on a case-sensitive filesystem and scenario 7 under uid 0. A draft in a scratch clone passed 540/540 and `tsc` before locking, with scenario 3 run on macOS.
+
 ## Stop and escalate
 
 Stop and ask if a locked test must change, or if classifying before any write needs a change to `compareAll`'s contract. Budget: 16 iterations, 7 USD, for 11 tasks (9 scenarios, the full suite, the docs and decision).
