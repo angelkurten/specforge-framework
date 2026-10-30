@@ -111,8 +111,10 @@ async function classifyRetired(
     if (st.isSymbolicLink()) return { kind: "kept", reason: "symlink; not followed" };
     const twin = ids.get(`${st.dev}:${st.ino}`);
     if (twin !== undefined) return { kind: "kept", reason: `same file as ${esc(twin)}` };
+    // Socket, device, FIFO: kept before any open (a directory still reads as EISDIR below).
+    if (!st.isFile() && !st.isDirectory()) return { kind: "kept", reason: "not a regular file; not read" };
     // O_NONBLOCK so a FIFO cannot hang the open; fstat the handle before reading.
-    const fh = await fs.open(abs, fsConstants.O_RDONLY | fsConstants.O_NONBLOCK);
+    const fh = await fs.open(abs, fsConstants.O_RDONLY | fsConstants.O_NONBLOCK | fsConstants.O_NOFOLLOW);
     try {
       const h = await fh.stat();
       if (h.isDirectory()) return { kind: "error", code: "EISDIR" };
@@ -128,14 +130,15 @@ async function classifyRetired(
 }
 
 /** dev:ino of every bundle path that exists on disk, taken before any write. */
-async function bundleIds(cwd: string, rels: Iterable<string>): Promise<Map<string, string>> {
+async function bundleIds(cwd: string, rels: Iterable<string>): Promise<Map<string, string> | { rel: string; code: string }> {
   const ids = new Map<string, string>();
   for (const rel of rels) {
     try {
       const st = await fs.stat(path.join(cwd, rel), { bigint: true });
       ids.set(`${st.dev}:${st.ino}`, rel);
-    } catch {
-      // not on disk: nothing to alias
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code === "ENOENT") continue; // not on disk: nothing to alias
+      return { rel, code: (e as NodeJS.ErrnoException).code ?? "EIO" };
     }
   }
   return ids;
@@ -214,6 +217,11 @@ export async function runUpdate(opts: UpdateOptions): Promise<number> {
     let dryRemoved = 0;
     let dryKept = 0;
     const ids = await bundleIds(opts.cwd, bundleHashes.keys());
+    if (!(ids instanceof Map)) {
+      summary(opts, `  error   ${esc(ids.rel)} (${ids.code})`);
+      summary(opts, "dry-run: bundle path identity unreadable; retired files not checked");
+      return 0;
+    }
     for (const rel of retiredRels) {
       const c = await classifyRetired(opts.cwd, rel, ids);
       if (c.kind === "gone") continue;
@@ -270,6 +278,14 @@ export async function runUpdate(opts: UpdateOptions): Promise<number> {
     // leaves the install exactly as the next run expects to find it.
     const retiredPlan = new Map<string, Retired>();
     const ids = await bundleIds(opts.cwd, bundleHashes.keys());
+    if (!(ids instanceof Map)) {
+      printError({
+        message: `cannot read bundle path ${esc(ids.rel)} (${ids.code})`,
+        remediation: `fix or remove ${esc(ids.rel)}, then re-run \`specforge update\`; nothing was written`,
+        exitCode: 10,
+      });
+      return 10;
+    }
     for (const rel of retiredRels) {
       const c = await classifyRetired(opts.cwd, rel, ids);
       if (c.kind === "error") {

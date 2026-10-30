@@ -67,7 +67,7 @@ Keep specforge as a sibling directory beside your code and run the whole change 
 
 ## Getting a retired file back
 
-`update` removes a file the framework retired only when you have not edited it, and the bytes it removes are the ones in the package and in git. To get one back, restore that single file with `git restore <path>` or `git checkout <commit> -- <path>`, or extract it from the previous package (`npm pack @angelkurten/specforge@<previous>`). A file restored this way is not in the manifest, so `update` never touches it again. `init --force` from an older version is not a recovery: it overwrites edited framework files and downgrades the install.
+`update` removes a file the framework retired only when you have not edited it, and the bytes it removes are the ones in the package and in git. To get one back, restore that single file with `git restore <path>` or `git checkout <commit> -- <path>`, or extract it from the previous package (`npm pack @angelkurten/specforge@<previous>`). A file restored this way is not in the manifest, so `update` never touches it again. `init --force` from an older version is not a recovery: it overwrites edited framework files and downgrades the install. This behaviour ships from 1.0.0.
 
 ## Known limits
 
