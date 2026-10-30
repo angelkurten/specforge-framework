@@ -110,7 +110,7 @@ async function classifyRetired(
     const st = await fs.lstat(abs, { bigint: true });
     if (st.isSymbolicLink()) return { kind: "kept", reason: "symlink; not followed" };
     const twin = ids.get(`${st.dev}:${st.ino}`);
-    if (twin !== undefined) return { kind: "kept", reason: `same file as ${twin}` };
+    if (twin !== undefined) return { kind: "kept", reason: `same file as ${esc(twin)}` };
     // O_NONBLOCK so a FIFO cannot hang the open; fstat the handle before reading.
     const fh = await fs.open(abs, fsConstants.O_RDONLY | fsConstants.O_NONBLOCK);
     try {
@@ -274,8 +274,8 @@ export async function runUpdate(opts: UpdateOptions): Promise<number> {
       const c = await classifyRetired(opts.cwd, rel, ids);
       if (c.kind === "error") {
         printError({
-          message: `cannot read retired file ${rel} (${c.code})`,
-          remediation: `fix or remove ${rel}, then re-run \`specforge update\`; nothing was written`,
+          message: `cannot read retired file ${esc(rel)} (${c.code})`,
+          remediation: `fix or remove ${esc(rel)}, then re-run \`specforge update\`; nothing was written`,
           exitCode: 10,
         });
         return 10;
@@ -318,6 +318,20 @@ export async function runUpdate(opts: UpdateOptions): Promise<number> {
       const sha = c.sha;
       if (sha !== installed.get(rel)) {
         summary(opts, `kept    ${esc(rel)} (edited; retired from the framework, no longer tracked)`);
+        retiredKept++;
+        continue;
+      }
+      // Re-check just before the unlink; nothing here is fatal.
+      const again = await classifyRetired(opts.cwd, rel, ids);
+      if (again.kind === "gone") continue;
+      if (again.kind !== "file" || again.sha !== sha) {
+        const why =
+          again.kind === "kept"
+            ? again.reason
+            : again.kind === "error"
+              ? (again.code ?? "error")
+              : "edited; retired from the framework, no longer tracked";
+        summary(opts, `kept    ${esc(rel)} (${why})`);
         retiredKept++;
         continue;
       }
