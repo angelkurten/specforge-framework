@@ -14,23 +14,23 @@ Confirmed by the human, 2026-10-29, as change 1b of the plan to retire v1. It co
 
 ## Outcome
 
-When a retired file cannot be read, an `update` stops before it writes anything, so the next `update` runs as if the failed one never happened. A retired file is never removed when it is the same file as one the bundle ships: a case-only rename, a Unicode-normalization alias or a hard link. It is never removed through a symlinked directory, and never read outside the repository. A removal that fails does not strand the install. The notice that a file stopped being tracked survives `--quiet`. The recovery path for a retired file is documented and tried.
+When a retired file cannot be read, an `update` stops before it writes anything, so the next `update` runs as if the failed one never happened. A retired file is never removed when it is the same file as one the bundle ships: a case-only rename or a Unicode-normalization alias on a filesystem that ignores them, or a hard link. Identity is the file's `dev`+`ino`, taken before any write. It is never removed through a symlinked directory, and never read outside the repository. A removal that fails does not strand the install. The notice that a file stopped being tracked survives `--quiet`. The recovery path for a retired file is documented and tried.
 
 ## Scope
 
 In, all in `tools/cli/src/commands/update.ts`, applied the same way in the dry run and in the real run:
 - **Lexical check first, no I/O.** A retired path that is absolute, holds a `..` segment or resolves outside cwd (`lexicalResolve`) is never read. It prints `kept    <path> (outside the repository; not read)` and leaves the manifest.
-- **Classify once.** Every other retired path is classified before any write: `lstat`, then sha for a regular file. In a real run this happens inside the lock, after the merge refusal and the drift halt, which keep their exit 1 and their precedence. In a dry run it happens without a lock, as today.
+- **Classify once, in this order.** Every other retired path is classified before any write: the ancestor walk, then `lstat` on the path, then a read of a regular file. The read opens with `O_RDONLY | O_NONBLOCK` and checks `fstat` on the handle before reading. `lstat` uses `{ bigint: true }`. In a real run this happens inside the lock, after the merge refusal and the drift halt, which keep their exit 1 and their precedence. In a dry run it happens without a lock, as today.
   - `ENOENT` or `ENOTDIR` (an ancestor is a file): already gone.
   - Any other `lstat` or read error: in a real run, exit 10 with no file written and the manifest unchanged, and a remediation naming the path. In a dry run, the existing `  error   <path> (<code>)` line and exit 0.
   - A directory gives `EISDIR` on read, so it takes this same branch, as the locked tests pin.
   - A symlink, or a non-regular file that is neither a file nor a directory (a FIFO, a socket): kept and never read. It prints `(symlink; not followed)` or `(not a regular file; not read)`.
-  - **Symlink in path**: any ancestor directory below cwd that is a symlink means kept, printed `(symlink in path; not followed)`. An `lstat` error on an ancestor is a read error.
-- **Check again just before each unlink** (real run): re-run the ancestor walk, `lstat` the path and re-hash it. Anything that no longer matches an untouched regular file with no symlinked ancestor is kept, printed with the reason, and the run goes on.
-- **Same file as a bundle path**: if a bundle path exists on disk and shares the retired path's `dev`+`ino`, the retired path is kept. It prints `kept    <path> (same file as <bundle path>)`. This is checked at classification in a dry run and just before the unlink in a real run, after the refresh.
+  - **Symlink in path**, checked first: any ancestor directory below cwd that is a symlink means kept, printed `(symlink in path; not followed)`, and the path is never read. An `lstat` error on an ancestor is a read error.
+- **Check again just before each unlink** (real run): re-run the ancestor walk, `lstat` the path and re-hash it. Anything that no longer matches an untouched regular file with no symlinked ancestor is kept, printed with the reason, and the run goes on. No error at this point is fatal, `ENOTDIR` included. This is defence in depth for a race between two moments; no deterministic scenario can open that window, and it is recorded under Not checked.
+- **Same file as a bundle path**: at classification, before any write and in both modes, the retired path is compared with every bundle path that exists on disk. If one shares its `dev`+`ino`, the retired path is kept: it prints `kept    <path> (same file as <bundle path>)`, and the decision holds even if the refresh later rewrites that bundle path.
 - **Unlink failure** (`EACCES`, `EPERM`, `EBUSY`, any error): not fatal. It prints `kept    <path> (<code>)`, the path leaves the manifest, the run goes on and writes the manifest, and the exit is 0.
 - **`--quiet`**: every `kept` and `error` line, in the dry run and the real run, goes out through `summary`. `remove` and `write` lines stay on `info`.
-- **Printed paths**: control characters (C0 and DEL) in a printed path are escaped as `\xNN`.
+- **Printed paths**: a backslash, C0, DEL and C1 controls are escaped as `\xNN`. Bidi and zero-width characters (U+200B-U+200F, U+202A-U+202E, U+2066-U+2069, U+FEFF) are escaped as `\u{XXXX}`.
 - `tools/cli/tests/integration/update-retire-hardening.test.ts` (`new`).
 
 In, docs:
@@ -38,7 +38,8 @@ In, docs:
 - `specforge/DECISIONS.md`, one entry recording three choices:
   - the recovery path;
   - no git-tree guard on `update`'s removal: the removed bytes equal the install bytes, which are in the package and in git;
-  - `RETIRED_FILES` is append-only across releases.
+  - `RETIRED_FILES` is append-only across releases;
+  - one accepted gap: an edit saved, or an ancestor swapped for a link, between the last re-check and the unlink. The re-check narrows the window but cannot close it, since the check is path-based.
 - `tools/cli/src/partition.ts`: the comment on `RETIRED_FILES` says it is append-only.
 
 Out:
@@ -81,16 +82,18 @@ Out:
 `tools/cli/tests/integration/update-retire-hardening.test.ts`:
 
 1. A directory at a declared retired path makes a real `update` exit 10. The error names the path, no bundle file is rewritten (a changed `CLAUDE.md` keeps its old bytes), and the manifest is byte-identical. Once the directory is replaced by the untouched file, the next `update` exits 0, refreshes `CLAUDE.md` and removes the file. Fails against classifying after the refresh, where the restart halted on drift.
-2. A retired file that is a hard link to a path the new bundle ships stays on disk with its link count intact. The bundle path holds the new bytes, `kept    <retired> (same file as <bundle path>)` is printed in the dry run and in the real run, and the exit is 0 under `--strategy=theirs`. Fails against a removal decided by path string, which deletes the bundle's file.
-3. A retired file reached through a symlinked parent directory whose target is inside the repository is kept, printed as `(symlink in path; not followed)` in the dry run and the real run. The target file survives with its bytes. Fails against today's `safeUnlink`, which unlinks through the link.
-4. A manifest entry `examples/../../outside.md` matching a declared `examples/**` is never read or removed. A file at that place outside the repository survives, the line `(outside the repository; not read)` is printed, and the exit is 0.
-5. A FIFO at a retired path is kept and printed `(not a regular file; not read)`, and the run finishes. Fails against hashing it, which blocks forever; the test has a 10 s timeout.
-6. An unlink that fails is not fatal. An untouched retired file inside a directory that cannot take writes (mode 0555), skipped under uid 0 and recorded under Not checked, prints `kept    <path> (EACCES)`, the run exits 0, and the manifest is written without the path.
-7. With `--quiet`, the `kept` lines of an edited retired file still print, in the dry run and the real run. The `remove` line does not.
-8. A retired path whose name holds `\x1b` is printed as `\x1b`, never as the raw byte.
+2. A retired file that is a hard link to a bundle path, untouched and with a bundle that rewrites that path under `--strategy=theirs`, is kept: the retired name still exists afterwards, and `kept    <retired> (same file as <bundle path>)` is printed in the dry run and in the real run. Fails against an identity check after the refresh, or none at all: the retired name is removed while it is an alias of a bundle path. On a hard link that shows up as the retired name gone and the bundle file's link count dropping. On a case-insensitive filesystem it deletes the bundle file.
+3. A case-only alias, on a case-insensitive filesystem detected at run time. A retired `examples/Foo.md` installed with the same bytes that the bundle's `examples/foo.md` now ships is kept, and `examples/foo.md` survives with its bytes. On a case-sensitive filesystem the test returns early with a printed `DEVIATION:` line, not a skip marker, and the evidence records which one ran.
+4. A retired file reached through a symlinked parent directory whose target is inside the repository is kept, printed as `(symlink in path; not followed)` in the dry run and the real run. The target file survives with its bytes. Fails against today's `safeUnlink`, which unlinks through the link. A second case links a parent directory outside the repository, where the retired name is a FIFO. The run finishes within a 10 s timeout, so it never read it. Fails against reading before the ancestor walk.
+5. A manifest entry `examples/../../outside.md` matching a declared `examples/**` is never read or removed. A FIFO at that place outside the repository makes any read hang, and the run finishes within a 10 s timeout with `(outside the repository; not read)` printed and exit 0.
+6. A FIFO at a retired path is kept and printed `(not a regular file; not read)`, and the run finishes within a 10 s timeout. Fails against hashing it, which blocks forever.
+7. An unlink that fails is not fatal. An untouched retired file inside a directory with mode 0555 prints `kept    <path> (EACCES)`, the run exits 0, and the manifest is written without the path. Under uid 0 the test returns early with a printed `DEVIATION:` line, not a skip marker, accepted by the human, and the evidence records whether it ran.
+8. With `--quiet`, the `kept` lines of an edited retired file still print, in the dry run and the real run. The `remove` line does not.
+9. A retired path holding `\x1b`, a backslash and U+202E prints them as `\x1b`, `\x5c` and `\u{202E}`, never as the raw characters.
 
 `pnpm --dir tools/cli test` and `tsc` pass. The lead's Controlled mutation sample is recorded. Exercised, with a real packed variant:
 - scenario 1's restart;
+- on this macOS machine (case-insensitive APFS), scenario 3's case alias;
 - `git restore` of a removed retired file, after which the next `update` leaves it alone.
 
 `v2-ci` and `cli-ci` pass on the last code commit.
@@ -98,8 +101,8 @@ Out:
 ## Approvals
 
 - Mode Controlled and change 1b ahead of change 3: the human, 2026-10-29.
-- Design mode (required in Controlled), all three perspectives: BLOCK from each, 3 blockers. The resolutions above were applied by the lead and approved by the human, 2026-10-29: lexical check first; recovery by `git restore` and not `init --force`; the climb out of Scope. Re-verification of the design follows.
+- Design mode (required in Controlled), all three perspectives: BLOCK from each, 3 blockers. The resolutions above were applied by the lead and approved by the human, 2026-10-29: lexical check first; recovery by `git restore` and not `init --force`; the climb out of Scope. Re-verification round 1: security PASS, plus one should-fix (the walk before the read); backend PASS, plus should-fix S2 (hard link); quality BLOCK on the same S2. Fix round 1 applied by the lead: identity taken at classification, walk before read, a case-alias scenario, FIFO fixtures for never-read, the early returns. Re-verification round 2 follows, the last before escalation.
 
 ## Stop and escalate
 
-Stop and ask if a locked test must change, or if classifying before any write needs a change to `compareAll`'s contract. Budget: 14 iterations, 6 USD, for 10 tasks (8 scenarios, the full suite, the docs and decision).
+Stop and ask if a locked test must change, or if classifying before any write needs a change to `compareAll`'s contract. Budget: 16 iterations, 7 USD, for 11 tasks (9 scenarios, the full suite, the docs and decision).
