@@ -33,7 +33,7 @@
   - **Recovery.** `git checkout HEAD -- examples/prd-001-login-example.md` brought the file back. The next `update` exited 0 with `0 retired removed, 0 retired kept`, and the file was still there.
   - **Case alias.** Exercised by scenario 3 against this machine's real case-insensitive APFS, not through the packed binary: the variant ships no case-renamed path.
   - The clone was deleted.
-- **CI**: on `05c75ee`, the last code commit: `v2-ci` run 41004522479 and `cli-ci` run 41004522485, both success. It was pushed together with the run-1 commit `d4850ff`; CI ran on the tip, which is the last code commit. On both Node versions the CI log prints `DEVIATION: case-sensitive filesystem; scenario 3 did not run`, as the human accepted. Scenario 7 ran in CI, which is not uid 0.
+- **CI**: on `ba9f43b`, the last code commit (the re-approved test), pushed alone: `v2-ci` run 41004939075 and `cli-ci` run 41004939033, both success. On `05c75ee`, the last code commit in `src/`: `v2-ci` run 41004522479 and `cli-ci` run 41004522485, both success. It was pushed together with the run-1 commit `d4850ff`; CI ran on the tip, which is the last code commit. On both Node versions the CI log prints `DEVIATION: case-sensitive filesystem; scenario 3 did not run`, as the human accepted. Scenario 7 ran in CI, which is not uid 0.
 - **Not checked**:
   - The re-check just before each unlink. It is read in the code and is the one mutation-sample survivor; no deterministic scenario opens the race.
   - A Unicode-normalization alias (NFC against NFD). It rests on the same `dev`+`ino` mechanism as the case alias.
