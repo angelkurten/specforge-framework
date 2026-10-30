@@ -211,13 +211,13 @@ describe("update-retire-hardening", () => {
   });
 
   it("9 control, backslash and bidi characters in a printed path are escaped", async () => {
-    const name = ".claude/rules/a\x1bb\\c‮d.md";
+    const name = ".claude/rules/a\x1bb\\c\u202Ed.md";
     await install({ [name]: "n\n" });
     const r = await update({}, [".claude/rules/*.md"]);
     expect(r.code, r.out).toBe(0);
     // Fails against printing the path raw.
     expect(r.out).toContain("a\\x1bb\\x5cc\\u{202E}d.md");
     expect(r.out).not.toContain("\x1b");
-    expect(r.out).not.toContain("‮");
+    expect(r.out).not.toContain("\u202E");
   });
 });
