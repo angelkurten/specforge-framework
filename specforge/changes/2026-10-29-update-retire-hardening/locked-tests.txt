@@ -1,1 +1,2 @@
+9b18ddb614c9ffd1fde16d146c0f4d2f31928fef4556537eed46ad42ade21a6c  tools/cli/tests/integration/update-retire-hardening-fix.test.ts
 86e26a99d4cbe261000c1c1751de0b962d5ea8fc8ddcedb75a7d90a9bc3abfcd  tools/cli/tests/integration/update-retire-hardening.test.ts

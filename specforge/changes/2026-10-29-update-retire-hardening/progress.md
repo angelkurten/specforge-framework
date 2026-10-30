@@ -1,6 +1,6 @@
 # Progress
 
-**Budget**: 16 iterations, 7 USD
+**Budget**: 20 iterations, 8 USD, cumulative (raised by the human for fix round 1)
 
 ## Tasks
 
@@ -17,6 +17,8 @@
 - [x] the full CLI suite passes: `pnpm --dir tools/cli test`, and `pnpm --dir tools/cli exec tsc -p tsconfig.json --noEmit` is clean
 - [x] contract Scope "Check again just before each unlink" (no test can open the race; the lead checks it by reading): in the real run, just before each `safeUnlink`, call `classifyRetired` again for that path (ancestor walk, lstat, the same O_NONBLOCK+fstat reader). Remove only if it is still `file` with the install sha; otherwise print the matching `kept    <path> (<reason>)` line through `summary` and go on. No error at this point is fatal. Keep all 540 tests green.
 - [x] escape the path everywhere it is printed: `esc(rel)` in the exit-10 `printError` message and remediation, and `esc(twin)` in the `same file as` reason. Keep all 540 tests green and tsc clean.
+- [ ] tools/cli/tests/integration/update-retire-hardening-fix.test.ts 10 a socket at a retired path is kept and never opened (branch on lstat's type before any open; also add O_NOFOLLOW to the open)
+- [ ] tools/cli/tests/integration/update-retire-hardening-fix.test.ts 11 a bundle path whose identity cannot be read stops a real run before any write (bundleIds ignores only ENOENT; the dry run prints an error line and exits 0); and in docs/migration-v1-to-v2.md the "Getting a retired file back" note says this behaviour ships from 1.0.0. Keep all 542 tests green and tsc clean.
 
 ## Blocked
 
