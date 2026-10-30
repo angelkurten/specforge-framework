@@ -14,7 +14,7 @@
   - The reviewer read `review.md` § Design mode, the contract, and the code it names at the pre-Red base `9083554`. It reported in § Report's shape: `VERDICT: BLOCK`, 1 blocker, 5 should-fix and 3 nits, each with a `file:line` into the contract, and a `CHECKED` line.
   - The lead reproduced the blocker in a scratch clone of `8535de1`. An `update` that exits 10 on an unreadable retired file has already refreshed `CLAUDE.md`, and the re-run exits 1 on drift.
   - The lead also probed the case-only rename finding. Under `--strategy=theirs` nothing is deleted today, because the retired path is hashed after the refresh and reads as edited. Moving that classification before any write, the blocker's fix, would make the rename delete the file just written. Both go to the new change 1b. This change does not touch them.
-- **CI**: on `0b09c43`, the last code commit (the fix round), pushed alone: `v2-ci` run 41000233230 and `cli-ci` run 41000233221, both success. On `8535de1`: `v2-ci` run 40999020333 and `cli-ci` run 40999020194, both success.
+- **CI**: on `c4a3d0a`, the last code commit (the compose), pushed alone: `v2-ci` run 41001162236 and `cli-ci` run 41001162270, both success. On `0b09c43` (the fix round), pushed alone: `v2-ci` run 41000233230 and `cli-ci` run 41000233221, both success. On `8535de1`: `v2-ci` run 40999020333 and `cli-ci` run 40999020194, both success.
 - **Not checked**:
   - The security and quality perspectives were not dispatched; only backend ran.
 - **Deviations from the contract**:
@@ -25,3 +25,5 @@
     - `review.md`'s opening said only "after the loop" (scenario 9).
     - § Design mode did not say what `CHECKED` lists (scenario 10).
   - **Lock confirmations.** The packet's foreign-lock finding on `scripts/v2_adjustments_test.py` is the test_3 edit the human approved before the loop. The fix-round test was added to the lock after the first approval, also approved by the human.
+  - **Re-verification (PASS).** All four findings were fixed. One out-of-scope nit was fixed at compose: the contract's suite count, 48, is 49 after the fix round.
+  - **Compose wording.** The new DECISIONS.md entry avoids the literal `Mode: design`, because the locked `design_mode_test` test_6 reads the last entry that carries it.
