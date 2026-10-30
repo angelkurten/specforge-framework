@@ -1,0 +1,1 @@
+40c87204969b4d0d3bcc322209b195d17e503b2c227e1c1fb5bbb80c045106ab  scripts/design_mode_test.py

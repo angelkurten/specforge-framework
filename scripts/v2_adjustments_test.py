@@ -43,7 +43,9 @@ class V2AdjustmentsTests(unittest.TestCase):
         text = MODES.read_text()
         self.assertIn("design panel", text.lower())
         part = section(text, "esign panel")
-        for needle in ("specforge-backend-reviewer", "specforge-security-reviewer", "specforge-quality-reviewer", "REVIEW_MODE: draft", "before Red"):
+        # Changed by specforge/changes/2026-10-29-reviewer-design-mode (approved by the human):
+        # the panel is specforge-reviewer's design mode, not v1's three reviewer agents.
+        for needle in ("specforge-reviewer", "Mode: design", "backend", "security", "quality", "before Red"):
             self.assertIn(needle, part, needle)
         self.assertRegex(part.lower(), r"optional")
         self.assertRegex(part.lower(), r"high risk|high-risk")
