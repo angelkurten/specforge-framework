@@ -157,8 +157,14 @@ export async function runUpdate(opts: UpdateOptions): Promise<number> {
         dryKept++;
         continue;
       }
-      const sha = await sha256OfFile(path.join(opts.cwd, rel)).catch(() => null);
-      if (sha === null) continue;
+      let sha: string;
+      try {
+        sha = await sha256OfFile(path.join(opts.cwd, rel));
+      } catch (e) {
+        const code = (e as NodeJS.ErrnoException).code;
+        if (code !== "ENOENT") info(opts, `  error   ${rel} (${code})`);
+        continue;
+      }
       const untouched = sha === installed.get(rel);
       if (untouched) dryRemoved++;
       else dryKept++;

@@ -16,7 +16,7 @@
 - [x] tools/cli/tests/integration/update-retire-fix.test.ts 8 a directory or an unreadable file at a retired path exits 10 and leaves the manifest unchanged
 - [x] tools/cli/tests/integration/update-retire-fix.test.ts 9 the dry-run summary carries the retired counts, and the full CLI suite and tsc still pass
 
-- [ ] tools/cli/tests/integration/update-retire-fix2.test.ts 10 a dry run with a directory or an unreadable file at a retired path prints an error line and exits 0; the full CLI suite and tsc still pass
+- [x] tools/cli/tests/integration/update-retire-fix2.test.ts 10 a dry run with a directory or an unreadable file at a retired path prints an error line and exits 0; the full CLI suite and tsc still pass
 
 ## Blocked
 
@@ -31,3 +31,4 @@
 - Task 8 (fix 7): añadí `isSymlink` (lstat) en update.ts, usado en dry-run y en la corrida real (`kept ... (symlink; not followed)`); `pnpm --dir tools/cli exec vitest run tests/integration/update-retire-fix.test.ts -t " 7 "` → 3 passed, 3 skipped.
 - Task 9 (fix 8): solo ENOENT cuenta como «ya no existe»; otro error se relanza y sale 10 sin tocar el manifest; `pnpm --dir tools/cli exec vitest run tests/integration/update-retire-fix.test.ts -t " 8 "` → 2 passed, 4 skipped.
 - Task 10 (fix 9): el resumen del dry-run lleva `<n> retired removed, <m> retired kept`; `pnpm --dir tools/cli exec vitest run tests/integration/update-retire-fix.test.ts` → 6 passed; `pnpm --dir tools/cli test` → 37 files, 529 passed; `tsc --noEmit` → limpio.
+- Task 11 (fix2 10): el dry-run imprime `  error   <path> (<code>)` si la lectura falla distinto de ENOENT y sale 0; `vitest run update-retire-fix2.test.ts` → 2 passed; `pnpm --dir tools/cli test` → 38 files, 531 passed; `tsc --noEmit` → limpio.
