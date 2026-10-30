@@ -31,7 +31,7 @@ A Contract change with high risk once passed review with a login that answered i
 - normalization (strip, case, NFC) applied where a value is compared as well as where it is stored, and bounds read after it;
 - control and invisible characters refused at trust boundaries;
 - existing code that consumes a value whose domain the change widens;
-- code that reads or removes a path: a symlink, checked with `lstat` and never followed; a directory; an unreadable file; and any error other than not-found (change 2026-10-29-update-removes-retired);
+- code that reads or removes a path: a symlink, checked with `lstat` and never followed; a directory; an unreadable file; a socket or a device, branching on the `lstat` type before any open; and any error other than not-found (changes 2026-10-29-update-removes-retired, 2026-10-29-update-retire-hardening);
 - an order the API promises travels in a list, never in a JSON object's keys: a JS client lists integer-like keys first. When the change spans siblings, the contract fixes the shape on both sides (change `2026-10-27-team-stats`).
 
 The checklist comes from the blind audit of the pilot (`../specforge-pilot/specforge/changes/archive/2026-10-25-audit-fixes`).
