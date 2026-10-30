@@ -95,6 +95,21 @@ export const IGNORED_PATTERNS: ReadonlyArray<string> = [
   "Thumbs.db",
 ];
 
+/**
+ * Globs (FRAMEWORK_FILES syntax) the framework declares retired: `update`
+ * removes them from an adopter's repo when untouched. Empty until v1 is removed.
+ */
+export const RETIRED_FILES: ReadonlyArray<string> = [];
+
+export function isRetired(rel: string, patterns: ReadonlyArray<string> = RETIRED_FILES): boolean {
+  return matchesAny(rel, patterns);
+}
+
+/** True when `rel` matches a team-data pattern. */
+export function isTeamData(rel: string): boolean {
+  return matchesAny(rel, TEAM_DATA_PATTERNS);
+}
+
 export type Classification = "framework" | "team" | "ignored" | "unknown";
 
 /**

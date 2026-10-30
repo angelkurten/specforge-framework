@@ -16,7 +16,8 @@ import {
   readManifest,
   writeManifest,
 } from "../manifest.js";
-import { safeWriteFile } from "../safe-fs.js";
+import { isRetired, isTeamData } from "../partition.js";
+import { safeUnlink, safeWriteFile } from "../safe-fs.js";
 import { sha256OfBytes, sha256OfFile } from "../sha.js";
 import { info, printError, summary } from "../output.js";
 
@@ -26,6 +27,8 @@ export interface UpdateOptions {
   dryRun: boolean;
   quiet: boolean;
   importMetaUrl: string;
+  /** Globs declared retired; defaults to RETIRED_FILES. */
+  retired?: ReadonlyArray<string>;
 }
 
 interface PerFileState {
@@ -102,6 +105,10 @@ export async function runUpdate(opts: UpdateOptions): Promise<number> {
     manifest.framework_files.map((f) => [f.path, f.sha256_at_install] as const),
   );
 
+  const retiredRels = [...installed.keys()].filter(
+    (rel) => !bundleHashes.has(rel) && isRetired(rel, opts.retired) && !isTeamData(rel),
+  );
+
   const states = await compareAll(opts.cwd, bundleHashes, installed);
   const drifted = states.filter((s) => s.state === "changed-by-user");
   const toUpdate = states.filter(
@@ -138,6 +145,16 @@ export async function runUpdate(opts: UpdateOptions): Promise<number> {
     info(opts, "dry-run: would perform the following operations:");
     for (const u of toUpdate) info(opts, `  write   ${u.rel}`);
     for (const d of drifted) info(opts, `  ${opts.strategy ?? "drift-halt"}  ${d.rel}`);
+    for (const rel of retiredRels) {
+      const sha = await sha256OfFile(path.join(opts.cwd, rel)).catch(() => null);
+      if (sha === null) continue;
+      info(
+        opts,
+        sha === installed.get(rel)
+          ? `  remove  ${rel}`
+          : `  kept    ${rel} (edited; retired from the framework, no longer tracked)`,
+      );
+    }
     summary(opts, `dry-run: ${toUpdate.length} updates, ${drifted.length} drifted (strategy: ${opts.strategy ?? "halt"})`);
     return 0;
   }
@@ -191,6 +208,29 @@ export async function runUpdate(opts: UpdateOptions): Promise<number> {
       for (const d of drifted) info(opts, `ours    ${d.rel} (preserved)`);
     }
 
+    // Remove untouched retired files, then their emptied parent directories.
+    let retiredRemoved = 0;
+    let retiredKept = 0;
+    for (const rel of retiredRels) {
+      const sha = await sha256OfFile(path.join(opts.cwd, rel)).catch(() => null);
+      if (sha === null) continue; // already gone
+      if (sha !== installed.get(rel)) {
+        info(opts, `kept    ${rel} (edited; retired from the framework, no longer tracked)`);
+        retiredKept++;
+        continue;
+      }
+      await safeUnlink(opts.cwd, rel);
+      info(opts, `remove  ${rel}`);
+      retiredRemoved++;
+      for (let dir = path.dirname(rel); dir !== "."; dir = path.dirname(dir)) {
+        try {
+          await fs.rmdir(path.join(opts.cwd, dir)); // fails if non-empty
+        } catch {
+          break;
+        }
+      }
+    }
+
     // Rebuild manifest.
     const newEntries: FrameworkFileEntry[] = [];
     for (const [rel] of bundleHashes.entries()) {
@@ -211,7 +251,7 @@ export async function runUpdate(opts: UpdateOptions): Promise<number> {
     await writeManifest(opts.cwd, newManifest);
 
 
-    summary(opts, `update complete: ${toUpdate.length} files refreshed, ${drifted.length} drifted (strategy: ${opts.strategy ?? "none"})`);
+    summary(opts, `update complete: ${toUpdate.length} files refreshed, ${drifted.length} drifted (strategy: ${opts.strategy ?? "none"}), ${retiredRemoved} retired removed, ${retiredKept} retired kept`);
     return 0;
   } catch (e) {
     printError({
