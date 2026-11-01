@@ -107,6 +107,11 @@ export async function synthBundleAt(
  * as stale, since a future test that does start asserting on `.tools`
  * should not inherit a second, deliberately-introduced staleness.
  */
+/** The one definition the package ships (v2). */
+export const SHIPPED_DEFINITIONS: ReadonlyArray<{ name: string }> = [
+  { name: "specforge-reviewer" },
+];
+
 export const SUBAGENT_DEFINITIONS: ReadonlyArray<{
   name: string;
   model: string;

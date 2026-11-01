@@ -1,277 +1,105 @@
 # specforge
 
-A framework for writing rigorous specifications (PRDs and ADRs) with AI as the primary author. Stack-agnostic, domain-agnostic, human-in-the-loop.
+A framework for changing software with AI as the primary author, under a written contract and tests a human approved. Stack-agnostic and domain-agnostic.
 
 **Documentation:** [angelkurten.github.io/specforge-framework](https://angelkurten.github.io/specforge-framework/)
 **Also available in:** [Español](README.es.md)
 
 ## What it is
 
-specforge is an opinionated workflow and a set of templates for teams that use AI to draft design documents and want the output to be as careful as if a senior engineer had written it. It treats the AI as a drafting author, not a vibe-coding sidekick, and it pays for that with structure: grounding before writing, multi-reviewer critique anchored to real code, a hard gate between `Draft` and `Implemented`, and a single source of truth for current system state.
+specforge makes an AI-authored change as careful as a senior engineer's: the outcome is written down first, the tests are approved by a human and locked, the AI implements in clean-context iterations until those tests pass, and a reviewer with a clean context tries to break the result.
 
-It distinguishes four kinds of documents and refuses to let them drift into each other:
+Every change picks one of four modes, then runs the steps that mode needs:
 
-| Document | Purpose | Lifecycle |
-|---|---|---|
-| **PRD** | A long ADR with implementation detail. What to build and how, for one feature or change. | Historical snapshot. Frozen at `Implemented`. |
-| **ADR** | A focused architectural decision with alternatives and trade-offs. | Historical snapshot. Frozen at `Accepted`. |
-| **`SYSTEM_ARTIFACT.md`** | Current state of one sibling project, organised by domain. One file per project that needs it; lives inside that sibling, not in specforge. | Living document, updated when a PRD that impacts the project ships. |
-| **`ROADMAP.md`** | Product-level intent: problems, users, evidence, status, horizon. One global file at the specforge root. No technical detail. | Living document, mutable across generative cycles and PRD ships. |
+| Mode | When |
+|---|---|
+| `Direct` | Small, reversible, obvious. No contract. |
+| `Contract` | A defined outcome with tests. Contract, red tests, loop, review. |
+| `Explore` | The outcome is unknown. Learn first, then reclassify. |
+| `Controlled` | High risk. The full cycle plus design review and a human at each gate. |
 
-The load-bearing distinction: **PRDs are not living docs**. A PRD marked `Implemented` is a frozen record of what the team decided and shipped at a specific commit. To learn what the system does *today*, read `SYSTEM_ARTIFACT.md` or the code. To learn *why* something was built the way it was, read the PRD that introduced it.
-
-## What specforge is opinionated about
-
-Six principles, each enforced by rule files in [`.claude/rules/`](.claude/rules/) and format references in [`CONVENTIONS.md`](CONVENTIONS.md):
-
-1. **Ground before drafting.** Never invent endpoints, tables, functions, or config keys. Verify each reference against real code, or mark it explicitly as new.
-2. **PRDs are historical snapshots, not living docs.** Promoted PRDs are frozen. Design evolution happens in a new PRD that declares `Supersedes:` against the old one.
-3. **Multi-reviewer critique anchored to code.** Four parallel reviewers (backend, frontend, security, quality — adapt to your domain), each briefed with links to real code, reporting with explicit severity 🔴🟡🟢. Reviewers with no ground-truth anchor are just correlated opinions.
-4. **A hard gate between `Draft` and `Implemented`.** A PRD cannot be promoted without a YAML gate block carrying `commit_hash`, `tests`, and `system_artifact_diff`. No exceptions.
-5. **Mermaid only for diagrams.** No ASCII art. Markdown tables and nested bullet lists are not diagrams and remain valid.
-6. **`SYSTEM_ARTIFACT.md` is the single source of truth for current state.** The gate in #4 is what keeps it honest — you cannot ship a feature without updating the living state doc.
+The steps, in order: classify, contract, red, loop, review, compose. Each one is a skill under `.claude/skills/`; the method itself lives in `specforge/core/`.
 
 ## Who should use specforge
 
-Adopt it if:
-
-- You use AI as the primary author of design docs, not just as a code assistant.
-- Your specs have to be coherent across multiple people, services, or phases.
-- You have been burned by AI-generated docs that were internally plausible but contradicted the actual code.
-- You want one file (`SYSTEM_ARTIFACT.md`) that a new engineer can read to understand what the system does today.
-
-Do not adopt it if:
-
-- Your specs are single-author, single-session, and never leave your head.
-- You prefer to iterate in code and treat docs as optional.
-- You need a lightweight README generator or a simple PRD template with no process around it.
-
-specforge trades speed for coherence. If you do not need coherence, the ceremony will slow you down.
+Adopt it if the AI writes most of your code, and you have been burned by changes that looked plausible but broke something nobody had written down. Skip it for throwaway scripts: the contract is overhead you do not need there.
 
 ## File layout
 
-specforge is designed to live **as a sibling directory to the code repositories it describes**, not as a subdirectory of any one of them. A typical team layout:
+specforge lives **as a sibling directory to the code repositories it governs** (`../<sibling>`), never inside one:
 
 ```
-<your-org>/                         ← repo root (monorepo or parent of sibling repos)
-├── specforge/                      ← this framework
-│   ├── README.md                   ← you are here (English)
-│   ├── README.es.md                ← Spanish version of this README
-│   ├── CLAUDE.md                   ← 47-line pointer file (mental model + TOC), auto-loaded
+<your-org>/
+├── specforge/
+│   ├── CLAUDE.md                  ← the cycle in one page, auto-loaded
 │   ├── .claude/
-│   │   ├── rules/                  ← behavioural rules, loaded alongside CLAUDE.md
-│   │   │   ├── hard-rules.md       ← the 16 invariants (unscoped)
-│   │   │   ├── workflow.md         ← 9-step authoring process (unscoped)
-│   │   │   ├── gate-block.md       ← Draft → Implemented gate (unscoped)
-│   │   │   ├── prd-authoring.md    ← required sections, naming (unscoped)
-│   │   │   ├── roadmap.md          ← roadmap cycle + evidence + PII carve-out (unscoped)
-│   │   │   ├── adr-specific.md     ← loads only on ADR-*.md
-│   │   │   └── framework-maintenance.md  ← loads only on framework files
-│   │   └── agents/specforge/       ← 15 subagent definitions: 4 reviewers + 4 roadmap generators + 4 critics + 2 implementers + 1 v2 reviewer
-│   ├── CONVENTIONS.md              ← format reference: shapes, naming, diagrams
-│   ├── SIBLINGS.md                 ← team-mutable registry of sibling projects (fill in on day 1)
-│   ├── ROADMAP.md                  ← team-mutable product-level intent (one global file, living)
-│   ├── LICENSE                     ← MIT
-│   ├── templates/
-│   │   ├── prd.md
-│   │   ├── adr.md
-│   │   ├── agdr.md                 ← optional Agent Decision Record (rare)
-│   │   ├── roadmap.md              ← blank starter for ROADMAP.md
-│   │   └── system-artifact.md      ← blank template; goes inside a sibling, not here
-│   ├── examples/
-│   │   ├── prd-001-login-example.md
-│   │   └── system-artifact-example.md   ← example SYSTEM_ARTIFACT for one sibling
-│   ├── scripts/
-│   │   └── prd-check.py            ← pre-panel PRD validator; workflow step 4 runs it
-│   ├── tests/
-│   │   └── roadmap/                ← 32 conformance walkthroughs for the roadmap cycle
-│   ├── NNN-your-prd.md             ← your PRDs live at the specforge root
-│   └── ADR-NNN-your-adr.md         ← your ADRs too
-├── api-service/                    ← sibling project (example — a backend)
-│   ├── CLAUDE.md                   ← project-specific rules (stack, lint, test conventions)
-│   └── docs/
-│       └── SYSTEM_ARTIFACT.md      ← living state for api-service; referenced by PRD gate blocks
-└── web-client/                     ← sibling project (example — a frontend)
-    ├── CLAUDE.md                   ← project-specific rules
-    └── (no SYSTEM_ARTIFACT — UI-only, grounded from code directly)
+│   │   ├── rules/specforge.md     ← the invariants every session keeps
+│   │   ├── skills/                ← one skill per step
+│   │   ├── hooks/                 ← the lock guard for approved tests
+│   │   └── agents/specforge/      ← the reviewer
+│   ├── specforge/
+│   │   ├── core/                  ← modes, the cycle, the rules each step follows
+│   │   ├── scripts/               ← mechanical checks and the loop runner
+│   │   └── changes/               ← one folder per change: contract, progress, evidence
+│   ├── templates/                 ← contract, progress, evidence report, decision log
+│   └── examples/                  ← a worked change
+├── api-service/                   ← a sibling code repository
+└── web-client/                    ← another
 ```
-
-The **Sibling projects registry** in [`SIBLINGS.md`](SIBLINGS.md) is the directory of everything specforge knows about — each PRD's `Impacted Projects` table must reference only projects listed there, by name. `SIBLINGS.md` is team data; the rest of the files are framework data that `npx @angelkurten/specforge update` refreshes in place without touching your registry.
 
 ## Adoption via npx
-
-The fastest way to install specforge is the npm CLI — no clone required:
 
 ```bash
 mkdir specforge && cd specforge
 npx @angelkurten/specforge init
 ```
 
-`init` scaffolds the complete framework layout (rules, templates, agents, examples), writes editable stubs for your team data (`SIBLINGS.md`, `ROADMAP.md`), and records `.specforge/manifest.json` — the installed version plus per-file hashes used for drift detection.
-
-Lifecycle commands, all run from the specforge directory:
+`init` scaffolds the framework layout and records `.specforge/manifest.json`: the installed version plus per-file hashes used for drift detection. Lifecycle commands, all run from the specforge directory:
 
 ```bash
-npx @angelkurten/specforge update    # refresh framework files in place; team data files are never touched
-npx @angelkurten/specforge doctor    # validate the installed layout: hard-rule validators + drift detection
+npx @angelkurten/specforge update    # refresh framework files in place; your own files are never touched
+npx @angelkurten/specforge doctor    # validate the installed layout and detect drift
 npx @angelkurten/specforge migrate   # apply versioned, idempotent migrations between framework versions
 npx @angelkurten/specforge version   # report bundled vs installed framework version (--json adds a drift boolean)
 ```
 
 Requires Node.js ≥ 20. The package is published exclusively from CI with [npm provenance](https://docs.npmjs.com/generating-provenance-statements); after installing it as a dependency you can verify the attestation with `npm audit signatures`.
 
-## Reinforcing delegation on Claude Code
-
-Workflow steps 2, 5 and 9 fan out across sub-agents, and [hard rule 14](.claude/rules/hard-rules.md) makes that a standing request rather than something you re-ask for every session. Some Claude Code builds ship a default that withholds automatic delegation until the user asks for it, which lets the lead agent run a "panel" inside a single context — four reviewers that are one opinion restated.
-
-If you see that, repeat the request on every prompt with a `UserPromptSubmit` hook — in `~/.claude/settings.json` for all your projects, or the specforge repo's `.claude/settings.json` for the team:
-
-```json
-{
-  "hooks": {
-    "UserPromptSubmit": [
-      { "hooks": [{ "type": "command", "command": "printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"specforge hard rule 14: workflow steps 2, 5 and 9 dispatch real sub-agents via the Agent tool. Never run a grounding pass or a reviewer panel inline in the lead context.\"}}'" }] }
-    ]
-  }
-}
-```
-
-`init` does not write this file and `update` never touches it — settings are team data, not framework data. Naming a reviewer explicitly at the prompt (`@"specforge-backend-reviewer (agent)"`) is deterministic too, but it only covers that one prompt.
-
-**Restart once after the first install.** If your repo had no `.claude/agents/` directory before, Claude Code registers the 15 definitions only after one session restart. Later edits to them hot-reload; this caveat applies to the first creation of the directory only.
-
-## Turning the panels off
-
-The 15 definitions are registered subagents the host model can delegate to on its own, outside the workflow — the four reviewers hold `Bash` so they can walk a diff and `WebFetch` so they can check a changelog or advisory against its live source, and the two implementers hold `Edit` and `Write` on top of that same `Bash`/`WebFetch` pair, since an implementer changes a sibling's code rather than only reading it. A mis-delegated reviewer therefore holds shell access and live network access at once; a mis-delegated implementer holds those plus the ability to edit and write a sibling's repo outside any reviewed workflow step — strictly worse. There is no frontmatter off-switch; `permissions.deny` is the only capability-level control. **If you do not run the review or roadmap panels, deny them**, and if you want to keep running the panels but block auto-delegation to the implementer roles specifically, deny just the two `*-implementer` entries below — in `.claude/settings.json` (or `~/.claude/settings.json`), dropping whichever entries you do run:
-
-```json
-{
-  "permissions": {
-    "deny": [
-      "Agent(specforge-backend-reviewer)",
-      "Agent(specforge-frontend-reviewer)",
-      "Agent(specforge-security-reviewer)",
-      "Agent(specforge-quality-reviewer)",
-      "Agent(specforge-reviewer)",
-      "Agent(specforge-roadmap-market-generator)",
-      "Agent(specforge-roadmap-ux-generator)",
-      "Agent(specforge-roadmap-product-generator)",
-      "Agent(specforge-roadmap-support-generator)",
-      "Agent(specforge-roadmap-evidence-critic)",
-      "Agent(specforge-roadmap-risk-critic)",
-      "Agent(specforge-roadmap-devils-advocate-critic)",
-      "Agent(specforge-roadmap-opportunity-cost-critic)",
-      "Agent(specforge-backend-implementer)",
-      "Agent(specforge-frontend-implementer)"
-    ]
-  }
-}
-```
-
-`permissions.deny` is also the one control that reaches a definition installed at user scope (`~/.claude/agents/`), which no repo-scoped check can see.
-
-To attempt to bound where all fourteen `WebFetch`-holding definitions may fetch from, pair an `allow` entry for the domains you trust with a blanket `WebFetch` deny in the same `.claude/settings.json` — the `allow` half alone only pre-approves a domain and does not itself block any other:
-
-```json
-{
-  "permissions": {
-    "allow": [
-      "WebFetch(domain:example.com)"
-    ],
-    "deny": [
-      "WebFetch"
-    ]
-  }
-}
-```
-
-Two caveats. The rule is session-wide, not per subagent — all fourteen definitions (four reviewers, two implementers, eight roadmap roles) share one list, and so does the main session. And whether this `allow`+`deny` pairing actually *restricts* fetches to the allowed domain, rather than the more specific `allow` merely taking precedence for that one case with the blanket `deny` doing nothing else useful, is **unverified**: Claude Code's precedence for this combination was not established when this was written. Treat the rule as scoping you should confirm against your own Claude Code version, not as a sandbox you already have.
-
 ## Quickstart
 
-1. **Copy specforge into your repo** (or run `npx @angelkurten/specforge init` — see [Adoption via npx](#adoption-via-npx)), or keep it as a sibling directory that your AI tools can read. The files consumed automatically by Claude Code are `CLAUDE.md` (framework entry point — mental model and pointers) plus the unscoped rule files under [`.claude/rules/`](.claude/rules/) (hard rules, workflow, gate block, PRD authoring). Everything else is referenced from them.
+1. Run `init` as above, and restart Claude Code once so it registers the reviewer.
+2. Ask for a change. The `specforge-classify` skill proposes a mode and, once you confirm, scaffolds the change folder.
+3. For a `Contract` or `Controlled` change, review the contract, then approve the red tests with your own message. They are locked from then on.
+4. The loop implements until the locked tests pass; the reviewer then reads the contract, the evidence and the diff with a clean context.
+5. `compose` turns each lesson into the cheapest artifact that catches it: a test, a rule, an example or a doc.
 
-2. **Bootstrap on day 1 — in this order, before your first PRD:**
-   - **Decide where specforge lives** in your repo topology — as a top-level directory in a monorepo, or as its own repo cloned under the same parent as your code repos. Either works; both satisfy the `../api-service/` relative-path convention.
-   - **Fill in [`SIBLINGS.md`](SIBLINGS.md).** List every code repository your team maintains that PRDs will reference: project name, relative path, where its `CLAUDE.md` and `SYSTEM_ARTIFACT.md` live, stack summary, and `Status: active`. This is a prerequisite for the grounding step of the workflow.
-   - **Bootstrap each service-heavy sibling's `SYSTEM_ARTIFACT.md` inside that sibling** (typically at `<sibling>/docs/SYSTEM_ARTIFACT.md`). Copy `templates/system-artifact.md` into the sibling and run a one-off Explore pass — one agent per domain. **Incremental adoption is supported**: a team with 10 services does not bootstrap 10 SYSTEM_ARTIFACT files on day 1. Add the sibling to `SIBLINGS.md` with `Read first: CLAUDE.md` only, and the first PRD that impacts it can bootstrap its SYSTEM_ARTIFACT in the same change. UI-only siblings can skip this permanently — they ground from code directly. Do not retrofit PRDs for already-shipped features.
+## The reviewer
 
-3. **Write your first PRD.** Copy `templates/prd.md`, follow the 9-step workflow in [`.claude/rules/workflow.md`](.claude/rules/workflow.md), and use `examples/prd-001-login-example.md` as a reference for the level of detail expected.
+The one shipped agent, `specforge-reviewer`, holds `Read`, `Grep`, `Glob` and `Bash`, and no tool to write, edit or delegate. If you never run the review step, deny it in `.claude/settings.json`:
 
-4. **Run the review loop.** Dispatch the four reviewer subagents in parallel by name — `specforge-backend-reviewer`, `specforge-frontend-reviewer`, `specforge-security-reviewer`, `specforge-quality-reviewer` — each with a structured brief carrying `REVIEW_MODE: draft`, the PRD path, the sibling's `CLAUDE.md` path, and the code references to verify against. Consolidate findings by severity. Re-dispatch *only* the domains with 🔴 blockers, with `REVIEW_MODE: re-verification` and a ledger of the findings that reviewer raised — never run a fresh review from scratch after fixes.
-
-5. **Ship as `Draft`, implement, then gate to `Implemented`.** The gate block at the bottom of the PRD stays with `[TBD]` placeholders until all three fields (`commit_hash`, `tests`, `system_artifact_diff`) are satisfied. Update `SYSTEM_ARTIFACT.md` as part of the same change — that is what the `system_artifact_diff` field references.
-
-## Workflow at a glance
-
-```mermaid
-flowchart TB
-    scope[1. Scope the request] --> ground[2. Ground in reality]
-    ground -->|parallel — one per<br/>impacted sibling| siblingsGround[[Sibling Explore:<br/>read its CLAUDE.md,<br/>SYSTEM_ARTIFACT, code]]
-    siblingsGround --> plan[3. Plan the document]
-    plan --> draft[4. Draft]
-    draft --> review[5. Multi-reviewer critique]
-    review -->|parallel — per sibling<br/>× reviewer role| reviewers[[Backend · Frontend<br/>Security · Quality<br/>reviewers in parallel]]
-    reviewers --> decide{Any 🔴<br/>blockers?}
-    decide -->|yes| fixes[6. Apply fixes]
-    fixes --> rereview[7. Scoped re-review<br/>only blocked domains]
-    rereview --> decide
-    decide -->|no| ship[8. Ship as Draft]
-    ship --> userGate{User: implement now,<br/>defer, or resume<br/>a different Draft?}
-    userGate -->|defer| pause([Draft waits in queue])
-    userGate -->|now / resume| impl[9. Implement]
-    impl -->|per impacted sibling| implTeam[[Implementation team<br/>named dispatch, six-field brief<br/>(PRD_PATH + IMPL_MODE + SCOPE + paths)]]
-    implTeam --> postReview[Re-dispatch step 5 panel<br/>post-impl mode, per-sibling diff]
-    postReview --> postDecide{Any 🔴 or<br/>untracked 🟡?}
-    postDecide -->|yes| roundCheck{Fix-round budget<br/>exhausted?}
-    roundCheck -->|no| implFix[Fix in code, or amend<br/>the PRD via the bounce]
-    implFix --> postReview
-    roundCheck -->|yes| escalate{User escalation:<br/>one more round,<br/>stop ungated,<br/>or waive?}
-    escalate -->|one more once| implFix
-    escalate -->|stop| thaw[Stop: PRD stays Draft<br/>and ungated,<br/>reason at the top]
-    escalate -->|waive + HTML comment above fence| siblingsImpl
-    postDecide -->|no| siblingsImpl[[Update sibling's<br/>SYSTEM_ARTIFACT.md +<br/>fill gate block entry]]
-    siblingsImpl --> done([Status: Implemented])
+```json
+{ "permissions": { "deny": ["Agent(specforge-reviewer)"] } }
 ```
-
-Steps 2, 5 and 9 **fan out across the impacted siblings** — each sibling gets its own Explore agent during grounding, its own reviewer instance (per role) during critique, and its own `SYSTEM_ARTIFACT.md` update during implementation. The review phase (steps 5 → 6 → 7) is **cyclic**: scoped re-review loops back through fixes until no 🔴 blockers remain, then proceeds to ship. After step 8 the workflow pauses at an explicit user-gate — implement now, defer, or resume a previously-drafted PRD — and step 9 closes with a **second cyclic re-review** that runs the same reviewer panel against the *shipped* code (not the draft) before the gate block can be filled.
-
-Full nine-step workflow with rules for each step: [`.claude/rules/workflow.md`](.claude/rules/workflow.md). Hard rules, gate-block schema, and PRD authoring specifics are in sibling files under [`.claude/rules/`](.claude/rules/).
 
 ## Upgrading
 
 specforge uses [semantic versioning](https://semver.org/). Your installed version is recorded in `.specforge/manifest.json`; `npx @angelkurten/specforge version` prints it next to the version the CLI carries. Add `--json` for the same pair plus a `drift` boolean.
 
-To upgrade, run the CLI from your specforge directory (see [Adoption via npx](#adoption-via-npx)):
-
 ```bash
 npx @angelkurten/specforge update
 ```
 
-`update` refreshes framework files in place. **Team data files** (`SIBLINGS.md`, `ROADMAP.md`, your PRDs, your ADRs) are never touched — they only change when you edit them. If you have edited a framework file yourself, `update` halts and reports the drift; pass `--strategy=ours`, `--strategy=theirs`, or `--strategy=merge` to resolve it.
+`update` refreshes framework files in place and never touches your own files. If you have edited a framework file yourself, `update` halts and reports the drift; pass `--strategy=ours`, `--strategy=theirs`, or `--strategy=merge` to resolve it.
 
-### Upgrading to 0.14.0 — read before you run `update`
-
-**All 14 subagent definitions now hold `Bash` and `WebFetch`.** The eight roadmap generator and critic roles previously held neither, and their entire input is user-supplied evidence — quotes, hypotheses, and competitor URLs a contributor wrote. They can now dereference such a URL and hold a shell while doing it.
-
-Granting the roadmap panel web access is what an earlier security review of this framework rejected. That review deferred the grant and named four structural gaps, none of which was closed before this release: generator output is unfenced, pre-fetch URL screening exists in two of the eight roles, generators have no findings channel, and the injection clause written for the reviewer roles does not cover the roadmap shape. The generators run *before* the critics, so six of the eight can dereference a contributor-supplied URL with no screen at all. `Bash` was granted on top, which the deferred design never contemplated.
-
-This was accepted deliberately as known, unmitigated risk. The full statement and the gap analysis live in the [release notes](https://github.com/angelkurten/specforge-framework/releases) and the repository's own design records.
-
-**If your `permissions.deny` list left the eight `Agent(specforge-roadmap-*)` identities un-denied on the grounds that they held no shell and no network, that reasoning no longer holds.** Re-read it. `.claude/settings.json` sits outside the framework partition, so `update` will not touch it either way — see [Turning the panels off](#turning-the-panels-off).
-
-The two implementer definitions also stop restricting `Bash` by category of command in this release; provenance and no-network still bind.
+Coming from v1, the PRD workflow, to specforge EVA (Evidence, Verification, Adaptation)? Follow the [migration guide](https://angelkurten.github.io/specforge-framework/migration-v1-to-v2/). Version 1.0.0 removes v1 from the package; the guide says what `update` does to each v1 file.
 
 ## Language
 
-- specforge itself is written in English so that it is adoptable by any team.
-- Teams adopting specforge may write their PRDs and ADRs in whatever human language they choose. Be consistent within a team.
-- Code, JSON, SQL, config keys, endpoint paths, and file paths are always in English, regardless of the documentation language.
-- Header field names and gate block keys are always in English so that simple grep-based tooling can parse them.
+specforge itself is written in English so that any team can adopt it. Your contracts and tests may be in any language; code, JSON, config keys and file paths stay in English.
 
 ## Origin
 
-specforge was distilled by [Angel Kürten](https://github.com/angelkurten) from a workflow he developed while building an internal product with AI-authored specs. A critical review of that practice surfaced six concrete improvements over the original rules: treating PRDs as historical snapshots instead of pretending they were living docs, introducing a hard three-field gate between `Draft` and `Implemented`, declaring `SYSTEM_ARTIFACT.md` as the single source of truth for current state, reversing a counterproductive ban on Mermaid diagrams, retiring a cross-reference convention that had zero adoption in practice, and softening a rigid structured-question rule to be contextual instead of mandatory. The framework was then rebuilt from scratch with those six improvements baked in from line 1. It is not a refactor of the original — it is what you would write if you had known all of this on day 1.
+specforge was distilled by [Angel Kürten](https://github.com/angelkurten) from a workflow he developed while building an internal product with AI-authored specs. Its first version rested on PRDs and ADRs; v2 keeps what measurably worked and replaces the rest with a contract, locked tests and a clean-context review.
 
 ## License
 

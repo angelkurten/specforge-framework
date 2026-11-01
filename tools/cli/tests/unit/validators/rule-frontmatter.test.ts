@@ -87,14 +87,14 @@ describe("doctor validator: rule-frontmatter", () => {
   // `init --headless`-specific describe block that used to sit below this
   // one are retired. This proves the validator still walks every rule
   // actually installed, now that the eight shipped rules are the whole set.
-  it("walks all eight of the repo's real shipped rules and finds no findings", async () => {
+  it("walks the repo's real shipped rule (specforge.md alone) and finds no findings", async () => {
     const REPO = path.resolve(
       path.dirname(fileURLToPath(import.meta.url)),
       "../../../../..",
     );
     const rulesDir = path.join(REPO, ".claude", "rules");
     const names = (await fs.readdir(rulesDir)).filter((n) => n.endsWith(".md"));
-    expect(names.length, "the repo's own .claude/rules/ is smaller than expected").toBe(8);
+    expect(names.length, "the repo's own .claude/rules/ is smaller than expected").toBe(1);
     expect(
       names,
       "the retired rule survives in the repo's own installed set",

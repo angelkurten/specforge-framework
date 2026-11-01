@@ -187,14 +187,14 @@ describe("update: --strategy=merge refuses", () => {
 // assertion does not depend on which definitions the framework currently
 // ships.
 describe("update: a team-edited subagent definition drift-halts", () => {
-  const REL = ".claude/agents/specforge/specforge-backend-reviewer.md";
+  const REL = ".claude/agents/specforge/specforge-reviewer.md";
 
   it("halts without --strategy and is resolved by --strategy=theirs", async () => {
     const bundleParent = await mkTmpDir();
     try {
       const importMetaUrl = await synthBundleAt(bundleParent, "0.7.0");
       const bundled = subagentDefinition(
-        "specforge-backend-reviewer",
+        "specforge-reviewer",
         "opus",
         "Read, Grep, Glob, Bash",
       );

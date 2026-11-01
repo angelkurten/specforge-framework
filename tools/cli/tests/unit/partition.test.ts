@@ -18,17 +18,18 @@ describe("partition classification", () => {
   // PRD-005 § 9 row 2 — regression guard against over-removal.
   it("classifies framework files correctly", () => {
     expect(classify("CLAUDE.md")).toBe("framework");
-    expect(classify("CONVENTIONS.md")).toBe("framework");
     expect(classify("README.md")).toBe("framework");
     expect(classify("README.es.md")).toBe("framework");
     expect(classify("LICENSE")).toBe("framework");
-    expect(classify(".claude/rules/hard-rules.md")).toBe("framework");
-    expect(classify(".claude/rules/workflow.md")).toBe("framework");
-    expect(classify("templates/prd.md")).toBe("framework");
-    expect(classify("examples/worked-example.md")).toBe("framework");
+    expect(classify(".claude/rules/specforge.md")).toBe("framework");
+    expect(classify("templates/contract.md")).toBe("framework");
+    expect(classify("examples/contract-example.md")).toBe("framework");
+    // moved to history/v1/: no longer framework files
+    expect(classify("CONVENTIONS.md")).toBe("unknown");
+    expect(classify("scripts/prd-check.py")).toBe("unknown");
     // PRD-006 § 9 row 1 — the namespaced subagent definitions.
     expect(
-      classify(".claude/agents/specforge/specforge-backend-reviewer.md"),
+      classify(".claude/agents/specforge/specforge-reviewer.md"),
     ).toBe("framework");
     expect(classify(".claude/agents/specforge/sub/nested.md")).toBe("framework");
   });

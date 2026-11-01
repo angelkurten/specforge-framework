@@ -12,7 +12,6 @@
  */
 export const FRAMEWORK_FILES: ReadonlyArray<string> = [
   "CLAUDE.md",
-  "CONVENTIONS.md",
   "README.md",
   "README.es.md",
   "LICENSE",
@@ -23,11 +22,6 @@ export const FRAMEWORK_FILES: ReadonlyArray<string> = [
   ".claude/agents/specforge/**",
   "templates/**",
   "examples/**",
-  // The pre-panel PRD validator. A single file, not `scripts/**`: the repo's
-  // own `scripts/upgrade.sh` is specforge project metadata that PRD-005
-  // deliberately stopped installing, and a directory pattern here would drag
-  // it back into every adopter's tree.
-  "scripts/prd-check.py",
   // v2 (specforge/changes/2026-10-23-specforge-namespace). Everything
   // v2 lives under one `specforge/` folder, so it never claims a project's own
   // `core/`, `scripts/` or `changes/`. The guard and the skills sit under the
@@ -96,12 +90,45 @@ export const IGNORED_PATTERNS: ReadonlyArray<string> = [
 ];
 
 /**
- * Globs (FRAMEWORK_FILES syntax) the framework declares retired: `update`
- * removes them from an adopter's repo when untouched. Empty until v1 is removed.
+ * Exact paths (no globs) the framework declares retired: `update` removes them
+ * from an adopter's repo when untouched. v1 left the package in change
+ * 2026-11-01-v1-package-swap; these are its moved files at their old places.
  * This list is append-only across releases: an entry is never removed or narrowed, so an
  * install from any earlier version still retires the same files.
  */
-export const RETIRED_FILES: ReadonlyArray<string> = [];
+export const RETIRED_FILES: ReadonlyArray<string> = [
+  ".claude/rules/adr-specific.md",
+  ".claude/rules/framework-maintenance.md",
+  ".claude/rules/gate-block.md",
+  ".claude/rules/hard-rules.md",
+  ".claude/rules/model-selection.md",
+  ".claude/rules/prd-authoring.md",
+  ".claude/rules/roadmap.md",
+  ".claude/rules/workflow.md",
+  ".claude/agents/specforge/specforge-backend-implementer.md",
+  ".claude/agents/specforge/specforge-backend-reviewer.md",
+  ".claude/agents/specforge/specforge-frontend-implementer.md",
+  ".claude/agents/specforge/specforge-frontend-reviewer.md",
+  ".claude/agents/specforge/specforge-quality-reviewer.md",
+  ".claude/agents/specforge/specforge-roadmap-devils-advocate-critic.md",
+  ".claude/agents/specforge/specforge-roadmap-evidence-critic.md",
+  ".claude/agents/specforge/specforge-roadmap-market-generator.md",
+  ".claude/agents/specforge/specforge-roadmap-opportunity-cost-critic.md",
+  ".claude/agents/specforge/specforge-roadmap-product-generator.md",
+  ".claude/agents/specforge/specforge-roadmap-risk-critic.md",
+  ".claude/agents/specforge/specforge-roadmap-support-generator.md",
+  ".claude/agents/specforge/specforge-roadmap-ux-generator.md",
+  ".claude/agents/specforge/specforge-security-reviewer.md",
+  "templates/prd.md",
+  "templates/adr.md",
+  "templates/agdr.md",
+  "templates/roadmap.md",
+  "templates/system-artifact.md",
+  "examples/prd-001-login-example.md",
+  "examples/system-artifact-example.md",
+  "CONVENTIONS.md",
+  "scripts/prd-check.py",
+];
 
 export function isRetired(rel: string, patterns: ReadonlyArray<string> = RETIRED_FILES): boolean {
   return matchesAny(rel, patterns);

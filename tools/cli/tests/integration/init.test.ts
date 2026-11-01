@@ -10,6 +10,7 @@ import {
   mkTmpDir,
   plantSubagentDefinitions,
   subagentDefinition,
+  SHIPPED_DEFINITIONS,
   SUBAGENT_DEFINITIONS,
   synthBundleImportMetaUrl,
 } from "../helpers.js";
@@ -483,17 +484,13 @@ describe("init / update / migrate on a prepublish-built bundle", () => {
       await fs.readFile(path.join(tmpDir, ".specforge", "manifest.json"), "utf8"),
     );
     expect(manifest.framework_version).toBe(bundleVer);
-    // PRD-010 § 6.2 row 9: the bundle regenerated with the two new
-    // subagent definitions, so the installed manifest count moves 32 → 34.
-    // `scripts/prd-check.py` moves it 34 → 35. v2 adds four templates and
-    // the specforge-reviewer definition: 35 → 40. The v2 install adds four
-    // core files, five scripts, the lock guard and four skills: 40 → 54.
-    expect(manifest.framework_files).toHaveLength(54);
+    // v2 only: the bundle without VERSION (v1 left in change 2026-11-01-v1-package-swap).
+    expect(manifest.framework_files).toHaveLength(25);
     await expect(fs.access(path.join(tmpDir, "CLAUDE.md"))).resolves.toBeUndefined();
 
-    // PRD-006 § 9 row 8: the 14 definitions land on disk and in the manifest.
+    // The shipped definition lands on disk and in the manifest.
     const tracked = manifest.framework_files.map((f: { path: string }) => f.path);
-    for (const d of SUBAGENT_DEFINITIONS) {
+    for (const d of SHIPPED_DEFINITIONS) {
       const rel = `.claude/agents/specforge/${d.name}.md`;
       await expect(
         fs.access(path.join(tmpDir, rel)),

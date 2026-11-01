@@ -1,48 +1,41 @@
 # specforge
 
-Framework for writing rigorous PRDs and ADRs with AI as the primary author. Stack-agnostic, domain-agnostic.
+A framework for changing software with AI as the primary author, under a written contract and tests a human approved. Stack-agnostic and domain-agnostic.
 
-This file is loaded automatically at session start. It is intentionally minimal — it orients the AI and points at the rule files, document conventions, and team registry where the real content lives. For humans adopting specforge, start with [`README.md`](README.md).
+This file loads at session start and stays short. For humans adopting specforge, start with [`README.md`](README.md).
 
-## Mental model
+## The cycle
 
-Three kinds of documents. Do not confuse them:
+Every change picks one of four modes, then runs the steps that mode needs:
 
-| Document | Purpose | Lifecycle |
-|---|---|---|
-| **PRD** | A long ADR with implementation detail. Specifies *what* to build and *how* for one feature or change. | Historical snapshot. Frozen at `Implemented`. |
-| **ADR** | A focused architectural decision with alternatives and trade-offs. | Historical snapshot. Frozen at `Accepted`. |
-| **`SYSTEM_ARTIFACT.md`** | Current state of one sibling project, organised by domain. One file per project that needs it; lives inside that sibling, not in specforge. | Living document. Updated whenever a PRD that impacts the project ships. |
-| **`ROADMAP.md`** | Product-level plan: problems, users, evidence. One global file at specforge root. | Living document. Updated on generative cycles and PRD ships. |
+| Mode | When |
+|---|---|
+| `Direct` | Small, reversible, obvious. No contract. |
+| `Contract` | A defined outcome with tests. Contract, red tests, loop, review. |
+| `Explore` | The outcome is unknown. Learn first, then reclassify. |
+| `Controlled` | High risk. The full cycle plus design review and a human at each gate. |
 
-**Load-bearing**: PRDs and ADRs are frozen. To learn what the system does *now*, read the relevant sibling project's `SYSTEM_ARTIFACT.md` or the code. To learn *why* something was built the way it was, read the PRD that introduced it.
+The steps, in order: classify, contract, red, loop, review, compose.
+
+- **classify** proposes a mode and scaffolds the change folder once a human confirms.
+- **contract** states outcome, scope, constraints and acceptance evidence.
+- **red** writes failing tests from the contract; a human approves and locks them.
+- **loop** implements in clean-context iterations until the locked tests pass.
+- **review** is an adversarial reviewer with a clean context.
+- **compose** turns each lesson into the cheapest artifact that catches it.
+
+## Where things live
+
+- `specforge/core/` — the method: modes, the cycle, the rules each step follows.
+- `.claude/skills/` — one skill per step; they run the method.
+- `specforge/scripts/` — the mechanical checks and the loop runner.
+- `specforge/changes/` — one folder per change: contract, progress, evidence.
+- `.claude/rules/specforge.md` — the invariants that hold in every session.
 
 ## Sibling projects
 
-specforge is a sibling directory to the code repositories it describes, not a subdirectory. The team registry of sibling projects — names, paths, stacks, status — lives in [`SIBLINGS.md`](SIBLINGS.md). Every PRD's `Impacted Projects` table must reference projects by name from that registry. Sub-agents dispatched to implement or review code in a sibling must be briefed explicitly with the sibling's `CLAUDE.md` path via Read tool instructions — specforge does not auto-load sibling rules.
+specforge is a sibling directory to the code repositories it governs (`../<sibling>`), never vendored inside one. A sub-agent working in a sibling is briefed explicitly with that sibling's own `CLAUDE.md`; specforge does not auto-load it.
 
-## Rules live in `.claude/rules/`
+## History
 
-Detailed behavioural rules are in `.claude/rules/`. They load automatically — unscoped rules every session, path-scoped rules only when editing matching files.
-
-**Always-loaded (unscoped):**
-
-- [`hard-rules.md`](.claude/rules/hard-rules.md) — the 16 invariants that govern every PRD and ADR
-- [`workflow.md`](.claude/rules/workflow.md) — the 9-step authoring process
-- [`gate-block.md`](.claude/rules/gate-block.md) — the `Draft` → `Implemented` gate schema
-- [`prd-authoring.md`](.claude/rules/prd-authoring.md) — required sections, naming, document-type decisions
-- [`roadmap.md`](.claude/rules/roadmap.md) — the roadmap cycle, evidence discipline, and fence spec
-- [`model-selection.md`](.claude/rules/model-selection.md) — per-role model assignment for sub-agent dispatch
-
-**Path-scoped:**
-
-- [`adr-specific.md`](.claude/rules/adr-specific.md) — loads when editing `ADR-*.md`
-- [`framework-maintenance.md`](.claude/rules/framework-maintenance.md) — loads when editing specforge's own framework files
-
-## Other pointers
-
-- [`CONVENTIONS.md`](CONVENTIONS.md) — format reference: header shapes, naming, diagram syntax, cross-references
-- [`templates/`](templates/) — blank PRD, ADR, and SYSTEM_ARTIFACT templates
-- [`examples/`](examples/) — worked examples of each document type
-- [`.claude/agents/specforge/`](.claude/agents/specforge/) — subagent definitions for the reviewer and roadmap panels
-- [`README.md`](README.md) — human-facing overview, adoption guide, file layout diagram, bootstrap procedure
+The first version of the framework (PRDs, ADRs and their rules) is kept readable under `history/v1/`. It is not loaded and not shipped.

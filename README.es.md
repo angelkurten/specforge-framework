@@ -1,270 +1,105 @@
 # specforge
 
-Un framework para escribir especificaciones rigurosas (PRDs y ADRs) con IA como autora principal. Agnóstico al stack, agnóstico al dominio, con humano en el bucle.
+Un framework para cambiar software con la IA como autora principal, bajo un contrato escrito y tests que un humano aprobó. Agnóstico de stack y de dominio.
 
 **Documentación:** [angelkurten.github.io/specforge-framework](https://angelkurten.github.io/specforge-framework/)
-**Also available in:** [English](README.md)
+**También disponible en:** [English](README.md)
 
 ## Qué es
 
-specforge es un workflow opinionado y un conjunto de templates para equipos que usan IA para redactar documentos de diseño y quieren que el output sea tan cuidadoso como si lo hubiera escrito un ingeniero senior. Trata a la IA como autora de borradores, no como compañera de vibe-coding, y paga ese trato con estructura: anclaje contra código real antes de escribir, crítica multi-revisor anclada al código, una compuerta dura entre `Draft` e `Implemented`, y una única fuente de verdad para el estado actual del sistema.
+specforge hace que un cambio escrito por IA sea tan cuidadoso como el de un ingeniero senior: primero se escribe el resultado esperado, un humano aprueba los tests y se bloquean, la IA implementa en iteraciones de contexto limpio hasta que esos tests pasan, y un revisor con contexto limpio intenta romper el resultado.
 
-Distingue cuatro tipos de documentos y se niega a dejar que se confundan:
+Cada cambio elige uno de cuatro modos, y corre los pasos que ese modo necesita:
 
-| Documento | Propósito | Ciclo de vida |
-|---|---|---|
-| **PRD** | Un ADR largo con detalle de implementación. Qué construir y cómo, para una feature o cambio. | Snapshot histórico. Congelado al llegar a `Implemented`. |
-| **ADR** | Una decisión arquitectónica enfocada con alternativas y trade-offs. | Snapshot histórico. Congelado al llegar a `Accepted`. |
-| **`SYSTEM_ARTIFACT.md`** | Estado actual de un sibling project, organizado por dominio. Un archivo por proyecto que lo necesite; vive dentro de ese sibling, no en specforge. | Documento vivo, actualizado cuando un PRD que impacta el proyecto shippea. |
-| **`ROADMAP.md`** | Intento producto a nivel: problemas, usuarios, evidencia, status, horizonte. Un archivo global en la raíz de specforge. Sin detalle técnico. | Documento vivo, mutable entre ciclos generativos y ships de PRDs. |
+| Modo | Cuándo |
+|---|---|
+| `Direct` | Pequeño, reversible, obvio. Sin contrato. |
+| `Contract` | Un resultado definido con tests. Contrato, tests en rojo, loop, review. |
+| `Explore` | El resultado se desconoce. Primero se aprende, luego se reclasifica. |
+| `Controlled` | Alto riesgo. El ciclo completo más revisión de diseño y un humano en cada compuerta. |
 
-La distinción central: **los PRDs no son docs vivas**. Un PRD marcado `Implemented` es un registro congelado de lo que el equipo decidió y shippeó en un commit específico. Para saber qué hace el sistema *hoy*, leer `SYSTEM_ARTIFACT.md` o el código. Para saber *por qué* algo se construyó como se construyó, leer el PRD que lo introdujo.
+Los pasos, en orden: classify, contract, red, loop, review, compose. Cada uno es un skill bajo `.claude/skills/`; el método vive en `specforge/core/`.
 
-## De qué es opinionado specforge
+## Quién debería usar specforge
 
-Seis principios, cada uno reforzado por rule files en [`.claude/rules/`](.claude/rules/) y referencia de formato en [`CONVENTIONS.md`](CONVENTIONS.md):
+Adoptalo si la IA escribe la mayor parte de tu código y te quemaron cambios que parecían plausibles pero rompían algo que nadie había escrito. Salteátelo para scripts descartables: ahí el contrato es peso muerto.
 
-1. **Anclar antes de redactar.** Nunca inventar endpoints, tablas, funciones o config keys. Verificar cada referencia contra código real, o marcarla explícitamente como nueva.
-2. **Los PRDs son snapshots históricos, no docs vivas.** Los PRDs promovidos quedan congelados. La evolución del diseño vive en un nuevo PRD que declara `Supersedes:` contra el anterior.
-3. **Crítica multi-revisor anclada al código.** Cuatro revisores en paralelo (backend, frontend, security, quality — adaptable a tu dominio), cada uno briefeado con links al código real, reportando con severidad explícita 🔴🟡🟢. Revisores sin anclaje a ground truth son solo opiniones correlacionadas.
-4. **Compuerta dura entre `Draft` e `Implemented`.** Un PRD no puede promoverse sin un bloque YAML de compuerta con `commit_hash`, `tests`, y `system_artifact_diff`. Sin excepciones.
-5. **Mermaid para todos los diagramas.** Nada de ASCII art. Las tablas markdown y las listas anidadas no son diagramas y siguen siendo válidas.
-6. **`SYSTEM_ARTIFACT.md` es la única fuente de verdad del estado actual.** La compuerta del principio #4 es lo que lo mantiene honesto — no podés shippear una feature sin actualizar el documento vivo.
+## Estructura de archivos
 
-## Para quién es specforge
-
-Adoptalo si:
-
-- Usás IA como autora principal de docs de diseño, no solo como asistente de código.
-- Tus specs deben ser coherentes entre varias personas, servicios o fases.
-- Te han quemado docs generados por IA que eran internamente plausibles pero contradecían el código real.
-- Querés un solo archivo (`SYSTEM_ARTIFACT.md`) que un ingeniero nuevo pueda leer para entender qué hace el sistema hoy.
-
-No lo adoptes si:
-
-- Tus specs son de un solo autor, una sola sesión, y nunca salen de tu cabeza.
-- Preferís iterar en código y tratar los docs como opcionales.
-- Lo que necesitás es un generador de README ligero o un template simple de PRD sin proceso alrededor.
-
-specforge cambia velocidad por coherencia. Si no necesitás coherencia, la ceremonia te va a frenar más de lo que te ayuda.
-
-## Layout de archivos
-
-specforge está diseñado para vivir **como un directorio hermano de los repos de código que describe**, no como un subdirectorio de ninguno. Un layout de equipo típico:
+specforge vive **como directorio hermano de los repositorios de código que gobierna** (`../<sibling>`), nunca dentro de uno:
 
 ```
-<tu-org>/                           ← raíz del repo (monorepo o parent de repos hermanos)
-├── specforge/                      ← este framework
-│   ├── README.md                   ← versión en inglés
-│   ├── README.es.md                ← este archivo
-│   ├── CLAUDE.md                   ← pointer file de 47 líneas (mental model + índice), auto-loaded
+<tu-org>/
+├── specforge/
+│   ├── CLAUDE.md                  ← el ciclo en una página, se carga solo
 │   ├── .claude/
-│   │   ├── rules/                  ← reglas behavioural, cargadas junto con CLAUDE.md
-│   │   │   ├── hard-rules.md       ← las 16 invariantes (unscoped)
-│   │   │   ├── workflow.md         ← proceso de 9 pasos (unscoped)
-│   │   │   ├── gate-block.md       ← gate Draft → Implemented (unscoped)
-│   │   │   ├── prd-authoring.md    ← required sections, naming (unscoped)
-│   │   │   ├── roadmap.md          ← ciclo de roadmap + evidencia + PII carve-out (unscoped)
-│   │   │   ├── adr-specific.md     ← carga solo al editar ADR-*.md
-│   │   │   └── framework-maintenance.md  ← carga solo al editar framework files
-│   │   └── agents/specforge/       ← 15 definiciones de subagentes: 4 revisores + 4 generadores de roadmap + 4 críticos + 2 implementadores + 1 revisor v2
-│   ├── CONVENTIONS.md              ← referencia de formato: shapes, naming, diagramas
-│   ├── SIBLINGS.md                 ← registry mutable por el equipo de sibling projects (llenalo el día 1)
-│   ├── ROADMAP.md                  ← intento producto mutable por el equipo (un archivo global, vivo)
-│   ├── LICENSE                     ← MIT
-│   ├── templates/
-│   │   ├── prd.md
-│   │   ├── adr.md
-│   │   ├── agdr.md                 ← Agent Decision Record opcional (raro)
-│   │   ├── roadmap.md              ← starter en blanco para ROADMAP.md
-│   │   └── system-artifact.md      ← template en blanco; va DENTRO de un sibling, no acá
-│   ├── examples/
-│   │   ├── prd-001-login-example.md
-│   │   └── system-artifact-example.md   ← SYSTEM_ARTIFACT de ejemplo para UN sibling
-│   ├── scripts/
-│   │   └── prd-check.py            ← validador de PRD pre-panel; lo corre el paso 4
-│   ├── tests/
-│   │   └── roadmap/                ← 32 walkthroughs de conformance del ciclo de roadmap
-│   ├── NNN-tu-prd.md               ← tus PRDs viven en la raíz de specforge
-│   └── ADR-NNN-tu-adr.md           ← tus ADRs también
-├── api-service/                    ← proyecto hermano (ejemplo — un backend)
-│   ├── CLAUDE.md                   ← reglas específicas del proyecto (stack, lint, test)
-│   └── docs/
-│       └── SYSTEM_ARTIFACT.md      ← estado vivo de api-service; referenciado por los gate blocks de los PRDs
-└── web-client/                     ← proyecto hermano (ejemplo — un frontend)
-    ├── CLAUDE.md                   ← reglas específicas del proyecto
-    └── (sin SYSTEM_ARTIFACT — UI-only, se ancla directo contra el código)
+│   │   ├── rules/specforge.md     ← los invariantes que toda sesión respeta
+│   │   ├── skills/                ← un skill por paso
+│   │   ├── hooks/                 ← el guardián de los tests aprobados
+│   │   └── agents/specforge/      ← el revisor
+│   ├── specforge/
+│   │   ├── core/                  ← modos, el ciclo, las reglas de cada paso
+│   │   ├── scripts/               ← chequeos mecánicos y el runner del loop
+│   │   └── changes/               ← una carpeta por cambio: contrato, progreso, evidencia
+│   ├── templates/                 ← contrato, progreso, reporte de evidencia, log de decisiones
+│   └── examples/                  ← un cambio trabajado
+├── api-service/                   ← un repositorio de código hermano
+└── web-client/                    ← otro
 ```
-
-El **registry de Sibling projects** en [`SIBLINGS.md`](SIBLINGS.md) es el directorio de todo lo que specforge conoce — cada tabla `Impacted Projects` de un PRD sólo puede referenciar proyectos listados ahí, por nombre. `SIBLINGS.md` es data del equipo; el resto son archivos del framework que `npx @angelkurten/specforge update` refresca en el lugar sin tocar tu registry.
 
 ## Adopción vía npx
-
-La forma más rápida de instalar specforge es el CLI de npm — sin clonar nada:
 
 ```bash
 mkdir specforge && cd specforge
 npx @angelkurten/specforge init
 ```
 
-`init` genera el layout completo del framework (rules, templates, agents, examples), escribe stubs editables para tu data de equipo (`SIBLINGS.md`, `ROADMAP.md`), y registra `.specforge/manifest.json` — la versión instalada más hashes por archivo usados para detección de drift.
-
-Comandos de lifecycle, todos corridos desde el directorio specforge:
+`init` crea la estructura del framework y registra `.specforge/manifest.json`: la versión instalada más los hashes por archivo que sirven para detectar drift. Comandos de ciclo de vida, todos desde el directorio specforge:
 
 ```bash
-npx @angelkurten/specforge update    # refresca los archivos del framework in place; la data de equipo nunca se toca
-npx @angelkurten/specforge doctor    # valida el layout instalado: validadores de hard rules + detección de drift
-npx @angelkurten/specforge migrate   # aplica migraciones versionadas e idempotentes entre versiones del framework
-npx @angelkurten/specforge version   # reporta versión bundleada vs instalada (--json agrega un booleano drift)
+npx @angelkurten/specforge update    # refresca los archivos del framework en el lugar; los tuyos nunca se tocan
+npx @angelkurten/specforge doctor    # valida la estructura instalada y detecta drift
+npx @angelkurten/specforge migrate   # aplica migraciones versionadas e idempotentes entre versiones
+npx @angelkurten/specforge version   # versión incluida vs instalada (--json agrega un booleano drift)
 ```
 
-Requiere Node.js ≥ 20. El paquete se publica exclusivamente desde CI con [npm provenance](https://docs.npmjs.com/generating-provenance-statements); después de instalarlo como dependencia podés verificar la atestación con `npm audit signatures`.
+Requiere Node.js ≥ 20. El paquete se publica exclusivamente desde CI con [npm provenance](https://docs.npmjs.com/generating-provenance-statements); al instalarlo como dependencia podés verificar la atestación con `npm audit signatures`.
 
-## Reforzar la delegación en Claude Code
+## Inicio rápido
 
-Los pasos 2, 5 y 9 del workflow abren en paralelo sobre sub-agentes, y la [hard rule 14](.claude/rules/hard-rules.md) convierte eso en un pedido permanente, no en algo que rehacés cada sesión. Algunas builds de Claude Code traen un default que retiene la delegación automática hasta que el usuario la pide, y eso deja que el agente líder corra un "panel" dentro de un solo contexto — cuatro reviewers que son una sola opinión repetida.
+1. Corré `init` como arriba y reiniciá Claude Code una vez para que registre el revisor.
+2. Pedí un cambio. El skill `specforge-classify` propone un modo y, cuando lo confirmás, crea la carpeta del cambio.
+3. En un cambio `Contract` o `Controlled`, revisá el contrato y aprobá los tests en rojo con tu propio mensaje. Desde ahí quedan bloqueados.
+4. El loop implementa hasta que los tests bloqueados pasan; después el revisor lee el contrato, la evidencia y el diff con contexto limpio.
+5. `compose` convierte cada lección en el artefacto más barato que la atrape: un test, una regla, un ejemplo o un doc.
 
-Si lo ves, repetí el pedido en cada prompt con un hook `UserPromptSubmit` — en `~/.claude/settings.json` para todos tus proyectos, o en el `.claude/settings.json` del repo specforge para el equipo:
+## El revisor
+
+El único agente incluido, `specforge-reviewer`, tiene `Read`, `Grep`, `Glob` y `Bash`, y ninguna herramienta para escribir, editar o delegar. Si nunca corrés el paso de review, denegalo en `.claude/settings.json`:
 
 ```json
-{
-  "hooks": {
-    "UserPromptSubmit": [
-      { "hooks": [{ "type": "command", "command": "printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"specforge hard rule 14: workflow steps 2, 5 and 9 dispatch real sub-agents via the Agent tool. Never run a grounding pass or a reviewer panel inline in the lead context.\"}}'" }] }
-    ]
-  }
-}
+{ "permissions": { "deny": ["Agent(specforge-reviewer)"] } }
 ```
-
-`init` no escribe este archivo y `update` nunca lo toca — los settings son data de equipo, no data del framework. Nombrar un revisor explícitamente en el prompt (`@"specforge-backend-reviewer (agent)"`) también es determinista, pero cubre solo ese prompt.
-
-**Reiniciá una vez después de la primera instalación.** Si tu repo no tenía un directorio `.claude/agents/` antes, Claude Code registra las 15 definiciones recién después de un restart de sesión. Las ediciones posteriores se recargan en caliente; este caveat aplica solo a la primera creación del directorio.
-
-## Apagar los paneles
-
-Las 15 definiciones son subagentes registrados a los que el modelo host puede delegar por su cuenta, fuera del workflow — los cuatro revisores tienen `Bash` para poder recorrer un diff y `WebFetch` para poder chequear un changelog o un advisory contra su fuente viva, y los dos implementadores tienen `Edit` y `Write` además de ese mismo par `Bash`/`WebFetch`, porque un implementador modifica el código de un sibling en vez de solo leerlo. Un revisor mal delegado tiene entonces acceso a shell y a red en simultáneo; un implementador mal delegado tiene eso más la capacidad de editar y escribir en el repo de un sibling por fuera de cualquier paso del workflow revisado — estrictamente peor. No hay off-switch en el frontmatter; `permissions.deny` es el único control a nivel de capacidad. **Si no corrés los paneles de review ni los de roadmap, denegalos**, y si querés seguir corriendo los paneles pero bloquear la auto-delegación a los roles de implementador específicamente, denegá solo las dos entradas `*-implementer` de abajo — en `.claude/settings.json` (o `~/.claude/settings.json`), borrando las entradas que sí corrés:
-
-```json
-{
-  "permissions": {
-    "deny": [
-      "Agent(specforge-backend-reviewer)",
-      "Agent(specforge-frontend-reviewer)",
-      "Agent(specforge-security-reviewer)",
-      "Agent(specforge-quality-reviewer)",
-      "Agent(specforge-reviewer)",
-      "Agent(specforge-roadmap-market-generator)",
-      "Agent(specforge-roadmap-ux-generator)",
-      "Agent(specforge-roadmap-product-generator)",
-      "Agent(specforge-roadmap-support-generator)",
-      "Agent(specforge-roadmap-evidence-critic)",
-      "Agent(specforge-roadmap-risk-critic)",
-      "Agent(specforge-roadmap-devils-advocate-critic)",
-      "Agent(specforge-roadmap-opportunity-cost-critic)",
-      "Agent(specforge-backend-implementer)",
-      "Agent(specforge-frontend-implementer)"
-    ]
-  }
-}
-```
-
-`permissions.deny` es también el único control que alcanza una definición instalada a nivel usuario (`~/.claude/agents/`), que ningún chequeo scopeado al repo puede ver.
-
-Para intentar acotar desde dónde pueden fetchear las catorce definiciones que tienen `WebFetch`, combiná una entrada `allow` para los dominios en los que confiás con un deny general de `WebFetch` en el mismo `.claude/settings.json` — el `allow` solo, por sí mismo, únicamente pre-aprueba un dominio y no bloquea ningún otro:
-
-```json
-{
-  "permissions": {
-    "allow": [
-      "WebFetch(domain:example.com)"
-    ],
-    "deny": [
-      "WebFetch"
-    ]
-  }
-}
-```
-
-Dos caveats. La regla es session-wide, no por subagente — las catorce definiciones (cuatro revisores, dos implementadores, ocho roles de roadmap) comparten una sola lista, y la sesión principal también. Y si esta combinación de `allow`+`deny` realmente *restringe* los fetches al dominio permitido, o si el `allow` más específico simplemente toma precedencia para ese caso sin que el deny general haga nada útil en el resto, está **sin verificar**: la precedencia de Claude Code para esta combinación no quedó establecida al momento de escribir esto. Tratala como scoping que conviene confirmar contra tu propia versión de Claude Code, no como un sandbox que ya tenés.
-
-## Quickstart
-
-1. **Copiá specforge a tu repo** (o corré `npx @angelkurten/specforge init` — ver [Adopción vía npx](#adopción-vía-npx)), o mantenelo como un directorio hermano que tus tools de IA puedan leer. Los archivos consumidos automáticamente por Claude Code son `CLAUDE.md` (entry point del framework — mental model y pointers) más los rule files unscoped bajo [`.claude/rules/`](.claude/rules/) (hard rules, workflow, gate block, PRD authoring). Los demás se referencian desde ahí.
-
-2. **Bootstrap del día 1 — en este orden, antes de tu primer PRD:**
-   - **Decidí dónde vive specforge** en la topología de tu repo — como directorio top-level de un monorepo, o como repo propio cloneado bajo el mismo parent que tus code repos. Cualquiera funciona; ambos satisfacen la convención de paths relativos `../api-service/`.
-   - **Llená [`SIBLINGS.md`](SIBLINGS.md).** Listá cada repo de código que tu equipo mantiene y que los PRDs van a referenciar: nombre, path relativo, dónde viven `CLAUDE.md` y `SYSTEM_ARTIFACT.md`, resumen del stack, y `Status: active`. Esto es prerequisito del paso de grounding del workflow.
-   - **Bootstrapeá el `SYSTEM_ARTIFACT.md` de cada sibling service-heavy, adentro de ese sibling** (típicamente en `<sibling>/docs/SYSTEM_ARTIFACT.md`). Copiá `templates/system-artifact.md` al proyecto hermano y corré un paso único de Explore — un agente por dominio. **La adopción incremental está soportada**: un equipo con 10 servicios no bootstrapea 10 SYSTEM_ARTIFACTs el día 1. Añadí el sibling a `SIBLINGS.md` con `Read first: CLAUDE.md` solamente, y el primer PRD que lo impacte puede bootstrapear su SYSTEM_ARTIFACT en el mismo change. Los siblings UI-only pueden skippear esto permanentemente — se anclan directo contra el código. No intentes retrofittear PRDs para features ya shippeadas.
-
-3. **Escribí tu primer PRD.** Copiá `templates/prd.md`, seguí el workflow de 9 pasos en [`.claude/rules/workflow.md`](.claude/rules/workflow.md), y usá `examples/prd-001-login-example.md` como referencia para el nivel de detalle esperado.
-
-4. **Corré el loop de review.** Despachá los cuatro subagentes revisores en paralelo, por nombre — `specforge-backend-reviewer`, `specforge-frontend-reviewer`, `specforge-security-reviewer`, `specforge-quality-reviewer` — cada uno con un brief estructurado que lleva `REVIEW_MODE: draft`, el path del PRD, el path del `CLAUDE.md` del sibling, y las referencias de código contra las que verificar. Consolidá los findings por severidad. Re-despachá *solo* los dominios con 🔴 bloqueantes, con `REVIEW_MODE: re-verification` y un ledger de los findings que ese revisor levantó — nunca corras un review nuevo desde cero después de los fixes.
-
-5. **Shippeá como `Draft`, implementá, después promové a `Implemented`.** El bloque de compuerta al final del PRD se queda con placeholders `[TBD]` hasta que los tres campos (`commit_hash`, `tests`, `system_artifact_diff`) estén llenos. Actualizá `SYSTEM_ARTIFACT.md` como parte del mismo cambio — eso es lo que referencia el campo `system_artifact_diff`.
-
-## El workflow en una mirada
-
-```mermaid
-flowchart TB
-    scope[1. Scope the request] --> ground[2. Ground in reality]
-    ground -->|parallel — one per<br/>impacted sibling| siblingsGround[[Sibling Explore:<br/>read its CLAUDE.md,<br/>SYSTEM_ARTIFACT, code]]
-    siblingsGround --> plan[3. Plan the document]
-    plan --> draft[4. Draft]
-    draft --> review[5. Multi-reviewer critique]
-    review -->|parallel — per sibling<br/>× reviewer role| reviewers[[Backend · Frontend<br/>Security · Quality<br/>reviewers in parallel]]
-    reviewers --> decide{Any 🔴<br/>blockers?}
-    decide -->|yes| fixes[6. Apply fixes]
-    fixes --> rereview[7. Scoped re-review<br/>only blocked domains]
-    rereview --> decide
-    decide -->|no| ship[8. Ship as Draft]
-    ship --> userGate{User: implement now,<br/>defer, or resume<br/>a different Draft?}
-    userGate -->|defer| pause([Draft waits in queue])
-    userGate -->|now / resume| impl[9. Implement]
-    impl -->|per impacted sibling| implTeam[[Implementation team<br/>named dispatch, six-field brief<br/>(PRD_PATH + IMPL_MODE + SCOPE + paths)]]
-    implTeam --> postReview[Re-dispatch step 5 panel<br/>post-impl mode, per-sibling diff]
-    postReview --> postDecide{Any 🔴 or<br/>untracked 🟡?}
-    postDecide -->|yes| roundCheck{Fix-round budget<br/>exhausted?}
-    roundCheck -->|no| implFix[Fix in code, or amend<br/>the PRD via the bounce]
-    implFix --> postReview
-    roundCheck -->|yes| escalate{User escalation:<br/>one more round,<br/>stop ungated,<br/>or waive?}
-    escalate -->|one more once| implFix
-    escalate -->|stop| thaw[Stop: PRD stays Draft<br/>and ungated,<br/>reason at the top]
-    escalate -->|waive + HTML comment above fence| siblingsImpl
-    postDecide -->|no| siblingsImpl[[Update sibling's<br/>SYSTEM_ARTIFACT.md +<br/>fill gate block entry]]
-    siblingsImpl --> done([Status: Implemented])
-```
-
-Los pasos 2, 5 y 9 **se bifurcan por cada sibling impactado** — cada sibling recibe su propio agente Explore durante el grounding, su propia instancia de revisor (por rol) durante la crítica, y su propia actualización de `SYSTEM_ARTIFACT.md` durante la implementación. La fase de review (pasos 5 → 6 → 7) es **cíclica**: el re-review scoped loopea por fixes hasta que no queden 🔴 bloqueantes, y recién ahí procede al ship. Después del paso 8 el workflow pausa en un user-gate explícito — implementar ahora, diferir, o retomar un PRD previo en Draft — y el paso 9 cierra con un **segundo re-review cíclico** que corre el mismo panel de reviewers contra el código *shippeado* (no el draft) antes de que se pueda llenar el gate block.
-
-> Nota: los labels del diagrama y los nombres de paso se mantienen en inglés a propósito, para que coincidan 1-a-1 con los headers del workflow en [`.claude/rules/workflow.md`](.claude/rules/workflow.md). El idioma del proceso es inglés; la narrativa alrededor puede estar en cualquier idioma.
-
-Workflow completo de nueve pasos con las reglas de cada uno: [`.claude/rules/workflow.md`](.claude/rules/workflow.md). Hard rules, gate-block schema, y PRD authoring specifics están en sibling files bajo [`.claude/rules/`](.claude/rules/).
 
 ## Actualización (upgrade)
 
 specforge usa [versionado semántico](https://semver.org/). Tu versión instalada queda registrada en `.specforge/manifest.json`; `npx @angelkurten/specforge version` te la imprime al lado de la versión que trae el CLI. Agregale `--json` para obtener ese mismo par más un booleano `drift`.
 
-Para actualizar, corré el CLI desde tu directorio specforge (ver [Adopción vía npx](#adopción-vía-npx)):
-
 ```bash
 npx @angelkurten/specforge update
 ```
 
-`update` refresca los archivos del framework en el lugar. **Los archivos de data de equipo** (`SIBLINGS.md`, `ROADMAP.md`, tus PRDs, tus ADRs) nunca se tocan — solo cambian cuando vos los editás. Si editaste vos mismo un archivo del framework, `update` frena y reporta el drift; pasale `--strategy=ours`, `--strategy=theirs`, o `--strategy=merge` para resolverlo.
+`update` refresca los archivos del framework en el lugar y nunca toca los tuyos. Si editaste vos mismo un archivo del framework, `update` frena y reporta el drift; pasale `--strategy=ours`, `--strategy=theirs`, o `--strategy=merge` para resolverlo.
 
-¿Pasás de v1 (el workflow de PRDs) a specforge EVA (Evidence, Verification, Adaptation)? Seguí la [guía de migración](https://angelkurten.github.io/specforge-framework/migration-v1-to-v2/).
+¿Pasás de v1, el workflow de PRDs, a specforge EVA (Evidence, Verification, Adaptation)? Seguí la [guía de migración](https://angelkurten.github.io/specforge-framework/migration-v1-to-v2/). La versión 1.0.0 saca v1 del paquete; la guía explica qué hace `update` con cada archivo de v1.
 
 ## Idioma
 
-- specforge mismo está escrito en inglés para que sea adoptable por cualquier equipo.
-- Los equipos que adopten specforge pueden escribir sus PRDs y ADRs en el idioma humano que prefieran. Sean consistentes dentro del equipo.
-- Código, JSON, SQL, config keys, endpoint paths y file paths siempre en inglés, independientemente del idioma de la documentación.
-- Los nombres de los header fields y las keys del bloque de compuerta siempre en inglés para que tooling basado en grep pueda parsearlos.
-- Los nombres de sección dentro de PRDs/ADRs (`Problem Statement`, `Goals`, `Non-Goals`, `Architecture`, etc.) pueden traducirse si el equipo escribe sus specs en otro idioma, pero conviene mantener el orden y la presencia obligatoria de cada sección.
+specforge mismo está escrito en inglés para que cualquier equipo pueda adoptarlo. Tus contratos y tests pueden estar en el idioma que prefieras; código, JSON, config keys y file paths siempre en inglés.
 
 ## Origen
 
-specforge fue destilado por [Angel Kürten](https://github.com/angelkurten) a partir de un workflow que desarrolló mientras construía un producto interno con specs escritas por IA. Una review crítica de esa práctica surfaceó seis mejoras concretas sobre las reglas originales: tratar los PRDs como snapshots históricos en vez de pretender que eran docs vivas, introducir una compuerta dura de tres campos entre `Draft` e `Implemented`, declarar `SYSTEM_ARTIFACT.md` como la única fuente de verdad del estado actual, revertir una prohibición contraproducente de diagramas Mermaid, retirar una convención de cross-reference que tenía cero adopción en la práctica, y suavizar una regla rígida de preguntas estructuradas a contextual en vez de obligatoria. El framework fue reconstruido desde cero con esas seis mejoras baked in desde línea 1. No es un refactor del original — es lo que habrías escrito si hubieras sabido todo esto el día 1.
+specforge fue destilado por [Angel Kürten](https://github.com/angelkurten) a partir de un workflow que desarrolló mientras construía un producto interno con specs escritas por IA. Su primera versión se apoyaba en PRDs y ADRs; v2 conserva lo que comprobadamente funcionó y reemplaza el resto con un contrato, tests bloqueados y una review de contexto limpio.
 
 ## Licencia
 

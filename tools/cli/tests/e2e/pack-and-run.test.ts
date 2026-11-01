@@ -354,7 +354,7 @@ describe("e2e: the headless rule is retired", () => {
     }
   }, 120000);
 
-  it("row 44 — a fresh install carries the same eight rule files with or without the (now-unknown) flag", async () => {
+  it("row 44 — a fresh install carries the one rule file, specforge.md, with or without the (now-unknown) flag", async () => {
     if (!tgzPath) {
       console.warn("DEVIATION: npm pack failed; PRD-024 headless-retirement e2e skipped");
       return;
@@ -368,16 +368,7 @@ describe("e2e: the headless rule is retired", () => {
       });
       expect(r.status, r.stderr).toBe(0);
       const rules = (await fs.readdir(path.join(dir, ".claude", "rules"))).sort();
-      expect(rules).toEqual([
-        "adr-specific.md",
-        "framework-maintenance.md",
-        "gate-block.md",
-        "hard-rules.md",
-        "model-selection.md",
-        "prd-authoring.md",
-        "roadmap.md",
-        "workflow.md",
-      ]);
+      expect(rules).toEqual(["specforge.md"]);
       await expect(
         fs.access(path.join(dir, ".claude", "rules", "headless-session.md")),
       ).rejects.toThrow();

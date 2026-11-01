@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 
 import { BUNDLE_ONLY_FILES, FRAMEWORK_FILES } from "../../src/partition.js";
 import { OPTIONAL, runPrepublish } from "../../scripts/prepublish.js";
-import { mkTmpDir, SUBAGENT_DEFINITIONS } from "../helpers.js";
+import { mkTmpDir, SHIPPED_DEFINITIONS } from "../helpers.js";
 
 const REPO_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -71,25 +71,27 @@ describe("prepublish: bundles the reduced framework set plus VERSION", () => {
 
     for (const rel of [
       "CLAUDE.md",
-      "CONVENTIONS.md",
       "README.md",
       "README.es.md",
       "LICENSE",
-      ".claude/rules/hard-rules.md",
-      ".claude/rules/workflow.md",
-      "templates/prd.md",
-      "examples/prd-001-login-example.md",
-      // PRD-006 § 9 row 7: all fourteen asserted by name. A symlinked
-      // definition drops silently from `walkDir`, so a total alone would not
-      // catch a 13-file bundle.
-      ...SUBAGENT_DEFINITIONS.map(
-        (d) => `.claude/agents/specforge/${d.name}.md`,
-      ),
-      // The pre-panel PRD validator: an adopter who never sees it in their own
-      // tree runs the reviewer panel over an unchecked document.
-      "scripts/prd-check.py",
+      ".claude/rules/specforge.md",
+      "templates/contract.md",
+      "examples/contract-example.md",
+      ...SHIPPED_DEFINITIONS.map((d) => `.claude/agents/specforge/${d.name}.md`),
     ]) {
       expect(bundled, `${rel} must be bundled`).toContain(rel);
+    }
+
+    // v1 left the package (change 2026-11-01-v1-package-swap).
+    for (const rel of [
+      "CONVENTIONS.md",
+      "scripts/prd-check.py",
+      "templates/prd.md",
+      "examples/prd-001-login-example.md",
+      ".claude/rules/hard-rules.md",
+      ".claude/rules/workflow.md",
+    ]) {
+      expect(bundled, `${rel} must not be bundled`).not.toContain(rel);
     }
 
     for (const rel of [
@@ -112,20 +114,10 @@ describe("prepublish: bundles the reduced framework set plus VERSION", () => {
     // plain `init` writes, the way it was between PRD-012 phase 3 and here.
     expect(bundled).not.toContain("optional-rules/headless-session.md");
 
-    // PRD-005 § 5.1: 32 framework files + VERSION. PRD-006 swapped twelve
-    // briefings for twelve subagent definitions, so the count was unchanged
-    // there. PRD-010 § 6.2 row 8 adds two more subagent definitions
-    // (specforge-backend-implementer, specforge-frontend-implementer),
-    // moving the count from 33 to 35. PRD-012 phase 3 added the bundle-only
-    // headless rule, 35 to 36; PRD-024 retires it, 36 back to 35. The
-    // pre-panel validator `scripts/prd-check.py` moves it 35 to 36. Adding a
-    // rule, template, definition, or example moves this number — update it
-    // here and in § 5.1's successor rather than loosening the assertion.
-    // v2 adds four templates (contract, evidence-report, decision-log,
-    // progress) and the specforge-reviewer definition: 36 to 41. v2 install
-    // (specforge/changes/2026-10-23-specforge-namespace) adds four
-    // core files, five scripts, the lock guard and four skills: 41 to 55.
-    expect(bundled).toHaveLength(55);
+    // v2 only: skills, core, scripts, the reviewer, four templates, one
+    // example, one rule, the READMEs, LICENSE, CLAUDE.md and VERSION.
+    // Adding or removing a shipped file moves this number; update it here.
+    expect(bundled).toHaveLength(26);
   });
 });
 

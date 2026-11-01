@@ -8,7 +8,7 @@ Work starts from a classified change instead of a PRD. `.claude/skills/specforge
 
 ## What stays
 
-The v1 rules in `.claude/rules/hard-rules.md` and `.claude/rules/workflow.md` are not deleted, so the PRD workflow remains available. Your team data under `specforge/changes/` and `specforge/DECISIONS.md` is never overwritten by `npx @angelkurten/specforge update` (`tools/cli/src/partition.ts`). Your `SIBLINGS.md` registry and your frozen PRDs and ADRs also stay as they are: v2 adds files next to them and removes none. The files in `templates/` are framework files, so `update` refreshes any you have not edited; from 0.27.3 the upgrade only adds templates, but from an older v1 it rewrites them too.
+Release 1.0.0 removes v1 from the package: it no longer installs the v1 rules, the v1 agents, the PRD, ADR, AgDR, roadmap and system-artifact templates, the v1 examples, CONVENTIONS.md or scripts/prd-check.py. In this repository they stay readable under `history/v1/`. Your team data under `specforge/changes/` and `specforge/DECISIONS.md` is never overwritten by `npx @angelkurten/specforge update` (`tools/cli/src/partition.ts`). Your `SIBLINGS.md` registry and your frozen PRDs and ADRs also stay as they are: v2 adds files next to them and removes none. The v2 files in `templates/` are framework files, so `update` refreshes any you have not edited.
 
 ## Upgrade
 
@@ -39,7 +39,7 @@ specforge EVA ships in the CLI from **0.28.0**. Check the version you would get 
 
 ## In-flight PRDs
 
-- A PRD in `Draft` can finish under v1: keep the v1 workflow (reviewer panel, gate block, `Implemented`) until it ships. Nothing in the upgrade removes the v1 pieces.
+- A PRD in `Draft` can finish under v1: keep the v1 workflow (reviewer panel, gate block, `Implemented`) until it ships. Pin 0.30.x for it (`npx @angelkurten/specforge@0.30`), because 1.0.0 no longer ships the v1 workflow.
 - `Implemented` PRDs are not converted: they stay frozen snapshots, and a PRD at `Superseded` stays as it is too.
 - New work after the upgrade starts as a v2 change instead of a new PRD.
 
@@ -52,6 +52,16 @@ specforge EVA ships in the CLI from **0.28.0**. Check the version you would get 
 | Gate block | locked tests plus the loop in `specforge/core/loop.md` |
 | Lessons in a PRD | `specforge/core/compose.md` |
 | Shipped state and history | `specforge/scripts/archive.py` closes the change |
+
+## Updating from 0.30.x
+
+`npx @angelkurten/specforge update` over a 0.30.x install has three outcomes:
+
+- A v1 file you never edited is removed.
+- An edited CLAUDE.md or README halts on drift. Run `update --strategy=theirs` and re-apply your edits, or `--strategy=ours` and replace the v1 text by hand.
+- An edited v1 rule is kept. It still loads every session next to `.claude/rules/specforge.md`, so move or delete it by hand.
+
+To roll back, restore the commit before the update with git, or pin `@0.30.x` before updating. A file restored by git is never touched again by `update`, but `init --force --erase` still collects a restored v1 rule under .claude/rules/. A kept CONVENTIONS.md or scripts/prd-check.py is no longer a framework file, so `--erase` leaves it.
 
 ## Your first change
 
