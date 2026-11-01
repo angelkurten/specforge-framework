@@ -6,7 +6,7 @@
 MODE PROPOSAL
 Risk: high — changes the public contract of the npm package: it stops installing 8 rules, 14 agents, 5 templates, the examples, CONVENTIONS.md and prd-check.py, and through RETIRED_FILES `update` removes the untouched copies from adopters' disks
 Uncertainty: low — the inventory names every file and test it touches; the removal path (changes 1 and 1b) is reviewed and exercised
-Controlled flag: yes — the external kubbo installation depends on v1's workflow.md (DECISIONS.md 2026-10-29)
+Controlled flag: yes — set by DECISIONS.md 2026-10-29 for the v1 retirement, when a kubbo installation depended on v1's workflow.md; the local kubbo sandbox is since deleted (Approvals), and any kubbo installation that updates loses it
 Mode: Controlled
 ```
 
@@ -34,7 +34,7 @@ In:
   - `examples/prd-001-login-example.md` and `examples/system-artifact-example.md` go to `history/v1/examples/`;
   - `CONVENTIONS.md` goes to `history/v1/CONVENTIONS.md`;
   - `scripts/prd-check.py` goes to `history/v1/scripts/prd-check.py`.
-- **`examples/contract-example.md` (`new`):** a worked v2 change, the contract and evidence of the archived change `2026-10-27-team-stats`, with a header naming its source. It keeps `examples/**` non-empty.
+- **`examples/contract-example.md` (`new`):** a worked v2 change, the contract and evidence of the archived change `2026-10-29-audit-fixes-web`, with a header naming its source. That change passed review with its user-visible path exercised in a real browser; `2026-10-27-team-stats` was rejected as the source because its evidence left the browser run under Not checked. The example keeps `examples/**` non-empty.
 - **`tools/cli/src/partition.ts`:**
   - `FRAMEWORK_FILES` keeps its globs and drops `CONVENTIONS.md` and `scripts/prd-check.py`;
   - `RETIRED_FILES` names every moved path at its old place, one entry each and no globs. That is the 8 rules, the 14 agents, the 5 templates, the 2 examples, `CONVENTIONS.md` and `scripts/prd-check.py`, 31 entries;
@@ -49,7 +49,11 @@ In:
 - **`CLAUDE.md`:** rewritten for v2, at most 50 lines. It names the four modes (`Direct`, `Contract`, `Explore`, `Controlled`), the cycle, `specforge/core/`, `.claude/skills/`, `specforge/scripts/`, the sibling model (`../<sibling>`), and `history/v1/`. It names no `hard-rules.md`, `workflow.md`, `gate-block.md`, `SYSTEM_ARTIFACT` or `ROADMAP.md`.
 - **`README.md`, `README.es.md` and `tools/cli/README.md`:** rewritten for v2.
   - The first two keep their `## Upgrading` / `## Actualización (upgrade)` sections, with "specforge EVA" and the published migration-guide URL.
-  - None names a moved path, `VERSION`, `CHANGELOG.md`, `mkdocs.yml`, `requirements-docs.txt`, `scripts/upgrade.sh`, `optional-rules/headless-session.md`, a v1 agent name, or a `](docs/` link.
+  - None names any of these:
+    - a moved path, or a bare v1 rule basename (`hard-rules`, `workflow.md`, `gate-block`, `prd-authoring`, `model-selection`, `adr-specific`, `framework-maintenance`);
+    - `VERSION`, `CHANGELOG.md`, `mkdocs.yml`, `requirements-docs.txt`, `scripts/upgrade.sh` or `optional-rules/headless-session.md`;
+    - a v1 agent name;
+    - a `](docs/` link.
 - **`docs/migration-v1-to-v2.md`:**
   - It says 1.0.0 removes v1 from the package. The sentence "are not deleted, so the PRD workflow remains available" goes.
   - It describes the update from 0.30.x in three cases:
@@ -57,6 +61,7 @@ In:
     - an edited `CLAUDE.md` or README halts on drift, so run `update --strategy=theirs` and re-apply your edits, or `--strategy=ours` and replace v1 text by hand;
     - an edited v1 rule is kept, still loads every session next to `specforge.md`, and must be moved or deleted by hand.
   - It covers rollback: restore the commit before the update with git, or pin `@0.30.x` before updating.
+  - A file restored by git is never touched again by `update`, but `init --force --erase` still collects a restored v1 rule under `.claude/rules/`. A kept `CONVENTIONS.md` or `scripts/prd-check.py` is no longer a framework file, so `--erase` leaves it.
   - It covers a `Draft` PRD, which finishes under v1 on a pinned 0.30.x.
   - Adopter-side paths are named in prose without backticks, since `migration_guide_test` test_2 requires every backticked path to exist in this repository. Paths that live in this repository keep their backticks.
 - **`.github/workflows/v2-ci.yml`:** `prd_check_test` leaves the list, and `v1_swap_test` joins it.
@@ -70,7 +75,8 @@ In:
 - **`tools/cli/tests/conformance/v2.test.ts` (`new`)** keeps three groups of conformance rows:
   - the release rows (PRD-016 rows 12-13);
   - the frontmatter row for the one shipped agent: `specforge-reviewer`, `model: inherit`, `tools: Read, Grep, Glob, Bash`, with no delegation or write tool;
-  - a sweep that no shipped framework file names a moved path or a v1 agent name. It runs over every shipped file: `specforge/core/**`, the skills, the hook, the scripts, `specforge-reviewer.md`, the templates, `examples/**`, `CLAUDE.md`, the three READMEs and `.claude/rules/specforge.md`.
+  - a sweep that no shipped framework file names a moved path or a v1 agent name. It runs over every shipped file: `specforge/core/**`, the skills, the hook, the scripts, `specforge-reviewer.md`, the templates, `examples/**`, `CLAUDE.md`, the three READMEs and `.claude/rules/specforge.md`;
+  - the README rows carried over from the retired file: the vacated tokens (`VERSION`, `CHANGELOG.md`, `mkdocs.yml`, `requirements-docs.txt`, `scripts/upgrade.sh`, `optional-rules/headless-session.md`), no `](docs/` link, and no bare v1 rule basename, over all three READMEs.
 - **The red tests:** `tools/cli/tests/integration/v1-swap.test.ts` (`new`) and `scripts/v1_swap_test.py` (`new`).
 
 Out:
@@ -115,22 +121,22 @@ Out:
 
 `tools/cli/tests/integration/v1-swap.test.ts`, `scripts/v1_swap_test.py`, `tools/cli/tests/conformance/v2.test.ts`, `pnpm --dir tools/cli test` and every suite in `v2-ci.yml` pass:
 
-1. `runPrepublish` on this repository exits 0. Its bundle holds none of the 31 moved paths, and holds `.claude/rules/specforge.md`, `specforge-reviewer.md`, the four v2 templates and `examples/contract-example.md`.
+1. `runPrepublish({ repoRoot, cliRoot })` with a scratch `cliRoot`, as `prepublish.test.ts` does, exits 0. Its bundle holds none of the 31 moved paths, and holds `.claude/rules/specforge.md`, `specforge-reviewer.md`, the four v2 templates and `examples/contract-example.md`.
 2. Every moved path is in `RETIRED_FILES`, and no entry of `RETIRED_FILES` matches a path the bundle ships.
 3. An `update` from a 0.30.0-shaped install over the new bundle:
    - removes every untouched moved file;
    - keeps an edited v1 rule with its `kept` line;
    - halts on an edited `CLAUDE.md` with no strategy, and under `--strategy=theirs` replaces it and removes the untouched v1 files;
    - treats an adopter's own `.claude/rules/specforge.md` as drift, never overwritten without a strategy;
-   - exits as stated for each case.
+   - exits 0 on the untouched update, 1 on the drift halt with no strategy, and 0 under `--strategy=theirs`.
 4. Every moved file exists at its `history/v1/` path, none remains at the old path, and nothing under `history/v1/` sits inside a `.claude` directory.
-5. `specforge.md` is at most 35 lines, has `name` and `description`, and carries the six bolded lead phrases. `CLAUDE.md` is at most 50 lines, names the four modes, `specforge/core/` and `history/v1/`, and names none of the forbidden v1 words.
+5. `specforge.md` is at most 35 lines, has `name` and `description`, and carries the six bolded lead phrases. `CLAUDE.md` is at most 50 lines. It names the four modes, the six cycle steps, `specforge/core/`, `.claude/skills/`, `specforge/scripts/`, `../<sibling>` and `history/v1/`, and none of the forbidden v1 words.
 6. The migration guide:
    - says v1 leaves the package in 1.0.0;
    - no longer has "are not deleted, so the PRD workflow remains available";
    - names `--strategy=theirs`, "still loads" for a kept rule, and a git rollback;
    - names only paths that exist.
-7. The sweep in `v2.test.ts` finds no moved path and no v1 agent name in any shipped file, and the reviewer's frontmatter row holds.
+7. The sweep in `v2.test.ts` finds no moved path and no v1 agent name in any shipped file. The README rows find no vacated token, no `](docs/` link and no bare v1 rule basename in the three READMEs. The reviewer's frontmatter row holds.
 
 Exercised:
 - a real packed build in a scratch copy, with `VERSION` set to `1.0.0-rc.1` there only;
@@ -157,6 +163,15 @@ Exercised:
   - explicit `RETIRED_FILES`;
   - a scenario for an adopter's own `specforge.md`;
   - the rc version in a scratch copy only.
+- Design re-verification: PASS from all three perspectives. Applied before Red:
+  - the vacated tokens carried into `v2.test.ts` over the three READMEs;
+  - the exit codes in Acceptance 3;
+  - the `CLAUDE.md` items in Acceptance 5;
+  - a scratch `cliRoot`;
+  - the bare-basename ban;
+  - the `init --erase` and classify notes for the guide;
+  - the example taken from a change that exercised its path;
+  - the Controlled flag worded as history.
 
 ## Stop and escalate
 
