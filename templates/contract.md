@@ -57,8 +57,9 @@
   - <path> — <why>                 a whole test file
   - <path>::<test name> — <why>    one test
 
-  <path> is written as the review packet prints it, ../<sibling>/... for a
-  sibling. A bullet with no reason retires nothing. review_prep.py reports each
+  Each entry is one bullet: it starts with `- `, then a bare path (no backticks
+  around it), then the reason after an em dash (—). <path> is written as the
+  review packet prints it, ../<sibling>/... for a sibling. A bullet with no reason retires nothing. review_prep.py reports each
   declared deletion as should-fix, and the human confirms it.
 -->
 

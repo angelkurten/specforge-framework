@@ -331,15 +331,11 @@ def evidence_findings(change: Path) -> list[str]:
     return findings
 
 
-def retired_tests(change: Path) -> dict[str, tuple[str, int]]:
-    """entry -> (why, line) from the contract's `## Retired tests` bullets: `- <entry> — <why>`.
-
-    A bullet with no reason, or an empty one, retires nothing."""
-    contract = change / "contract.md"
-    if not contract.is_file():
-        return {}
+def _retired_in(text: str) -> dict[str, tuple[str, int]]:
+    # comments blanked but their newlines kept, so line numbers stay true
+    text = re.sub(r"<!--.*?-->", lambda m: "\n" * m.group().count("\n"), text, flags=re.DOTALL)
     out, inside = {}, False
-    for number, line in enumerate(contract.read_text().splitlines(), 1):
+    for number, line in enumerate(text.splitlines(), 1):
         if line.startswith("## "):
             inside = line[3:].strip() == "Retired tests"
         elif inside and (m := re.match(r"- (\S+) — (\S.*)$", line)):
@@ -347,9 +343,31 @@ def retired_tests(change: Path) -> dict[str, tuple[str, int]]:
     return out
 
 
+def _contract_at(rev: str, change: Path) -> str | None:
+    try:
+        return git("show", f"{rev}:./{change / 'contract.md'}")
+    except subprocess.CalledProcessError:
+        return None
+
+
+def retired_tests(change: Path, base: str = "") -> tuple[dict[str, tuple[str, int]], set[str]]:
+    """(entries, first-version entries) from the contract's `## Retired tests` bullets: `- <entry> — <why>`.
+
+    Read from HEAD, not the working tree. The first version is the base's contract, else the
+    first commit in base..HEAD that holds it. A bullet with no reason retires nothing."""
+    text = _contract_at("HEAD", change)
+    if text is None:
+        return {}, set()
+    revs = [base] if base else []
+    if base:
+        revs += git("rev-list", "--reverse", f"{base}..HEAD").split()
+    first = next((t for r in revs if (t := _contract_at(r, change)) is not None), text)
+    return _retired_in(text), set(_retired_in(first))
+
+
 def review(change: Path, base: str, pairs: list[tuple[Path, str]] = ()) -> tuple[list[str], list[str]]:
     rng = f"{base}...HEAD"
-    retired = retired_tests(change)
+    retired, first = retired_tests(change, base)
     used = set()
     files = changed_files(rng)
     # Each sibling's paths are reported as <repo>/<file>, the form lock entries use.
@@ -398,6 +416,8 @@ def review(change: Path, base: str, pairs: list[tuple[Path, str]] = ()) -> tuple
                 else:
                     findings.append(f"blocker: {path}:{line} — test {name} removed")
     for entry, (_, number) in retired.items():
+        if entry not in first:
+            findings.append(f"should-fix: {change / 'contract.md'}:{number} — retired entry added after the contract's first version, confirm it: {entry}")
         if entry not in used:
             findings.append(f"nit: {change / 'contract.md'}:{number} — retired test not deleted in the range: {entry}")
     if not files:

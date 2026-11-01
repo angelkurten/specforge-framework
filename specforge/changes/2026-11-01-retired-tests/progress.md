@@ -12,9 +12,9 @@
 - [x] scripts/retired_tests_test.py test_6_the_template_and_review_md_name_the_section
 - [x] `retired_tests_test` is in `.github/workflows/v2-ci.yml`
 - [x] every suite listed in `.github/workflows/v2-ci.yml` passes
-- [ ] scripts/retired_tests_fix_test.py test_7 and test_9 (read the contract with `git show HEAD:<contract>`; drop `<!-- -->` comments before reading bullets)
-- [ ] scripts/retired_tests_fix_test.py test_8 (flag an entry absent from the contract's first version in the range: the base's, or else the first commit in the range holding it) and test_10 (already passes: keep it passing)
-- [ ] scripts/retired_tests_fix_test.py test_11 (the template's Retired tests comment names the exact bullet form); add `retired_tests_fix_test` to `.github/workflows/v2-ci.yml`; every suite there passes
+- [x] scripts/retired_tests_fix_test.py test_7 and test_9 (read the contract with `git show HEAD:<contract>`; drop `<!-- -->` comments before reading bullets)
+- [x] scripts/retired_tests_fix_test.py test_8 (flag an entry absent from the contract's first version in the range: the base's, or else the first commit in the range holding it) and test_10 (already passes: keep it passing)
+- [x] scripts/retired_tests_fix_test.py test_11 (the template's Retired tests comment names the exact bullet form); add `retired_tests_fix_test` to `.github/workflows/v2-ci.yml`; every suite there passes
 
 ## Blocked
 
@@ -27,3 +27,6 @@
 - Tarea 6: añadí `## Retired tests` a templates/contract.md y la frase en specforge/core/review.md (§ Two halves y § Lock changes); `python3 scripts/retired_tests_test.py` → 6 tests OK.
 - Tarea 7: añadí `retired_tests_test` a la lista de suites en .github/workflows/v2-ci.yml; `grep -c retired_tests_test .github/workflows/v2-ci.yml` → 1.
 - Tarea 8: ejecuté las 50 suites de `v2-ci.yml` (`python3 scripts/<suite>.py` en bucle); todas con código de salida 0, ningún fallo.
+- Tarea 9: en review_prep.py, `retired_tests()` lee el contrato con `git show HEAD:./<contract>` y quita los `<!-- -->` conservando los saltos de línea; `python3 scripts/retired_tests_fix_test.py` → test_7, 9 y 10 ok (fallan solo 8 y 11, tareas siguientes); `retired_tests_test`, `review_test`, `sibling_repos_test` → OK.
+- Tarea 10: en review_prep.py, `retired_tests(change, base)` devuelve también las entradas de la primera versión del contrato (la de la base, o la del primer commit del rango) y `review()` emite `should-fix … retired entry added after the contract's first version`; `python3 scripts/retired_tests_fix_test.py` → test_7, 8, 9, 10 ok (falla solo 11, tarea siguiente); `retired_tests_test`, `review_test`, `sibling_repos_test` → OK.
+- Tarea 11: la plantilla templates/contract.md nombra la forma exacta (`- `, ruta sin backticks, motivo tras raya em) y añadí `retired_tests_fix_test` a v2-ci.yml; todas las suites de v2-ci.yml (incluida retired_tests_fix_test) con código de salida 0.
