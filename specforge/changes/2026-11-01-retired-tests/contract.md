@@ -73,13 +73,18 @@ Fix round, after review (PASS, three should-fix), in `scripts/retired_tests_fix_
 10. A whole-file entry reports a `retired by the contract` should-fix for each removed function.
 11. The template comment names the exact bullet form: `- `, a bare path, a reason after an em dash.
 
+Fix round 2, after re-verification (PASS, one should-fix), in `scripts/retired_tests_fix2_test.py` (`new`):
+
+12. The contract is looked up at each revision under its live or its archived path (`changes/<name>/`, `changes/archive/<name>/`). So a late entry is still flagged when the change was archived inside the range.
+
 `v2-ci` and `cli-ci` pass on the last code commit.
 
 ## Approvals
 
 - Mode Contract and the red tests in `scripts/retired_tests_test.py`, approved and locked: the human, 2026-11-01.
 - Fix round after review, with its test `scripts/retired_tests_fix_test.py` approved and locked: the human, 2026-11-01. A draft passed every suite first.
+- Fix round 2 after re-verification, with its test `scripts/retired_tests_fix2_test.py` approved and locked: the human, 2026-11-01. It is the last round before escalation.
 
 ## Stop and escalate
 
-Stop and ask if a locked suite must change, or if a sibling path cannot be matched as the packet prints it. Budget: 8 iterations, 3 USD, for 8 tasks (6 scenarios, the CI list, the full suites). Raised by the human to 11 iterations, 4 USD, cumulative, for the fix round.
+Stop and ask if a locked suite must change, or if a sibling path cannot be matched as the packet prints it. Budget: 8 iterations, 3 USD, for 8 tasks (6 scenarios, the CI list, the full suites). Raised by the human to 11 iterations, 4 USD, cumulative, for the fix round, and to 13 iterations, 5 USD, for fix round 2.
