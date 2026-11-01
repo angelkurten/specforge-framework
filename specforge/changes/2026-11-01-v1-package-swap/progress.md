@@ -1,6 +1,6 @@
 # Progress
 
-**Budget**: 20 iterations, 9 USD
+**Budget**: 23 iterations, 10 USD, cumulative (raised by the human for the fix round)
 
 ## Tasks
 
@@ -13,6 +13,8 @@
 - [x] tools/cli/tests/conformance/v2.test.ts (README.md, README.es.md and tools/cli/README.md rewritten for v2; no shipped file names a moved path or a v1 agent name)
 - [x] the rewrites the contract lists: prepublish.test.ts, init.test.ts (prepublish-built bundle), update.test.ts (team-edited subagent), pack-and-run.test.ts row 44, partition.test.ts (classifies framework files correctly), helpers.ts shipped list, rule-frontmatter.test.ts (real shipped rules)
 - [x] `.github/workflows/v2-ci.yml`: drop prd_check_test, add v1_swap_test; every suite listed there passes; `pnpm --dir tools/cli test` passes; `pnpm --dir tools/cli exec tsc -p tsconfig.json --noEmit` is clean
+- [ ] scripts/v1_swap_fix_test.py test_8 (docs/migration-v1-to-v2.md "Updating from 0.30.x": every edited v1 file incl. agents still dispatchable, full rollback vs single file with @0.30.x for every later update, --erase collects agents/templates/examples) and test_9 (CLAUDE.md: history/v1/ lives in specforge's source repository)
+- [ ] scripts/v1_swap_fix_test.py test_10 (remove the stale workflow.md claim from the BUNDLE_ONLY_FILES comment in tools/cli/src/partition.ts); add `v1_swap_fix_test` to `.github/workflows/v2-ci.yml`; every suite there and `pnpm --dir tools/cli test` pass
 
 ## Blocked
 

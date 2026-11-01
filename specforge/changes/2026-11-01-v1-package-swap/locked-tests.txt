@@ -1,3 +1,4 @@
+edacd941433eb10c73013fe083715edbab802be0294c4e99743a0c0e69d35f31  scripts/v1_swap_fix_test.py
 8998cc80fab06fa7824ea232b4419172ced685e4cc2ac89c60c5726fe171659b  scripts/v1_swap_test.py
 664cf27156935674f41f7f1af1fb4659d3cdf669c9f4c200e66abb1dc49ab9aa  tools/cli/tests/conformance/v2.test.ts
 ca25b58c90e807142eb6911e8c8de30cabde6f59220999e4845e657a0e4e1b53  tools/cli/tests/integration/v1-swap.test.ts

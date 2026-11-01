@@ -139,6 +139,12 @@ Out:
    - names only paths that exist.
 7. The sweep in `v2.test.ts` finds no moved path and no v1 agent name in any shipped file. The README rows find no vacated token, no `](docs/` link and no bare v1 rule basename in the three READMEs. The reviewer's frontmatter row holds.
 
+Fix round, after review (PASS, three should-fix), in `scripts/v1_swap_fix_test.py` (`new`):
+
+8. The guide's "Updating from 0.30.x" section covers every edited v1 file: a rule, an agent (still dispatchable), a template, an example. It tells a full rollback, which also restores the manifest and so needs `@0.30.x` for every later `update`, from restoring a single file. It says `--erase` also collects a kept or restored agent, template or example.
+9. The shipped `CLAUDE.md` says `history/v1/` lives in specforge's source repository, not in the adopter's tree.
+10. `partition.ts` carries no claim that `init` writes `workflow.md`.
+
 Exercised:
 - a real packed build in a scratch copy, with `VERSION` set to `1.0.0-rc.1` there only;
 - run as `update` over a fresh 0.30.0 install from the registry, with one v1 rule edited and `CLAUDE.md` untouched; then with `CLAUDE.md` edited, under `--strategy=theirs`; then `doctor`;
@@ -176,6 +182,8 @@ Exercised:
 - The red tests in `tools/cli/tests/integration/v1-swap.test.ts`, `tools/cli/tests/conformance/v2.test.ts` and `scripts/v1_swap_test.py`, approved and locked: the human, 2026-11-01. A mechanical draft in a scratch clone passed scenarios 1-3, the agent row and `doctor` on a fresh install first. Its only failures were the unwritten prose and the rewrites already in Scope, plus `rule-frontmatter.test.ts`, which was added to Scope.
 - Written by the lead, because `.claude/` is closed to the loop: the moves under `.claude/` and `.claude/rules/specforge.md`.
 
+- Fix round after review, with its test `scripts/v1_swap_fix_test.py` approved and locked: the human, 2026-11-01.
+
 ## Stop and escalate
 
-Stop and ask if a locked test other than the two retired files must change, if `doctor` on a fresh install cannot exit 0 without touching a validator, or if a moved file is still referenced by shipped v2 text. Budget: 20 iterations, 9 USD.
+Stop and ask if a locked test other than the two retired files must change, if `doctor` on a fresh install cannot exit 0 without touching a validator, or if a moved file is still referenced by shipped v2 text. Budget: 20 iterations, 9 USD. Raised by the human to 23 iterations, 10 USD, cumulative, for the fix round.
