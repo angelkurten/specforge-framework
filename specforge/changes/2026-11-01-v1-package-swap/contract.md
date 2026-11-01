@@ -72,6 +72,7 @@ In:
   - `tools/cli/tests/e2e/pack-and-run.test.ts` row 44: a fresh install's rule files are `specforge.md` alone;
   - `tools/cli/tests/unit/partition.test.ts` (classifies framework files correctly): the v2 cases;
   - `tools/cli/tests/helpers.ts`: a shipped-definitions list beside the v1 fixtures the validators still use.
+  - `tools/cli/tests/unit/validators/rule-frontmatter.test.ts` (walks the repo's real shipped rules): the shipped rule is `specforge.md` alone. The inventory missed it; the lead's draft found it.
 - **`tools/cli/tests/conformance/v2.test.ts` (`new`)** keeps three groups of conformance rows:
   - the release rows (PRD-016 rows 12-13);
   - the frontmatter row for the one shipped agent: `specforge-reviewer`, `model: inherit`, `tools: Read, Grep, Glob, Bash`, with no delegation or write tool;
@@ -172,6 +173,8 @@ Exercised:
   - the `init --erase` and classify notes for the guide;
   - the example taken from a change that exercised its path;
   - the Controlled flag worded as history.
+- The red tests in `tools/cli/tests/integration/v1-swap.test.ts`, `tools/cli/tests/conformance/v2.test.ts` and `scripts/v1_swap_test.py`, approved and locked: the human, 2026-11-01. A mechanical draft in a scratch clone passed scenarios 1-3, the agent row and `doctor` on a fresh install first. Its only failures were the unwritten prose and the rewrites already in Scope, plus `rule-frontmatter.test.ts`, which was added to Scope.
+- Written by the lead, because `.claude/` is closed to the loop: the moves under `.claude/` and `.claude/rules/specforge.md`.
 
 ## Stop and escalate
 
