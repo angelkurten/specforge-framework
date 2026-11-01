@@ -48,6 +48,20 @@
   A failed premise sends the change back to Classify.
 -->
 
+## Retired tests
+
+<!--
+  Optional. Delete this section if the change retires no tests. A change that
+  retires a feature declares each test it deletes, with the reason:
+
+  - <path> — <why>                 a whole test file
+  - <path>::<test name> — <why>    one test
+
+  <path> is written as the review packet prints it, ../<sibling>/... for a
+  sibling. A bullet with no reason retires nothing. review_prep.py reports each
+  declared deletion as should-fix, and the human confirms it.
+-->
+
 ## Acceptance evidence
 
 <!--

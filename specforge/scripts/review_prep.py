@@ -331,8 +331,26 @@ def evidence_findings(change: Path) -> list[str]:
     return findings
 
 
+def retired_tests(change: Path) -> dict[str, tuple[str, int]]:
+    """entry -> (why, line) from the contract's `## Retired tests` bullets: `- <entry> — <why>`.
+
+    A bullet with no reason, or an empty one, retires nothing."""
+    contract = change / "contract.md"
+    if not contract.is_file():
+        return {}
+    out, inside = {}, False
+    for number, line in enumerate(contract.read_text().splitlines(), 1):
+        if line.startswith("## "):
+            inside = line[3:].strip() == "Retired tests"
+        elif inside and (m := re.match(r"- (\S+) — (\S.*)$", line)):
+            out[m.group(1)] = (m.group(2).strip(), number)
+    return out
+
+
 def review(change: Path, base: str, pairs: list[tuple[Path, str]] = ()) -> tuple[list[str], list[str]]:
     rng = f"{base}...HEAD"
+    retired = retired_tests(change)
+    used = set()
     files = changed_files(rng)
     # Each sibling's paths are reported as <repo>/<file>, the form lock entries use.
     by_repo = [(repo, ref, changed_files(f"{ref}...HEAD", repo)) for repo, ref in pairs]
@@ -355,7 +373,11 @@ def review(change: Path, base: str, pairs: list[tuple[Path, str]] = ()) -> tuple
         if not TEST_FILE.search(rel):
             continue
         if status == "D":
-            findings.append(f"blocker: {path}:1 — test file deleted")
+            if path in retired:
+                used.add(path)
+                findings.append(f"should-fix: {path}:1 — test file retired by the contract, confirm it: {retired[path][0]}")
+            else:
+                findings.append(f"blocker: {path}:1 — test file deleted")
         elif status == "M":
             before = test_names(git("show", f"{ref}:{rel}", repo=root))
             after = test_names((root / rel if root else Path(rel)).read_text())
@@ -363,13 +385,21 @@ def review(change: Path, base: str, pairs: list[tuple[Path, str]] = ()) -> tuple
             for name, line in before.items():
                 if name in after:
                     continue
-                if added:
+                key = next((k for k in (f"{path}::{name}", path) if k in retired), None)
+                why = retired.get(key)
+                if why:
+                    used.add(key)
+                    findings.append(f"should-fix: {path}:{line} — test {name} retired by the contract, confirm it: {why[0]}")
+                elif added:
                     findings.append(
                         f"should-fix: {path}:{line} — test {name} removed and "
                         f"{', '.join(added)} added: renamed?"
                     )
                 else:
                     findings.append(f"blocker: {path}:{line} — test {name} removed")
+    for entry, (_, number) in retired.items():
+        if entry not in used:
+            findings.append(f"nit: {change / 'contract.md'}:{number} — retired test not deleted in the range: {entry}")
     if not files:
         findings.append(f"blocker: {change / 'contract.md'}:1 — range {rng} is empty: nothing to review")
     for repo, ref, fs in by_repo:
