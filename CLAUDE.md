@@ -38,4 +38,4 @@ specforge is a sibling directory to the code repositories it governs (`../<sibli
 
 ## History
 
-The first version of the framework (PRDs, ADRs and their rules) is kept readable under `history/v1/`. It is not loaded and not shipped.
+The first version of the framework (PRDs, ADRs and their rules) is kept readable under `history/v1/` in specforge's source repository, not in an adopter's tree. It is not loaded and not shipped.

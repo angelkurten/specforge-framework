@@ -55,13 +55,20 @@ specforge EVA ships in the CLI from **0.28.0**. Check the version you would get 
 
 ## Updating from 0.30.x
 
-`npx @angelkurten/specforge update` over a 0.30.x install has three outcomes:
+`npx @angelkurten/specforge update` over a 0.30.x install treats each v1 file by what you did to it:
 
 - A v1 file you never edited is removed.
 - An edited CLAUDE.md or README halts on drift. Run `update --strategy=theirs` and re-apply your edits, or `--strategy=ours` and replace the v1 text by hand.
 - An edited v1 rule is kept. It still loads every session next to `.claude/rules/specforge.md`, so move or delete it by hand.
+- An edited v1 agent is kept, and it is still dispatchable: Claude Code keeps offering it to dispatch until you move or delete it.
+- An edited v1 template or example is kept as it is. Nothing loads it, so move or delete it when you no longer need it.
 
-To roll back, restore the commit before the update with git, or pin `@0.30.x` before updating. A file restored by git is never touched again by `update`, but `init --force --erase` still collects a restored v1 rule under .claude/rules/. A kept CONVENTIONS.md or scripts/prd-check.py is no longer a framework file, so `--erase` leaves it.
+To roll back, choose by how much you need back:
+
+- A full rollback restores the commit before the update with git. That also restores the manifest, so the install looks like 0.30.x again and you need `@0.30.x` for every later `update`; a newer `update` would bring the removal of v1 back.
+- To restore a single file, use `git restore` on it. A file restored by git is never touched again by `update`.
+
+`init --force --erase` still collects a restored v1 rule under .claude/rules/, and it also collects a kept or restored agent, template or example under the old framework globs. A kept CONVENTIONS.md or scripts/prd-check.py is no longer a framework file, so `--erase` leaves it.
 
 ## Your first change
 

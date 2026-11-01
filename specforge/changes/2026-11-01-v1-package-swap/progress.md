@@ -13,8 +13,8 @@
 - [x] tools/cli/tests/conformance/v2.test.ts (README.md, README.es.md and tools/cli/README.md rewritten for v2; no shipped file names a moved path or a v1 agent name)
 - [x] the rewrites the contract lists: prepublish.test.ts, init.test.ts (prepublish-built bundle), update.test.ts (team-edited subagent), pack-and-run.test.ts row 44, partition.test.ts (classifies framework files correctly), helpers.ts shipped list, rule-frontmatter.test.ts (real shipped rules)
 - [x] `.github/workflows/v2-ci.yml`: drop prd_check_test, add v1_swap_test; every suite listed there passes; `pnpm --dir tools/cli test` passes; `pnpm --dir tools/cli exec tsc -p tsconfig.json --noEmit` is clean
-- [ ] scripts/v1_swap_fix_test.py test_8 (docs/migration-v1-to-v2.md "Updating from 0.30.x": every edited v1 file incl. agents still dispatchable, full rollback vs single file with @0.30.x for every later update, --erase collects agents/templates/examples) and test_9 (CLAUDE.md: history/v1/ lives in specforge's source repository)
-- [ ] scripts/v1_swap_fix_test.py test_10 (remove the stale workflow.md claim from the BUNDLE_ONLY_FILES comment in tools/cli/src/partition.ts); add `v1_swap_fix_test` to `.github/workflows/v2-ci.yml`; every suite there and `pnpm --dir tools/cli test` pass
+- [x] scripts/v1_swap_fix_test.py test_8 (docs/migration-v1-to-v2.md "Updating from 0.30.x": every edited v1 file incl. agents still dispatchable, full rollback vs single file with @0.30.x for every later update, --erase collects agents/templates/examples) and test_9 (CLAUDE.md: history/v1/ lives in specforge's source repository)
+- [x] scripts/v1_swap_fix_test.py test_10 (remove the stale workflow.md claim from the BUNDLE_ONLY_FILES comment in tools/cli/src/partition.ts); add `v1_swap_fix_test` to `.github/workflows/v2-ci.yml`; every suite there and `pnpm --dir tools/cli test` pass
 
 ## Blocked
 
@@ -28,3 +28,5 @@
 - Task 7: rewrote README.md, README.es.md and tools/cli/README.md for v2 (Upgrading sections keep specforge EVA and the guide URL); `vitest run tests/conformance/v2.test.ts` → 5 passed; `migration_guide_test.py` and `v1_swap_test.py` → OK.
 - Task 8: rewrote prepublish, init, update, pack-and-run row 44, partition and rule-frontmatter tests, added SHIPPED_DEFINITIONS to helpers.ts, and removed the two retired files (framework.test.ts, prd_check_test.py); `pnpm --dir tools/cli test` → 42 files, 272 passed; `tsc --noEmit` → clean.
 - Task 9: v2-ci.yml now lists v1_swap_test instead of prd_check_test; every suite in the list → exit 0; `pnpm --dir tools/cli test` → 42 files, 272 passed; `tsc --noEmit` → clean.
+- Task 10: rewrote "Updating from 0.30.x" in docs/migration-v1-to-v2.md (agents still dispatchable, templates/examples kept, full rollback vs single file with @0.30.x for every later update, --erase collects agents/templates/examples) and CLAUDE.md History line (source repository); `v1_swap_fix_test.py` → test_8 ok, test_9 ok, test_10 FAIL (next task); `v1_swap_test.py`, `migration_guide_test.py`, `migration_guide_fix_test.py` → OK.
+- Task 11: removed the stale workflow.md sentence from the BUNDLE_ONLY_FILES comment in partition.ts and added v1_swap_fix_test to v2-ci.yml; every suite in the list → exit 0 (incl. v1_swap_fix_test), `pnpm --dir tools/cli test` → 42 files, 272 passed, `tsc --noEmit` → clean.

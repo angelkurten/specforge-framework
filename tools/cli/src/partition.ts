@@ -51,8 +51,7 @@ export const FRAMEWORK_FILES: ReadonlyArray<string> = [
  * NOT classify as "framework" — see § 9 row 3.
  *
  * PRD-024 retired `optional-rules/headless-session.md` (formerly the sole
- * entry here beside VERSION): the ten spans it owned alone are now in-line
- * clauses in `.claude/rules/workflow.md`, which every `init` already writes.
+ * entry here beside VERSION).
  */
 export const BUNDLE_ONLY_FILES: ReadonlyArray<string> = ["VERSION"];
 
