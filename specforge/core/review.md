@@ -5,6 +5,7 @@ After the loop finishes, a reviewer that did not write the change looks for ways
 ## Two halves
 
 1. **The script decides what a pattern can.** `python3 specforge/scripts/review_prep.py <change> --base <ref>` reports added skip markers, deleted test files, removed test functions, changed locked tests and an incomplete evidence report as blockers, and added stubs as should-fix. A deleted test the contract declares under `## Retired tests`, with a reason, is should-fix instead (`retired by the contract`). It prints a packet for the reviewer, and exits 1 on any blocker.
+   A check that lowers a finding, such as a retired test, reads its input from git and compares it with the range's first version, as the lock checks do: a downgrade read from the working tree, or from the latest version alone, was caught twice in review (change 2026-11-01-retired-tests).
 2. **The reviewer reads for what a pattern cannot.** It starts from the packet and treats the script's findings as settled. It never re-reports them, and never argues one away.
 
 ## What the reviewer checks
