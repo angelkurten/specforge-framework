@@ -15,7 +15,7 @@
   - With the escape `\u202E` written instead, `approve` exited 0.
   - After that lock was committed, the test was edited and re-approved in a second commit. `review_prep.py` from the first commit's parent printed `should-fix: …/locked-tests.txt:1 — approved entry changed after the first approval, confirm it: scripts/probe_test.py`.
   - The clone was deleted.
-- **CI**: on `276a197`, the last code commit (the fix round), pushed alone: `v2-ci` run 41326540397 and `cli-ci` run 41326540413, both success. On `acca84f`, pushed alone: `v2-ci` run 41108551986 and `cli-ci` run 41108552194, both success.
+- **CI**: on `4d15400`, the last code commit (the compose instruction), pushed alone: `v2-ci` run 41327547901 and `cli-ci` run 41327547894, both success. On `276a197` (the fix round), pushed alone: `v2-ci` run 41326540397 and `cli-ci` run 41326540413, both success. On `acca84f`, pushed alone: `v2-ci` run 41108551986 and `cli-ci` run 41108552194, both success.
 - **Not checked**:
   - A coding cookie such as `# -*- coding: utf-7 -*-`, under which visible ASCII decodes to an invisible character at run time. `approve` reads the bytes as UTF-8 and approves such a file (review nit, accepted).
 - **Deviations from the contract**:
@@ -26,3 +26,4 @@
     - **Should-fix, fixed by the fix round (scenario 6).** A test that was not valid UTF-8 crashed `approve` with a `UnicodeDecodeError`, though before the change it was approved. The human chose to approve it as before.
     - **Fixed by the lead after the loop.** The explicit `encoding="utf-8"`: the loop's `read_text(errors="replace")` used the locale's encoding.
     - **Nits, accepted.** The coding cookie (see Not checked). Scenario 4 checks the existing report loosely, and the test is locked.
+  - **Re-verification (PASS).** S1 fixed; both nits accepted. The fix-round lock entry, added after the first approval, is the human's approval of 2026-11-01.
