@@ -8,17 +8,21 @@
 - **Result**:
   - **Premises.** Both hold.
   - **Red.** Tests 1, 2, 3 and 5 failed on `HEAD` before the loop. Test 4 passed by design: it guards against reporting a base lock's change twice.
-  - **Loop.** 7 iterations, 7/7 tasks, exit 0. Cost 2.14 USD (`loop-runs.txt`).
-  - **Suites.** All 50 v2 suites pass, `lock_checks_test` included.
+  - **Loop.** 7 iterations, 7/7 tasks, exit 0, 2.14 USD. The fix round took 1 more iteration, 8/8 tasks, exit 0, 2.55 USD cumulative (`loop-runs.txt`). Its test failed on `862cb58` with a `UnicodeDecodeError`, and a draft passed every suite first.
+  - **Suites.** All 51 v2 suites pass, `lock_checks_test` and `lock_checks_fix_test` included.
 - **Exercised**: the user-visible path is the `lock_tests.py approve` command and the `review_prep.py` packet. Both ran in a scratch clone of `acca84f`.
   - `approve` on a test holding U+202E, written with `chr(0x202E)`, printed `lock_tests: refused — scripts/probe_test.py:2 holds U+202E; write the escape`, exited 1, and wrote no lock.
   - With the escape `\u202E` written instead, `approve` exited 0.
   - After that lock was committed, the test was edited and re-approved in a second commit. `review_prep.py` from the first commit's parent printed `should-fix: …/locked-tests.txt:1 — approved entry changed after the first approval, confirm it: scripts/probe_test.py`.
   - The clone was deleted.
-- **CI**: on `acca84f`, the last code commit, pushed alone: `v2-ci` run 41108551986 and `cli-ci` run 41108552194, both success.
+- **CI**: on `276a197`, the last code commit (the fix round), pushed alone: `v2-ci` run 41326540397 and `cli-ci` run 41326540413, both success. On `acca84f`, pushed alone: `v2-ci` run 41108551986 and `cli-ci` run 41108552194, both success.
 - **Not checked**:
-  - A file that is not valid UTF-8 passed to `approve`: `read_text` raises before anything is written.
+  - A coding cookie such as `# -*- coding: utf-7 -*-`, under which visible ASCII decodes to an invisible character at run time. `approve` reads the bytes as UTF-8 and approves such a file (review nit, accepted).
 - **Deviations from the contract**:
   - **Import inside `approve()`.** Recorded in the contract before Red, after the draft found the circular import.
   - **Refusal lines go to stderr.** Scope did not name a stream.
   - **`UNLOCKED` entries are never reported as changed.** An entry the unlock command set is not a re-approval.
+  - **Review (PASS, one should-fix, two nits).**
+    - **Should-fix, fixed by the fix round (scenario 6).** A test that was not valid UTF-8 crashed `approve` with a `UnicodeDecodeError`, though before the change it was approved. The human chose to approve it as before.
+    - **Fixed by the lead after the loop.** The explicit `encoding="utf-8"`: the loop's `read_text(errors="replace")` used the locale's encoding.
+    - **Nits, accepted.** The coding cookie (see Not checked). Scenario 4 checks the existing report loosely, and the test is locked.
