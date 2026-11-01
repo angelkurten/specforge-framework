@@ -1,6 +1,6 @@
 # Progress
 
-**Budget**: 8 iterations, 3 USD
+**Budget**: 11 iterations, 4 USD, cumulative (raised by the human for the fix round)
 
 ## Tasks
 
@@ -12,6 +12,9 @@
 - [x] scripts/retired_tests_test.py test_6_the_template_and_review_md_name_the_section
 - [x] `retired_tests_test` is in `.github/workflows/v2-ci.yml`
 - [x] every suite listed in `.github/workflows/v2-ci.yml` passes
+- [ ] scripts/retired_tests_fix_test.py test_7 and test_9 (read the contract with `git show HEAD:<contract>`; drop `<!-- -->` comments before reading bullets)
+- [ ] scripts/retired_tests_fix_test.py test_8 (flag an entry absent from the contract's first version in the range: the base's, or else the first commit in the range holding it) and test_10 (already passes: keep it passing)
+- [ ] scripts/retired_tests_fix_test.py test_11 (the template's Retired tests comment names the exact bullet form); add `retired_tests_fix_test` to `.github/workflows/v2-ci.yml`; every suite there passes
 
 ## Blocked
 

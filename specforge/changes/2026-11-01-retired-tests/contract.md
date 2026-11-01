@@ -65,8 +65,21 @@ Out:
 5. A sibling test declared as `../app/tests/app_test.py` is retired the same way.
 6. `templates/contract.md` names `## Retired tests`, and `review.md` names `retired by the contract`.
 
+Fix round, after review (PASS, three should-fix), in `scripts/retired_tests_fix_test.py` (`new`):
+
+7. The contract is read from git at HEAD: an uncommitted bullet retires nothing.
+8. An entry absent from the contract's first version in the range is also reported as `should-fix: <contract>:<line> — retired entry added after the contract's first version, confirm it: <entry>`. The first version is the base's, or else the first commit in the range that holds the contract.
+9. A bullet inside an HTML comment retires nothing.
+10. A whole-file entry reports a `retired by the contract` should-fix for each removed function.
+11. The template comment names the exact bullet form: `- `, a bare path, a reason after an em dash.
+
 `v2-ci` and `cli-ci` pass on the last code commit.
+
+## Approvals
+
+- Mode Contract and the red tests in `scripts/retired_tests_test.py`, approved and locked: the human, 2026-11-01.
+- Fix round after review, with its test `scripts/retired_tests_fix_test.py` approved and locked: the human, 2026-11-01. A draft passed every suite first.
 
 ## Stop and escalate
 
-Stop and ask if a locked suite must change, or if a sibling path cannot be matched as the packet prints it. Budget: 8 iterations, 3 USD, for 8 tasks (6 scenarios, the CI list, the full suites).
+Stop and ask if a locked suite must change, or if a sibling path cannot be matched as the packet prints it. Budget: 8 iterations, 3 USD, for 8 tasks (6 scenarios, the CI list, the full suites). Raised by the human to 11 iterations, 4 USD, cumulative, for the fix round.
