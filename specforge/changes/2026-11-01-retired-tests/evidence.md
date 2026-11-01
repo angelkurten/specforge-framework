@@ -23,7 +23,7 @@
     - With the same bullet committed later, it printed the retired should-fix and `should-fix: …/contract.md:8 — retired entry added after the contract's first version, confirm it: scripts/review_fp_test.py`.
     - The clone was deleted.
   - **Fix round 2**, in a scratch clone of `5317fad`. The probe committed the contract, then a later bullet and the deletions, then moved the folder to `specforge/changes/archive/`. `review_prep.py` on the archived path printed both retired should-fixes and `should-fix: specforge/changes/archive/2099-01-01-probe/contract.md:8 — retired entry added after the contract's first version, confirm it: scripts/review_fp_test.py`. The clone was deleted.
-- **CI**: on `5317fad`, the last code commit (fix round 2), pushed alone: `v2-ci` run 41340866788 and `cli-ci` run 41340866791, both success. On `aa902b3` (the fix round), pushed alone: `v2-ci` run 41336938827 and `cli-ci` run 41336938796, both success. On `28803be`, pushed alone: `v2-ci` run 41331686376 and `cli-ci` run 41331686292, both success.
+- **CI**: on `7e35cbf`, the last code commit (the compose sentence), pushed alone: `v2-ci` run 41341289222 and `cli-ci` run 41341289309, both success. On `5317fad` (fix round 2), pushed alone: `v2-ci` run 41340866788 and `cli-ci` run 41340866791, both success. On `aa902b3` (the fix round), pushed alone: `v2-ci` run 41336938827 and `cli-ci` run 41336938796, both success. On `28803be`, pushed alone: `v2-ci` run 41331686376 and `cli-ci` run 41331686292, both success.
 - **Not checked**:
   - A retired entry whose path holds a space: the bullet pattern takes a path with no spaces.
 - **Deviations from the contract**:
@@ -34,3 +34,4 @@
   - **Re-verification (PASS, one should-fix, two nits).**
     - **Should-fix, fixed by fix round 2.** The late-entry check found nothing after an archive move (scenario 12).
     - **Nits accepted.** An absolute `change` path fails safe and silent. A reason changed after approval is not reported; the human still reads it in the retired should-fix.
+  - **Re-verification 2 (PASS).** S4 fixed. The two fix-round lock entries, added after the first approval, are the human's approvals.
