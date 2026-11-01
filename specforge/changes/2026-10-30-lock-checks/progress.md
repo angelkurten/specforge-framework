@@ -1,6 +1,6 @@
 # Progress
 
-**Budget**: 8 iterations, 3 USD
+**Budget**: 10 iterations, 4 USD, cumulative (raised by the human for the fix round)
 
 ## Tasks
 
@@ -11,6 +11,7 @@
 - [x] scripts/lock_checks_test.py test_5_review_md_names_the_new_report
 - [x] `lock_checks_test` is in `.github/workflows/v2-ci.yml`
 - [x] every suite listed in `.github/workflows/v2-ci.yml` passes
+- [ ] scripts/lock_checks_fix_test.py test_6 (decode the file as UTF-8 with errors="replace" in approve; add `lock_checks_fix_test` to `.github/workflows/v2-ci.yml`; keep every suite there passing)
 
 ## Blocked
 

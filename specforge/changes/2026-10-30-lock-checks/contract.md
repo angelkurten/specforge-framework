@@ -55,8 +55,17 @@ Out:
 4. A lock that already exists at the base, whose entry's hash changes in the range, gets today's report and not the new one, so the change is not reported twice.
 5. `review.md` § Lock changes names `changed after the first approval`.
 
+Fix round, after review (PASS, one should-fix), in `scripts/lock_checks_fix_test.py` (`new`):
+
+6. A test that is not valid UTF-8 is decoded with replacement (U+FFFD is not Cf) and approved with exit 0 as before the change, with no traceback. If its decodable part holds an invisible character, it is refused at that line.
+
 `v2-ci` and `cli-ci` pass on the last code commit.
+
+## Approvals
+
+- Mode Contract, and the red tests in `scripts/lock_checks_test.py`, approved and locked: the human, 2026-10-30.
+- Fix round after review, with its test `scripts/lock_checks_fix_test.py` approved and locked: the human, 2026-11-01. Approving a non-UTF-8 file as before, rather than refusing it, was the human's choice.
 
 ## Stop and escalate
 
-Stop and ask if `invisible_points` cannot be imported without side effects, or if a locked suite must change. Budget: 8 iterations, 3 USD, for 7 tasks (5 scenarios, the CI list, the full suites).
+Stop and ask if `invisible_points` cannot be imported without side effects, or if a locked suite must change. Budget: 8 iterations, 3 USD, for 7 tasks (5 scenarios, the CI list, the full suites). Raised by the human to 10 iterations, 4 USD, cumulative, for the fix round.
