@@ -84,7 +84,7 @@ def approve(change: Path, paths: list[str], root: Path) -> list[str]:
 
     refused = []
     for path in paths:
-        for number, line in enumerate((root / path).read_text().split("\n"), 1):  # not splitlines: U+2028
+        for number, line in enumerate((root / path).read_text(encoding="utf-8", errors="replace").split("\n"), 1):  # not splitlines: U+2028
             for point in invisible_points(line):
                 refused.append(f"lock_tests: refused — {path}:{number} holds {point}; write the escape")
     if refused:

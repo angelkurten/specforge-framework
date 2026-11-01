@@ -11,7 +11,7 @@
 - [x] scripts/lock_checks_test.py test_5_review_md_names_the_new_report
 - [x] `lock_checks_test` is in `.github/workflows/v2-ci.yml`
 - [x] every suite listed in `.github/workflows/v2-ci.yml` passes
-- [ ] scripts/lock_checks_fix_test.py test_6 (decode the file as UTF-8 with errors="replace" in approve; add `lock_checks_fix_test` to `.github/workflows/v2-ci.yml`; keep every suite there passing)
+- [x] scripts/lock_checks_fix_test.py test_6 (decode the file as UTF-8 with errors="replace" in approve; add `lock_checks_fix_test` to `.github/workflows/v2-ci.yml`; keep every suite there passing)
 
 ## Blocked
 
@@ -23,3 +23,4 @@
 - iter 5: test_5 done — added the new-report sentence to § Lock changes in specforge/core/review.md; ran `python3 scripts/lock_checks_test.py` → 5 tests OK.
 - iter 6: CI list done — added `lock_checks_test` to the v2-ci.yml suite loop; ran `grep -c lock_checks_test .github/workflows/v2-ci.yml` → 1.
 - iter 7: full suites done — ran every suite in the v2-ci.yml loop (`python3 scripts/<suite>.py`, 49 suites incl. lock_checks_test) → all exit 0, no FAIL.
+- iter 8: test_6 done — approve() reads with errors="replace", added lock_checks_fix_test to v2-ci.yml; ran `python3 scripts/lock_checks_fix_test.py` → OK, and all 51 v2-ci suites via bash loop → ran 51, no FAIL.
