@@ -13,9 +13,9 @@
 - **Result**:
   - **Premises.** All three hold.
   - **Red.** Scenarios 1-7 failed on `0593de9` before the loop: the v1 files were bundled, `RETIRED_FILES` was empty, there was no history, no v2 `CLAUDE.md` and no guide text, and the sweep found 137 v1 references in shipped files and 18 in the READMEs. The release rows in `v2.test.ts` passed and stay passing.
-  - **Loop.** 9 iterations, 9/9 tasks, exit 0. Cost 2.47 USD (`loop-runs.txt`).
+  - **Loop.** 9 iterations, 9/9 tasks, exit 0, 2.47 USD. The fix round took 2 more iterations, 11/11 tasks, exit 0, 3.07 USD cumulative (`loop-runs.txt`). Its 3 tests failed on `26e88d9` first.
   - **Suites.**
-    - All 54 v2 suites pass.
+    - All 55 v2 suites pass, `v1_swap_fix_test` included.
     - `pnpm test` passes 272 of 272. That was 543 before, and the difference is the retired `framework.test.ts`.
     - `tsc` is clean.
     - No changed file holds a Cf character.
@@ -36,7 +36,7 @@
     - `update --strategy=theirs` exited 0 with `12 files refreshed, 1 drifted (strategy: theirs), 31 retired removed, 0 retired kept`, leaving `.claude/rules/specforge.md` alone.
     - `doctor` exited 0.
   - The clone was deleted.
-- **CI**: on `90b6cf6`, the last code commit, pushed alone: `v2-ci` run 41350418430 and `cli-ci` run 41350418561, both success. `cli-ci` includes the `doctor` step over this repository.
+- **CI**: on `cc3e74e`, the last code commit (the fix round), pushed alone: `v2-ci` run 41352755492 and `cli-ci` run 41352755356, both success. On `90b6cf6`, pushed alone: `v2-ci` run 41350418430 and `cli-ci` run 41350418561, both success. `cli-ci` includes the `doctor` step over this repository.
 - **Not checked**:
   - A kubbo installation updating to 1.0.0; release 1.0.0's blast radius must name it (change 5).
   - Claude Code's behaviour with a kept edited v1 rule beside `specforge.md` in a live session. The guide tells the adopter to move or delete it.
@@ -44,3 +44,13 @@
 - **Deviations from the contract**:
   - **Written by the lead**: the `.claude/` moves and `.claude/rules/specforge.md`, in their own commit before the loop.
   - **Mode words in `CLAUDE.md`** (written by the loop) describe each mode in one line; `specforge/core/modes.md` stays the authority.
+  - **Review (PASS, three should-fix, three nits).**
+    - **Should-fixes, fixed by the fix round.**
+      - The guide claimed a git-restored file is never touched again, which is false after a full rollback (scenario 8).
+      - The guide presented three outcomes as the whole set, though an edited v1 agent, template or example is kept too (scenario 8).
+      - The shipped `CLAUDE.md` pointed adopters at `history/v1/` as if it were in their tree (scenario 9).
+    - **Nits.**
+      - The stale `workflow.md` comment in `partition.ts` was fixed (scenario 10).
+      - Accepted: the cycle-step needles in the locked `v1_swap_test.py` are bare substrings.
+      - Accepted: the moved-path sweep in `v2.test.ts` runs over the bundle, which lacks `tools/cli/README.md`. That README is byte-identical to `README.md`, which the sweep covers, and the reviewer grepped it by hand, clean.
+  - **Mechanical findings for the human to confirm.** The two test files retired by the contract (`scripts/prd_check_test.py`, `tools/cli/tests/conformance/framework.test.ts`), and two renamed tests (`pack-and-run.test.ts` row 44, `rule-frontmatter.test.ts` "walks …").
