@@ -8,8 +8,8 @@
 - **Result**:
   - **Premises.** Both hold.
   - **Red.** Tests 1, 2, 4, 5 and 6 failed before the loop. Test 3 passed by design: it guards against matching a path with no reason.
-  - **Loop.** 8 iterations, 8/8 tasks, exit 0. Cost 2.14 USD (`loop-runs.txt`).
-  - **Suites.** All 52 v2 suites pass, `retired_tests_test` included.
+  - **Loop.** 8 iterations, 8/8 tasks, exit 0, 2.14 USD. The fix round took 3 more iterations, 11/11 tasks, exit 0, 3.14 USD cumulative (`loop-runs.txt`). Its tests 7, 8, 9 and 11 failed first. Test 10 passed by design, since it pins the per-function downgrade. A draft passed every suite first.
+  - **Suites.** All 53 v2 suites pass, `retired_tests_test` and `retired_tests_fix_test` included.
 - **Exercised**: the user-visible path is the review packet, run in a scratch clone of `28803be`. A probe contract declared two retired tests: `scripts/release_0_28_0_test.py` — 0.28.0 is frozen history, and `scripts/never_deleted_test.py` — declared but kept. The range deleted `release_0_28_0_test.py`, which was declared, and `review_fp_test.py`, which was not. `review_prep.py` printed:
   - `should-fix: scripts/release_0_28_0_test.py:1 — test file retired by the contract, confirm it: 0.28.0 is frozen history`;
   - `blocker: scripts/review_fp_test.py:1 — test file deleted`;
@@ -17,8 +17,15 @@
   - the foreign-lock should-fixes for both deleted files, unchanged.
   
   The probe's own evidence drew the usual CI-field blocker. The clone was deleted.
-- **CI**: on `28803be`, the last code commit, pushed alone: `v2-ci` run 41331686376 and `cli-ci` run 41331686292, both success.
+  - **Fix round**, in a scratch clone of `aa902b3`. The probe contract was committed first, and then the deletions.
+    - With an uncommitted bullet for `scripts/review_fp_test.py`, the packet still printed `blocker: scripts/review_fp_test.py:1 — test file deleted`.
+    - With the same bullet committed later, it printed the retired should-fix and `should-fix: …/contract.md:8 — retired entry added after the contract's first version, confirm it: scripts/review_fp_test.py`.
+    - The clone was deleted.
+- **CI**: on `aa902b3`, the last code commit (the fix round), pushed alone: `v2-ci` run 41336938827 and `cli-ci` run 41336938796, both success. On `28803be`, pushed alone: `v2-ci` run 41331686376 and `cli-ci` run 41331686292, both success.
 - **Not checked**:
   - A retired entry whose path holds a space: the bullet pattern takes a path with no spaces.
 - **Deviations from the contract**:
-  - **`retired_tests` reads the contract with `read_text()`**, using the locale's encoding.
+  - **Review (PASS, three should-fix, four nits).**
+    - **Fixed by the fix round.** The contract was read from the working tree (scenario 7). Nothing compared against the approved contract (scenario 8). The whole-file half of scenario 2 asserted only an absence (scenario 10).
+    - **Nits fixed.** HTML comments (scenario 9). The exact bullet form in the template (scenario 11).
+    - **Nits accepted.** No test pins that a retired test leaves the file's other findings alone; the reviewer read the code and it holds. The progress log's "50 suites" is a miscount in the agent's log.
