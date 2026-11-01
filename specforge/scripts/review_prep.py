@@ -344,10 +344,14 @@ def _retired_in(text: str) -> dict[str, tuple[str, int]]:
 
 
 def _contract_at(rev: str, change: Path) -> str | None:
-    try:
-        return git("show", f"{rev}:./{change / 'contract.md'}")
-    except subprocess.CalledProcessError:
-        return None
+    # The change may sit live or archived at any revision: try both paths.
+    name, changes = change.name, (change.parent.parent if change.parent.name == "archive" else change.parent)
+    for folder in (changes / name, changes / "archive" / name):
+        try:
+            return git("show", f"{rev}:./{folder / 'contract.md'}")
+        except subprocess.CalledProcessError:
+            pass
+    return None
 
 
 def retired_tests(change: Path, base: str = "") -> tuple[dict[str, tuple[str, int]], set[str]]:

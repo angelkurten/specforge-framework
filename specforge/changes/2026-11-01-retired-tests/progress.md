@@ -15,7 +15,7 @@
 - [x] scripts/retired_tests_fix_test.py test_7 and test_9 (read the contract with `git show HEAD:<contract>`; drop `<!-- -->` comments before reading bullets)
 - [x] scripts/retired_tests_fix_test.py test_8 (flag an entry absent from the contract's first version in the range: the base's, or else the first commit in the range holding it) and test_10 (already passes: keep it passing)
 - [x] scripts/retired_tests_fix_test.py test_11 (the template's Retired tests comment names the exact bullet form); add `retired_tests_fix_test` to `.github/workflows/v2-ci.yml`; every suite there passes
-- [ ] scripts/retired_tests_fix2_test.py test_12 (look the contract up under its live and its archived path at each revision); add `retired_tests_fix2_test` to `.github/workflows/v2-ci.yml`; every suite there passes
+- [x] scripts/retired_tests_fix2_test.py test_12 (look the contract up under its live and its archived path at each revision); add `retired_tests_fix2_test` to `.github/workflows/v2-ci.yml`; every suite there passes
 
 ## Blocked
 
@@ -31,3 +31,4 @@
 - Tarea 9: en review_prep.py, `retired_tests()` lee el contrato con `git show HEAD:./<contract>` y quita los `<!-- -->` conservando los saltos de línea; `python3 scripts/retired_tests_fix_test.py` → test_7, 9 y 10 ok (fallan solo 8 y 11, tareas siguientes); `retired_tests_test`, `review_test`, `sibling_repos_test` → OK.
 - Tarea 10: en review_prep.py, `retired_tests(change, base)` devuelve también las entradas de la primera versión del contrato (la de la base, o la del primer commit del rango) y `review()` emite `should-fix … retired entry added after the contract's first version`; `python3 scripts/retired_tests_fix_test.py` → test_7, 8, 9, 10 ok (falla solo 11, tarea siguiente); `retired_tests_test`, `review_test`, `sibling_repos_test` → OK.
 - Tarea 11: la plantilla templates/contract.md nombra la forma exacta (`- `, ruta sin backticks, motivo tras raya em) y añadí `retired_tests_fix_test` a v2-ci.yml; todas las suites de v2-ci.yml (incluida retired_tests_fix_test) con código de salida 0.
+- Tarea 12: en review_prep.py, `_contract_at` busca el contrato en la ruta viva y en la archivada en cada revisión; añadí `retired_tests_fix2_test` a v2-ci.yml; `python3 scripts/retired_tests_fix2_test.py` → OK, y las 54 suites de v2-ci.yml con código de salida 0.
