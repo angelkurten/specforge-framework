@@ -1,0 +1,46 @@
+## Evidence
+
+- **Ran**:
+  - **Design mode before Red**, required in Controlled mode: `specforge-reviewer` with `Mode: design` and `Contract:`, once per perspective. Round 0 was BLOCK from all three. Round 1 was PASS from all three. The resolutions are in Approvals.
+  - The three premise commands, by hand.
+  - The red tests:
+    - a mechanical draft in a scratch clone (the moves, `partition.ts`, a minimal `specforge.md`, the two retired files) passed scenarios 1-3, the agent row and `doctor` on a fresh install;
+    - its only failures were the unwritten prose and the rewrites in Scope, plus `rule-frontmatter.test.ts`, which was added to Scope;
+    - the clone was deleted.
+  - By the lead, before the loop: the moves under `.claude/` and `.claude/rules/specforge.md` (`0593de9`).
+  - `python3 specforge/scripts/loop.py specforge/changes/2026-11-01-v1-package-swap --max-iterations 20 --max-cost 9`, once, with `claude -p --output-format json --model sonnet --permission-mode acceptEdits` and `--allowedTools=Bash(python3 *),Bash(git diff *),Bash(git status *),Bash(git log *),Bash(pnpm --dir tools/cli exec vitest *),Bash(pnpm --dir tools/cli test),Bash(pnpm --dir tools/cli exec tsc *)`.
+  - By the lead after the loop: every suite in `v2-ci.yml`, `pnpm test` and `tsc` in `tools/cli`, and a scan for invisible characters in the 26 changed files.
+- **Result**:
+  - **Premises.** All three hold.
+  - **Red.** Scenarios 1-7 failed on `0593de9` before the loop: the v1 files were bundled, `RETIRED_FILES` was empty, there was no history, no v2 `CLAUDE.md` and no guide text, and the sweep found 137 v1 references in shipped files and 18 in the READMEs. The release rows in `v2.test.ts` passed and stay passing.
+  - **Loop.** 9 iterations, 9/9 tasks, exit 0. Cost 2.47 USD (`loop-runs.txt`).
+  - **Suites.**
+    - All 54 v2 suites pass.
+    - `pnpm test` passes 272 of 272. That was 543 before, and the difference is the retired `framework.test.ts`.
+    - `tsc` is clean.
+    - No changed file holds a Cf character.
+  - **Mutation sample (Controlled), run by the lead** on `partition.ts` at `90b6cf6` in a scratch clone, against `v1-swap.test.ts` and `v2.test.ts`. All 3 were killed:
+    - dropping `.claude/rules/hard-rules.md` from `RETIRED_FILES` (2 tests fail);
+    - retiring `examples/**` as a glob, so the shipped example matched (1);
+    - keeping `CONVENTIONS.md` in `FRAMEWORK_FILES`, so prepublish failed on the missing file (2).
+- **Exercised**: a real packed build in a scratch clone of `90b6cf6`, with `VERSION` and both version fields set to `1.0.0-rc.1` there only. `/opt/homebrew/bin/npm pack` exited 0 and wrote `angelkurten-specforge-1.0.0-rc.1.tgz`, 301 files, checked directly. It ran over fresh installs of the registry's 0.30.0:
+  - **One v1 rule edited, `CLAUDE.md` untouched.** `update` exited 0 with `kept    .claude/rules/hard-rules.md (edited; retired from the framework, no longer tracked)` and `update complete: 13 files refreshed, 0 drifted (strategy: none), 30 retired removed, 1 retired kept`. Afterwards:
+    - `.claude/rules/` held `hard-rules.md` and `specforge.md`;
+    - `.claude/agents/specforge/` held `specforge-reviewer.md` only;
+    - `templates/` held the four v2 templates and `examples/` held `contract-example.md`;
+    - `CONVENTIONS.md` and `scripts/prd-check.py` were gone.
+    
+    `version` reported 1.0.0-rc.1 installed. `doctor` exited 0, with only the lock-guard registration warning.
+  - **`CLAUDE.md` edited.**
+    - `update` with no strategy exited 1 with `drift  CLAUDE.md`.
+    - `update --strategy=theirs` exited 0 with `12 files refreshed, 1 drifted (strategy: theirs), 31 retired removed, 0 retired kept`, leaving `.claude/rules/specforge.md` alone.
+    - `doctor` exited 0.
+  - The clone was deleted.
+- **CI**: on `90b6cf6`, the last code commit, pushed alone: `v2-ci` run 41350418430 and `cli-ci` run 41350418561, both success. `cli-ci` includes the `doctor` step over this repository.
+- **Not checked**:
+  - A kubbo installation updating to 1.0.0; release 1.0.0's blast radius must name it (change 5).
+  - Claude Code's behaviour with a kept edited v1 rule beside `specforge.md` in a live session. The guide tells the adopter to move or delete it.
+  - Windows.
+- **Deviations from the contract**:
+  - **Written by the lead**: the `.claude/` moves and `.claude/rules/specforge.md`, in their own commit before the loop.
+  - **Mode words in `CLAUDE.md`** (written by the loop) describe each mode in one line; `specforge/core/modes.md` stays the authority.
