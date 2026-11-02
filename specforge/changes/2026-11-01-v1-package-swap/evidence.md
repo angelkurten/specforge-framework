@@ -36,7 +36,7 @@
     - `update --strategy=theirs` exited 0 with `12 files refreshed, 1 drifted (strategy: theirs), 31 retired removed, 0 retired kept`, leaving `.claude/rules/specforge.md` alone.
     - `doctor` exited 0.
   - The clone was deleted.
-- **CI**: on `cc3e74e`, the last code commit (the fix round), pushed alone: `v2-ci` run 41352755492 and `cli-ci` run 41352755356, both success. On `90b6cf6`, pushed alone: `v2-ci` run 41350418430 and `cli-ci` run 41350418561, both success. `cli-ci` includes the `doctor` step over this repository.
+- **CI**: on `7658daf`, the last code commit (the guide nit, by the lead), pushed alone: `v2-ci` run 41462737993 and `cli-ci` run 41462737898, both success. On `cc3e74e` (the fix round), pushed alone: `v2-ci` run 41352755492 and `cli-ci` run 41352755356, both success. On `90b6cf6`, pushed alone: `v2-ci` run 41350418430 and `cli-ci` run 41350418561, both success. `cli-ci` includes the `doctor` step over this repository.
 - **Not checked**:
   - A kubbo installation updating to 1.0.0; release 1.0.0's blast radius must name it (change 5).
   - Claude Code's behaviour with a kept edited v1 rule beside `specforge.md` in a live session. The guide tells the adopter to move or delete it.
@@ -53,4 +53,5 @@
       - The stale `workflow.md` comment in `partition.ts` was fixed (scenario 10).
       - Accepted: the cycle-step needles in the locked `v1_swap_test.py` are bare substrings.
       - Accepted: the moved-path sweep in `v2.test.ts` runs over the bundle, which lacks `tools/cli/README.md`. That README is byte-identical to `README.md`, which the sweep covers, and the reviewer grepped it by hand, clean.
-  - **Mechanical findings for the human to confirm.** The two test files retired by the contract (`scripts/prd_check_test.py`, `tools/cli/tests/conformance/framework.test.ts`), and two renamed tests (`pack-and-run.test.ts` row 44, `rule-frontmatter.test.ts` "walks …").
+  - **Re-verification (PASS).** All prior findings were fixed or accepted. One new nit was fixed by the lead in `7658daf`: the guide's list now names an edited `CONVENTIONS.md` or `scripts/prd-check.py`.
+  - **Mechanical findings, confirmed by the human on 2026-11-02**: all five below, plus the fix-round lock entry `scripts/v1_swap_fix_test.py`. The two test files retired by the contract (`scripts/prd_check_test.py`, `tools/cli/tests/conformance/framework.test.ts`), and two renamed tests (`pack-and-run.test.ts` row 44, `rule-frontmatter.test.ts` "walks …").
