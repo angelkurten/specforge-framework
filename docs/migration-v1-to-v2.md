@@ -76,7 +76,7 @@ Release 1.0.0 also takes v1 out of `doctor` and `init`:
 - `doctor --ignore-sibling` is now an unknown flag and exits 2. Drop it from your CI.
 - `doctor --json` reports `schema_version` "2", without the exclusions key.
 - `init` no longer writes SIBLINGS.md or ROADMAP.md, and `init --force --erase` leaves your PRDs, ADRs, SIBLINGS.md and ROADMAP.md in place.
-- An install older than 0.11 keeps its v1 agents directory under .claude/agents, which `doctor` warns about: delete it by hand.
+- An install older than 0.11 keeps its v1 agents/ directory at the project root, which `doctor` warns about: delete it by hand.
 
 ## Your first change
 

@@ -34,13 +34,14 @@ export interface InitOptions {
 
 // lstat, not access: any entry counts, a dangling symlink included, so init
 // never writes through or over something already at a path it would ship.
+// Only ENOENT means absent; any other error (ENOTDIR, EACCES) counts as existing.
 async function cwdHasSpecforgeArtifacts(cwd: string, bundledFiles: string[]): Promise<boolean> {
   for (const p of [".specforge", "CLAUDE.md", ".claude/rules", ...bundledFiles]) {
     try {
       await fs.lstat(path.join(cwd, p));
       return true;
-    } catch {
-      // continue
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code !== "ENOENT") return true;
     }
   }
   return false;
@@ -75,9 +76,11 @@ async function listEraseTargets(cwd: string): Promise<string[]> {
 }
 
 export async function runInit(opts: InitOptions): Promise<number> {
+  const bundledFiles = await listBundledFrameworkFiles(opts.importMetaUrl);
+
   // Step 1: cwd-empty check (unless --force).
   if (!opts.force) {
-    if (await cwdHasSpecforgeArtifacts(opts.cwd, await listBundledFrameworkFiles(opts.importMetaUrl))) {
+    if (await cwdHasSpecforgeArtifacts(opts.cwd, bundledFiles)) {
       printError({
         message: "cwd is not empty; refuse to install without --force",
         remediation:
@@ -119,7 +122,6 @@ export async function runInit(opts: InitOptions): Promise<number> {
   }
 
   // Step 3: dry-run preview.
-  const bundledFiles = await listBundledFrameworkFiles(opts.importMetaUrl);
   const bundleVer = await bundleVersion(opts.importMetaUrl);
 
   if (opts.dryRun) {
