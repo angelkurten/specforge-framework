@@ -24,6 +24,11 @@
 
     The lead's two locked-test edits went through `unlock --reason`, then `approve`. Both reasons are in `locked-tests.txt`.
   - **Loop.** 9 iterations, 9/9 tasks, exit 0 (`loop: stopped — done in 9 iterations`), 5.82 USD of 9 (`loop-runs.txt`).
+  - **Fix round, after review.**
+    - The two fix-round tests, `v1_cli_fix_test.py` test_9 and `v1-cli-fix.test.ts` scenario 10, failed on `ba029fd` for the expected reasons. The guide line named `.claude/agents`, and the probe let `init` reach `EEXIST ... mkdir templates`. The human approved and locked them.
+    - The loop ran 3 more iterations, 12 in all: 12/12 tasks, exit 0, 7.51 USD cumulative of 9.
+    - On `73f60e6` the lead re-ran the checks: `lock_tests.py check` exits 0, `vitest` gives 36 files and 212/212, the 59 v2 suites have 0 failed, and `doctor` exits 0.
+    - A mutation that swallows every `lstat` error again is killed by scenario 10.
   - **Suites.**
     - `lock_tests.py check` exits 0.
     - `vitest`: 35 files, 211 of 211 tests.
@@ -48,8 +53,9 @@
     - `update` exited 0: `13 files refreshed, 0 drifted (strategy: none), 31 retired removed, 0 retired kept`. `001-x.md` was unchanged.
     - `init --force --erase --no-git-safety` exited 0. `001-x.md` and 0.30.0's `SIBLINGS.md` placeholder are still in place, unchanged.
     - `doctor` exited 0.
+  - After the fix round, the in-repo `dist` `init`, run in a directory holding only a regular file named `templates`, exited 2 (`cwd is not empty; refuse to install without --force`), and the directory still held only that file.
   - The scratch directories were deleted.
-- **CI**: on `0d6580e`, the code commit, pushed alone: `v2-ci` run 41511743756 and `cli-ci` run 41511744002, both success. `cli-ci`'s doctor step now runs bare `doctor`.
+- **CI**: on `73f60e6`, the fix-round code commit, pushed alone: `v2-ci` run 41513980340 and `cli-ci` run 41513980338, both success. On `0d6580e`, the code commit, pushed alone: `v2-ci` run 41511743756 and `cli-ci` run 41511744002, both success. `cli-ci`'s doctor step now runs bare `doctor`.
 - **Not checked**:
   - A real adopter tree older than 0.11 with a stale agents directory. `stale-briefings` and its tests are unchanged.
   - `init --force --erase` lists `.specforge/lock`, the lock `init` itself holds, among its deletions. 0.30.0 does the same, so it predates this change and is left for its own change.
@@ -58,3 +64,11 @@
   - **The contract changed after design review**, before the lock, in `d8deeb5` and `d969035`. `stale-briefings` stays (the human's choice, recorded in Approvals). The install probe also refuses on any bundle path, which was the lead's default for the security finding. Scenarios 7 and 8 were added.
   - **One red test was corrected before the lock**: scenario 2's `--help` became `help`, after the draft showed that bare `--help` exits 2 by design.
   - **Not in the contract's list:** the loop also dropped the stale `--ignore-sibling` comment above cli-ci's doctor step, which the "names no `--ignore-sibling`" assertion requires.
+  - **Mechanical findings, confirmed by the human on 2026-11-02.** All of the packet's:
+    - the four lock-history lines;
+    - the two foreign-locked tests changed through `unlock --reason`;
+    - the retired and renamed tests the contract declares.
+  - **Review (BLOCK, one blocker, one should-fix, one nit), all fixed by the fix round.**
+    - **Blocker.** The guide's pre-0.11 line sent adopters to `.claude/agents`, where the v2 reviewer lives. Scenario 9 now pins the root `agents/` directory.
+    - **Should-fix.** The install probe's bare `catch` treated ENOTDIR or EACCES as absent. Scenario 10 now covers it.
+    - **Nit.** The bundle is listed once, before the probe.
