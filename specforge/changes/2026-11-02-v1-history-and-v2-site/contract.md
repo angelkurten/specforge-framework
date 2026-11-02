@@ -45,6 +45,54 @@ Out:
 - The npm package.
 - A release.
 
+## Retired tests
+
+- tests/README.md — v1 test plan, moved to history/v1/tests/README.md with the PRD that references it
+- tests/roadmap/bootstrap_test.md — v1 test plan, moved to history/v1/tests/roadmap/bootstrap_test.md with the PRD that references it
+- tests/roadmap/category5_url_test.md — v1 test plan, moved to history/v1/tests/roadmap/category5_url_test.md with the PRD that references it
+- tests/roadmap/claude_md_size_test.md — v1 test plan, moved to history/v1/tests/roadmap/claude_md_size_test.md with the PRD that references it
+- tests/roadmap/cold_start_test.md — v1 test plan, moved to history/v1/tests/roadmap/cold_start_test.md with the PRD that references it
+- tests/roadmap/evidence_forbidden_semantic_test.md — v1 test plan, moved to history/v1/tests/roadmap/evidence_forbidden_semantic_test.md with the PRD that references it
+- tests/roadmap/evidence_happy_test.md — v1 test plan, moved to history/v1/tests/roadmap/evidence_happy_test.md with the PRD that references it
+- tests/roadmap/evidence_pii_test.md — v1 test plan, moved to history/v1/tests/roadmap/evidence_pii_test.md with the PRD that references it
+- tests/roadmap/evidence_zero_test.md — v1 test plan, moved to history/v1/tests/roadmap/evidence_zero_test.md with the PRD that references it
+- tests/roadmap/fence_escape_test.md — v1 test plan, moved to history/v1/tests/roadmap/fence_escape_test.md with the PRD that references it
+- tests/roadmap/format_test.md — v1 test plan, moved to history/v1/tests/roadmap/format_test.md with the PRD that references it
+- tests/roadmap/gate_parity_test.md — v1 test plan, moved to history/v1/tests/roadmap/gate_parity_test.md with the PRD that references it
+- tests/roadmap/hard_rules_12_test.md — v1 test plan, moved to history/v1/tests/roadmap/hard_rules_12_test.md with the PRD that references it
+- tests/roadmap/horizon_required_test.md — v1 test plan, moved to history/v1/tests/roadmap/horizon_required_test.md with the PRD that references it
+- tests/roadmap/hypothesis_falsifiable_test.md — v1 test plan, moved to history/v1/tests/roadmap/hypothesis_falsifiable_test.md with the PRD that references it
+- tests/roadmap/hypothesis_gate_test.md — v1 test plan, moved to history/v1/tests/roadmap/hypothesis_gate_test.md with the PRD that references it
+- tests/roadmap/parked_link_reject_test.md — v1 test plan, moved to history/v1/tests/roadmap/parked_link_reject_test.md with the PRD that references it
+- tests/roadmap/pii_carveout_test.md — v1 test plan, moved to history/v1/tests/roadmap/pii_carveout_test.md with the PRD that references it
+- tests/roadmap/prd_link_test.md — v1 test plan, moved to history/v1/tests/roadmap/prd_link_test.md with the PRD that references it
+- tests/roadmap/retroactive_race_test.md — v1 test plan, moved to history/v1/tests/roadmap/retroactive_race_test.md with the PRD that references it
+- tests/roadmap/retroactive_test.md — v1 test plan, moved to history/v1/tests/roadmap/retroactive_test.md with the PRD that references it
+- tests/roadmap/rollback_test.md — v1 test plan, moved to history/v1/tests/roadmap/rollback_test.md with the PRD that references it
+- tests/roadmap/siblings_self_ref_test.md — v1 test plan, moved to history/v1/tests/roadmap/siblings_self_ref_test.md with the PRD that references it
+- tests/roadmap/stale_test.md — v1 test plan, moved to history/v1/tests/roadmap/stale_test.md with the PRD that references it
+- tests/roadmap/status_commit_test.md — v1 test plan, moved to history/v1/tests/roadmap/status_commit_test.md with the PRD that references it
+- tests/roadmap/status_park_test.md — v1 test plan, moved to history/v1/tests/roadmap/status_park_test.md with the PRD that references it
+- tests/roadmap/theme_status_test.md — v1 test plan, moved to history/v1/tests/roadmap/theme_status_test.md with the PRD that references it
+- tests/roadmap/visibility_bypass_test.md — v1 test plan, moved to history/v1/tests/roadmap/visibility_bypass_test.md with the PRD that references it
+- tests/roadmap/visibility_test.md — v1 test plan, moved to history/v1/tests/roadmap/visibility_test.md with the PRD that references it
+- tests/roadmap/walkthrough_generate_happy.md — v1 test plan, moved to history/v1/tests/roadmap/walkthrough_generate_happy.md with the PRD that references it
+- tests/roadmap/walkthrough_generate_reject.md — v1 test plan, moved to history/v1/tests/roadmap/walkthrough_generate_reject.md with the PRD that references it
+- tests/roadmap/walkthrough_retroactive.md — v1 test plan, moved to history/v1/tests/roadmap/walkthrough_retroactive.md with the PRD that references it
+- tests/roadmap/xref_test.md — v1 test plan, moved to history/v1/tests/roadmap/xref_test.md with the PRD that references it
+- tests/sdd-2026/agdr_contract_test.md — v1 test plan, moved to history/v1/tests/sdd-2026/agdr_contract_test.md with the PRD that references it
+- tests/sdd-2026/agdr_non_gating_test.md — v1 test plan, moved to history/v1/tests/sdd-2026/agdr_non_gating_test.md with the PRD that references it
+- tests/sdd-2026/agdr_template_test.md — v1 test plan, moved to history/v1/tests/sdd-2026/agdr_template_test.md with the PRD that references it
+- tests/sdd-2026/caption_sync_test.md — v1 test plan, moved to history/v1/tests/sdd-2026/caption_sync_test.md with the PRD that references it
+- tests/sdd-2026/claude_md_size_test.md — v1 test plan, moved to history/v1/tests/sdd-2026/claude_md_size_test.md with the PRD that references it
+- tests/sdd-2026/decision_table_size_floor_test.md — v1 test plan, moved to history/v1/tests/sdd-2026/decision_table_size_floor_test.md with the PRD that references it
+- tests/sdd-2026/frozen_docs_untouched_test.md — v1 test plan, moved to history/v1/tests/sdd-2026/frozen_docs_untouched_test.md with the PRD that references it
+- tests/sdd-2026/goals_phrasing_note_test.md — v1 test plan, moved to history/v1/tests/sdd-2026/goals_phrasing_note_test.md with the PRD that references it
+- tests/sdd-2026/hard_rules_13_test.md — v1 test plan, moved to history/v1/tests/sdd-2026/hard_rules_13_test.md with the PRD that references it
+- tests/sdd-2026/override_immunity_test.md — v1 test plan, moved to history/v1/tests/sdd-2026/override_immunity_test.md with the PRD that references it
+- tests/workflow/amendment_bounce_test.md — v1 test plan, moved to history/v1/tests/workflow/amendment_bounce_test.md with the PRD that references it
+- tests/workflow/validation_phase_test.md — v1 test plan, moved to history/v1/tests/workflow/validation_phase_test.md with the PRD that references it
+
 ## Context
 
 - `mkdocs.yml` nav (lines with `nav:`); `.github/workflows/docs.yml` deploys only on a push to main.
@@ -81,6 +129,7 @@ Exercised: `uv run --offline --with mkdocs-material mkdocs build --strict --site
 
 - Mode Contract, and the full v2 site: the human, 2026-11-02.
 - The red tests in `scripts/v2_site_test.py`, approved and locked: the human, 2026-11-02. Test 5 passes today by design: it guards the links of the rewritten site.
+- `## Retired tests` added after the first review packet (the lead had left the v1 test plans out); each entry is also flagged as added after the contract's first version. The human confirmed all 47, the re-approved lock of `scripts/v2_site_test.py`, and the pre-existing U+200F in the moved, byte-identical `history/v1/015-teamtasks-teams-and-membership.md`, 2026-11-02.
 - test_1 corrected after the loop's BLOCKED, and re-approved by the human, 2026-11-02. Four v1 pages are replaced by v2 pages at the same path (`docs/index.md`, `quickstart.md`, `faq.md`, `concepts/siblings.md`), so each must differ from its `history/v1/` copy instead of being absent.
 
 ## Stop and escalate
