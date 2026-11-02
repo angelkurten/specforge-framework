@@ -1,0 +1,60 @@
+## Evidence
+
+- **Ran**:
+  - The two premise commands, by the lead, against `d969035`, the red commit.
+  - Design mode before Red: `specforge-reviewer` with `Mode: design`, three perspectives in parallel, then re-verification of each.
+  - A throwaway draft against the full suite before approval, in a scratch clone, deleted afterwards.
+  - `python3 specforge/scripts/loop.py specforge/changes/2026-11-02-v1-out-of-the-cli`, once.
+  - By the lead, on `0d6580e`:
+    - `lock_tests.py check`;
+    - `pnpm run build` and `vitest run` in `tools/cli`;
+    - every suite in `v2-ci.yml`;
+    - `node tools/cli/dist/src/cli.js doctor` over this repository;
+    - a scan for Cf characters in the 23 added or modified files;
+    - a mutation sample of five.
+- **Result**:
+  - **Premises.** Both hold at `d969035`: 16 validators are registered, and `cli-ci.yml` lines 62-63 pass `--ignore-sibling`.
+  - **Design.**
+    - **Round 0.** Backend PASS, security PASS, quality BLOCK. `stale-briefings` guards a v2 install; the human kept it.
+    - **Re-verification.** All three PASS. The lead then applied their remaining items: an `lstat` install probe that keeps `.specforge`, an empty `paths:` counted as an error, and the guide naming the nine `--rule` ids and `exclusions`.
+  - **Draft.** One red test was wrong. Bare `specforge --help` exits 2 by design, so scenario 2 now runs `specforge help`, which exits 0. Four contract ambiguities were clarified before the lock. No locked test other than the two in Scope broke.
+  - **Red.** On `d969035`:
+    - the six tests of `v1-cli.test.ts` and the four of `v1_cli_test.py` failed for the expected reasons;
+    - `yaml.test.ts` passed by design: it is the `!!js/function` test moved out of the retired `gate-block.test.ts`.
+
+    The lead's two locked-test edits went through `unlock --reason`, then `approve`. Both reasons are in `locked-tests.txt`.
+  - **Loop.** 9 iterations, 9/9 tasks, exit 0 (`loop: stopped — done in 9 iterations`), 5.82 USD of 9 (`loop-runs.txt`).
+  - **Suites.**
+    - `lock_tests.py check` exits 0.
+    - `vitest`: 35 files, 211 of 211 tests.
+    - The 58 v2 suites: 0 failed.
+    - `doctor` over this repository exits 0, with 7 validators and 0 findings.
+  - **Mutations.** All five killed:
+    - the probe through `fs.access` (scenario 4);
+    - a null `paths:` passing (scenario 7);
+    - `SIBLINGS.md` kept as team data (scenario 5 and `partition.test.ts`);
+    - JSON schema `"1"` (scenario 2 and `cli.test.ts`);
+    - dry-run count `+ 3` (scenario 3).
+  - **Invisible characters.** One U+202E at `specforge/DECISIONS.md:169`, in the 2026-10-29 entry. It is byte-identical at `d969035`, so it predates this change.
+- **Exercised**: a real packed build in a scratch clone of `0d6580e`, with `VERSION` and the three version fields set to `1.0.0-rc.2` there only.
+  - `/opt/homebrew/bin/npm pack` wrote `angelkurten-specforge-1.0.0-rc.2.tgz`, 290 files. The extracted tarball and the registry's 0.30.0 tarball were run with `node package/dist/src/cli.js`, without installing.
+  - **Empty directory.**
+    - `init` exited 0: `init complete: framework v1.0.0-rc.2 installed (25 framework files)`, then `next steps: run \`specforge doctor\`, then start a change with \`/specforge-classify\``. No `SIBLINGS.md` or `ROADMAP.md`.
+    - `doctor` exited 0.
+    - `doctor --json` exited 0, with `schema_version` `"2"`, no `exclusions` and 7 `validators_run`.
+    - `doctor --ignore-sibling=x` exited 2: `error: unknown flag: --ignore-sibling`.
+    - `doctor --rule=prd-numbering` exited 2: `error: unknown --rule value: prd-numbering`, listing the seven ids.
+  - **Over 0.30.0.** A fresh 0.30.0 `init`, then an adopter's `001-x.md`.
+    - `update` exited 0: `13 files refreshed, 0 drifted (strategy: none), 31 retired removed, 0 retired kept`. `001-x.md` was unchanged.
+    - `init --force --erase --no-git-safety` exited 0. `001-x.md` and 0.30.0's `SIBLINGS.md` placeholder are still in place, unchanged.
+    - `doctor` exited 0.
+  - The scratch directories were deleted.
+- **CI**: on `0d6580e`, the code commit, pushed alone: `v2-ci` run 41511743756 and `cli-ci` run 41511744002, both success. `cli-ci`'s doctor step now runs bare `doctor`.
+- **Not checked**:
+  - A real adopter tree older than 0.11 with a stale agents directory. `stale-briefings` and its tests are unchanged.
+  - `init --force --erase` lists `.specforge/lock`, the lock `init` itself holds, among its deletions. 0.30.0 does the same, so it predates this change and is left for its own change.
+  - The published site: `docs.yml` deploys only from main.
+- **Deviations from the contract**:
+  - **The contract changed after design review**, before the lock, in `d8deeb5` and `d969035`. `stale-briefings` stays (the human's choice, recorded in Approvals). The install probe also refuses on any bundle path, which was the lead's default for the security finding. Scenarios 7 and 8 were added.
+  - **One red test was corrected before the lock**: scenario 2's `--help` became `help`, after the draft showed that bare `--help` exits 2 by design.
+  - **Not in the contract's list:** the loop also dropped the stale `--ignore-sibling` comment above cli-ci's doctor step, which the "names no `--ignore-sibling`" assertion requires.
