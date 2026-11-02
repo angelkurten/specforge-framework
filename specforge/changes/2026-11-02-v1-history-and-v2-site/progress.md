@@ -1,6 +1,6 @@
 # Progress
 
-**Budget**: 14 iterations, 6 USD
+**Budget**: 17 iterations, 7 USD, cumulative (raised by the human for the fix round)
 
 ## Tasks
 
@@ -9,6 +9,8 @@
 - [x] scripts/v2_site_test.py test_3 and test_4 (no v1 vocabulary outside the migration guide; each page names its source of truth from the contract's Scope; draw content from specforge/core/, templates/contract.md, the skills, CLAUDE.md and the migration guide)
 - [x] scripts/v2_site_test.py test_5 (every relative link under docs/ resolves; keep it passing)
 - [x] `v2_site_test` is in `.github/workflows/v2-ci.yml`; every suite listed there passes; `pnpm --dir tools/cli test` passes
+- [ ] scripts/v2_site_fix_test.py test_6, test_7 and test_8 (mkdocs.yml site_description; history/v1/README.md names the dangling links; repoint every relative link in CHANGELOG.md to where its target now is, under history/v1/ — change only the link targets)
+- [ ] scripts/v2_site_fix_test.py test_9 and test_10 (correct the concept pages, faq.md, quickstart.md and concepts/siblings.md against specforge/core/{modes,loop,review,compose}.md, templates/contract.md and the skills); add `v2_site_fix_test` to `.github/workflows/v2-ci.yml`; every suite there passes
 
 ## Blocked
 

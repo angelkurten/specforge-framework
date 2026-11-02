@@ -123,6 +123,20 @@ Out:
 4. Each concept page names its source of truth from Scope, and `quickstart.md` names the six steps in order with each skill and script.
 5. Every relative Markdown link under `docs/` resolves to a file.
 
+Fix round, after review (PASS, seven should-fix, seven nits), in `scripts/v2_site_fix_test.py` (`new`):
+
+6. `mkdocs.yml`'s `site_description` names no PRD or ADR, and describes v2.
+7. `history/v1/README.md` names the links that no longer resolve: those to `SIBLINGS.md`, which stays at the root, and to the `.claude/` files change 3a moved.
+8. Every relative link in `CHANGELOG.md` resolves, repointed into `history/v1/` where its target moved.
+9. Each concept page states its rule as its source does:
+   - `contract.md`: `review_prep.py` reports retired tests;
+   - `loop.md`: nothing from the previous session;
+   - `review.md`: Not checked or `none` on a user-visible path, CI, and design mode optional in Contract;
+   - `modes.md`: one sentence, `unsure`;
+   - `faq.md`: no edge test without input;
+   - `compose.md`: `AGENTS.md` and the 80-line limit.
+10. `quickstart.md` drops "Each step has a skill", and `concepts/siblings.md` says which agent loads a sibling's `CLAUDE.md`.
+
 Exercised: `uv run --offline --with mkdocs-material mkdocs build --strict --site-dir <scratch>` exits 0, and the built `index.html` and one concept page are opened and checked for their headings. `v2-ci` and `cli-ci` pass on the last code commit.
 
 ## Approvals
@@ -132,6 +146,8 @@ Exercised: `uv run --offline --with mkdocs-material mkdocs build --strict --site
 - `## Retired tests` added after the first review packet (the lead had left the v1 test plans out); each entry is also flagged as added after the contract's first version. The human confirmed all 45 (the lead first said 47, a miscount), the re-approved lock of `scripts/v2_site_test.py`, and the pre-existing U+200F in the moved, byte-identical `history/v1/015-teamtasks-teams-and-membership.md`, 2026-11-02.
 - test_1 corrected after the loop's BLOCKED, and re-approved by the human, 2026-11-02. Four v1 pages are replaced by v2 pages at the same path (`docs/index.md`, `quickstart.md`, `faq.md`, `concepts/siblings.md`), so each must differ from its `history/v1/` copy instead of being absent.
 
+- Fix round after review, with its test `scripts/v2_site_fix_test.py` approved and locked: the human, 2026-11-02. `CHANGELOG.md` comes into Scope for its links only.
+
 ## Stop and escalate
 
-Stop and ask if a locked test must change, if a moved file is still read by a CI suite, or if mkdocs cannot build offline. Budget: 14 iterations, 6 USD.
+Stop and ask if a locked test must change, if a moved file is still read by a CI suite, or if mkdocs cannot build offline. Budget: 14 iterations, 6 USD. Raised by the human to 17 iterations, 7 USD, cumulative, for the fix round.
