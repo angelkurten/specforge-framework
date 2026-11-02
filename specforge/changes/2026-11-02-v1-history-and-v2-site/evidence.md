@@ -24,7 +24,7 @@
   - The site is the user-visible path. `mkdocs build --strict` exited 0 offline, into a scratch `site_dir`: "Documentation built in 0.16 seconds", with no warning, which `--strict` would have made fatal.
   - The built pages have their headings. `index.html` has `specforge EVA` and 3 sections, `quickstart/index.html` has `Quickstart`, `concepts/review/index.html` has `Review` and 4 sections, and `concepts/siblings/index.html` has `Sibling projects` and 3 sections.
   - After the fix round, the strict build passed again (0.12 seconds), and the built `index.html` meta description now describes v2. The scratch sites were deleted.
-- **CI**: on `d5c7d7a`, the last code commit (the fix round), pushed alone: `v2-ci` run 41473887843 and `cli-ci` run 41473887735, both success. On `326450f`, pushed alone: `v2-ci` run 41468018156 and `cli-ci` run 41468017840, both success.
+- **CI**: on `dc3f7cf`, the last code commit (the compose instructions), pushed alone: `v2-ci` run 41496284773 and `cli-ci` run 41496285629, both success. On `d5c7d7a` (the fix round), pushed alone: `v2-ci` run 41473887843 and `cli-ci` run 41473887735, both success. On `326450f`, pushed alone: `v2-ci` run 41468018156 and `cli-ci` run 41468017840, both success.
 - **Not checked**:
   - The published site: `docs.yml` deploys only from main, at the release.
   - The site in a browser. The built HTML was checked for headings, not rendered.
@@ -36,3 +36,4 @@
     - **Fixed by the fix round.** Site metadata (scenario 6), history links (7), changelog links (8), and the page accuracy items (9-10).
     - **Recorded, not fixed.** The re-lock without a reason (above).
     - **Nit accepted.** The step-order check in the locked `v2_site_test.py` passes on the summary sentence.
+  - **Re-verification (PASS).** All seven should-fixes and the nits were fixed. Two out-of-scope nits are accepted: Direct's one-sentence rule sits under the proposal rather than in its table row, and template placeholder links in `history/v1/templates/` dangle, as they did before this change. The reviewer briefly wrote a packet copy to `/tmp/x`, outside its scratchpad, and deleted it.
