@@ -14,9 +14,8 @@ import {
 } from "../../../src/validators/subagent-frontmatter.js";
 import {
   mkTmpDir,
-  plantSubagentDefinitions,
   subagentDefinition,
-  SUBAGENT_DEFINITIONS,
+  SHIPPED_DEFINITIONS,
 } from "../../helpers.js";
 
 let tmpDir: string;
@@ -41,10 +40,12 @@ afterEach(async () => {
 });
 
 describe("subagent-frontmatter: a correct install", () => {
-  it("reports nothing for the 14 definitions", async () => {
-    await plantSubagentDefinitions(agentsPath("specforge"));
+  it("reports nothing for the shipped definitions", async () => {
+    for (const d of SHIPPED_DEFINITIONS) {
+      await write(`specforge/${d.name}.md`, subagentDefinition(d.name));
+    }
     expect(await validator.run(tmpDir)).toEqual([]);
-    expect(SUBAGENT_DEFINITIONS).toHaveLength(14);
+    expect(SHIPPED_DEFINITIONS).toHaveLength(1);
   });
 
   it("reports nothing when .claude/agents/ is absent", async () => {

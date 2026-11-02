@@ -1,4 +1,4 @@
-// `specforge init` — PRD-003 § 5.1, § 4.1.
+// `specforge init`.
 
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
@@ -32,31 +32,16 @@ export interface InitOptions {
   importMetaUrl: string;
 }
 
-const TRACKED_TEAM_DATA = [".specforge", "SIBLINGS.md", "ROADMAP.md"];
-
-async function cwdHasSpecforgeArtifacts(cwd: string): Promise<boolean> {
-  const probes = [
-    ".specforge",
-    "CLAUDE.md",
-    ".claude/rules",
-    "SIBLINGS.md",
-  ];
-  for (const p of probes) {
+// lstat, not access: any entry counts, a dangling symlink included, so init
+// never writes through or over something already at a path it would ship.
+async function cwdHasSpecforgeArtifacts(cwd: string, bundledFiles: string[]): Promise<boolean> {
+  for (const p of [".specforge", "CLAUDE.md", ".claude/rules", ...bundledFiles]) {
     try {
-      await fs.access(path.join(cwd, p));
+      await fs.lstat(path.join(cwd, p));
       return true;
     } catch {
       // continue
     }
-  }
-  // Any root-level NNN-*.md PRD also counts.
-  try {
-    const entries = await fs.readdir(cwd, { withFileTypes: true });
-    for (const e of entries) {
-      if (e.isFile() && /^\d{3}-[a-z0-9][a-z0-9-]*\.md$/.test(e.name)) return true;
-    }
-  } catch {
-    // ignore
   }
   return false;
 }
@@ -92,7 +77,7 @@ async function listEraseTargets(cwd: string): Promise<string[]> {
 export async function runInit(opts: InitOptions): Promise<number> {
   // Step 1: cwd-empty check (unless --force).
   if (!opts.force) {
-    if (await cwdHasSpecforgeArtifacts(opts.cwd)) {
+    if (await cwdHasSpecforgeArtifacts(opts.cwd, await listBundledFrameworkFiles(opts.importMetaUrl))) {
       printError({
         message: "cwd is not empty; refuse to install without --force",
         remediation:
@@ -144,10 +129,8 @@ export async function runInit(opts: InitOptions): Promise<number> {
       for (const t of targets) info(opts, `  delete  ${t}`);
     }
     for (const f of bundledFiles) info(opts, `  write   ${f}`);
-    info(opts, `  write   SIBLINGS.md (team-data placeholder)`);
-    info(opts, `  write   ROADMAP.md (team-data placeholder)`);
     info(opts, `  write   .specforge/manifest.json`);
-    summary(opts, `dry-run: ${bundledFiles.length + 3} files would be written`);
+    summary(opts, `dry-run: ${bundledFiles.length + 1} files would be written`);
     return 0;
   }
 
@@ -169,15 +152,15 @@ export async function runInit(opts: InitOptions): Promise<number> {
   }
 
   // Count refused erase targets so the summary can carry a printed warning.
-  // The exit code stays 0: PRD-003 § 5.1's frozen table maps 0 to "Install
+  // The exit code stays 0: the frozen exit-code table maps 0 to "Install
   // completed" and 10 to "I/O error during copy", the refusal happens in the
   // erase phase (step 5) BEFORE any copy (step 6), and the install itself runs
   // to completion — PRD-006 § 5 opens with "No new CLI command, flag, or exit
   // code." What § 10 step 2 / § 9 row 30 require is that the refusal be
   // *printed* and the erase *continue*; the catch below does both, and a
   // printed warning on exit 0 satisfies it. Returning a non-zero code on a
-  // completed install would require a follow-up PRD amending PRD-003 § 5.1's
-  // exit-code table — do NOT implement it here.
+  // completed install would change the CLI's exit-code contract — do NOT
+  // implement it here.
   let eraseRefusals = 0;
 
   try {
@@ -218,27 +201,7 @@ export async function runInit(opts: InitOptions): Promise<number> {
       info(opts, `write   ${rel}`);
     }
 
-    // Step 7: team-data placeholders. Only write SIBLINGS.md / ROADMAP.md
-    // if they don't already exist — `--force` without `--erase` preserves
-    // team data per § 5.1.
-    const siblingsPath = path.join(opts.cwd, "SIBLINGS.md");
-    try {
-      await fs.access(siblingsPath);
-    } catch {
-      const placeholder = `# Sibling projects\n\n| Name | Path | Status | Read first |\n|---|---|---|---|\n`;
-      await safeWriteFile(opts.cwd, "SIBLINGS.md", placeholder);
-      info(opts, `write   SIBLINGS.md`);
-    }
-    const roadmapPath = path.join(opts.cwd, "ROADMAP.md");
-    try {
-      await fs.access(roadmapPath);
-    } catch {
-      const placeholder = `# Roadmap\n\n## Themes\n\n## Items\n`;
-      await safeWriteFile(opts.cwd, "ROADMAP.md", placeholder);
-      info(opts, `write   ROADMAP.md`);
-    }
-
-    // Step 8: manifest.
+    // Step 7: manifest.
     const manifest = buildManifest({
       framework_version: bundleVer,
       framework_files: frameworkEntries,
@@ -248,7 +211,7 @@ export async function runInit(opts: InitOptions): Promise<number> {
     info(opts, `write   .specforge/manifest.json`);
 
     summary(opts, `init complete: framework v${bundleVer} installed (${frameworkEntries.length} framework files)`);
-    info(opts, "next steps: edit SIBLINGS.md and ROADMAP.md, then `specforge doctor`, `specforge update`, `specforge --help`");
+    info(opts, "next steps: run `specforge doctor`, then start a change with `/specforge-classify`");
     // Settings are team data: never written, so the v2 lock guard's
     // registration is printed for the team to paste.
     summary(
@@ -259,7 +222,7 @@ export async function runInit(opts: InitOptions): Promise<number> {
       // The framework install completed; the refused targets were already
       // printed one-by-one in the erase loop. Surface a summary warning too,
       // but keep the exit code at 0 — the install succeeded (see the counter's
-      // declaration for the PRD-003 § 5.1 exit-code rationale).
+      // declaration for the exit-code rationale).
       summary(
         opts,
         `warning: ${eraseRefusals} erase target(s) could not be deleted (see errors above)`,
@@ -279,5 +242,4 @@ export async function runInit(opts: InitOptions): Promise<number> {
 }
 
 // Suppress unused-var warning for module-scope helpers used in tests.
-void TRACKED_TEAM_DATA;
 void manifestExists;

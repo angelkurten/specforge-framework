@@ -90,7 +90,7 @@ describe("end-to-end: npm pack + npx", () => {
       expect(initResult.status).toBe(0);
       await expect(fs.access(path.join(initDir, ".specforge", "manifest.json"))).resolves.toBeUndefined();
       await expect(fs.access(path.join(initDir, "CLAUDE.md"))).resolves.toBeUndefined();
-      await expect(fs.access(path.join(initDir, "SIBLINGS.md"))).resolves.toBeUndefined();
+      await expect(fs.access(path.join(initDir, "SIBLINGS.md"))).rejects.toThrow();
     } finally {
       await fs.rm(initDir, { recursive: true, force: true });
       if (extractDir) await fs.rm(extractDir, { recursive: true, force: true });

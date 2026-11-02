@@ -170,3 +170,10 @@ Append-only log of decisions with future value. Shape: [`templates/decision-log.
 **Decision**: a small change, `lock-checks`, runs before the v1 file swap. It makes `lock_tests.py approve` refuse a file holding a Cf character, and makes `review_prep.py` report a hash that changes between a lock's first version in the range and HEAD.
 **Rejected**: keeping the instruction alone, which this change shows can be skipped.
 **Revisit if**: a legitimate test needs a literal Cf character; it can then be written as an escape.
+
+## 2026-11-02 — v1 leaves `doctor` and `init`
+
+**Context**: change `2026-11-02-v1-out-of-the-cli`, change 4 of the plan to retire v1. The 2026-10-29 entry counted 12 of doctor's 17 validators as v1; the inventory found 9 of 16: `stale-briefings` guards the v2 reviewer's directory and stays, and 16 validators are registered, not 17.
+**Decision**: remove the nine v1 validators and the helpers only they used, `--ignore-sibling` (it exits 2 as an unknown flag, with no deprecation period), and the `exclusions` key from `doctor --json`, which becomes `schema_version` "2". `init` writes no `SIBLINGS.md` or `ROADMAP.md`, and refuses when any path the bundle would write already exists. `TEAM_DATA_PATTERNS` drops the v1 names; an adopter's PRDs and ADRs stay protected because no manifest lists them.
+**Rejected**: a deprecation period for `--ignore-sibling`; keeping v1 team-data patterns.
+**Revisit if**: an adopter's PRD or ADR is ever touched by `update` or `--erase`.

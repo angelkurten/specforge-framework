@@ -17,8 +17,6 @@ export interface Validator {
 }
 
 export interface ValidatorOptions {
-  /** Sibling names to skip during siblings-paths-resolve. */
-  ignoreSiblings?: ReadonlyArray<string>;
   /** Bundle hash map, for framework-file-integrity. */
   bundleHashes?: ReadonlyMap<string, string>;
   /** Bundled framework version, for framework-file-integrity. */

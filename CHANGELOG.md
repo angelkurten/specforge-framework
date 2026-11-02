@@ -4,7 +4,7 @@ All notable changes to the specforge framework are documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/). Versions follow [Semantic Versioning](https://semver.org/): MAJOR for breaking rule/template changes, MINOR for new features, PATCH for fixes and docs.
 
-**Team data files** (`SIBLINGS.md`, your PRDs, your ADRs) are never touched by upgrades. Only framework files change between versions.
+**Team data files** (`specforge/changes/`, `specforge/DECISIONS.md`) are never touched by upgrades. Only framework files change between versions.
 
 ---
 

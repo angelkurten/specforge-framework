@@ -1,18 +1,9 @@
-// Registry of doctor validators in declaration order (PRD-003 § 7.4).
+// Registry of doctor validators in declaration order.
 
 import { validator as manifestPresent } from "./manifest-present.js";
 import { validator as frameworkFileIntegrity } from "./framework-file-integrity.js";
-import { validator as prdNumbering } from "./prd-numbering.js";
-import { validator as prdRequiredSections } from "./prd-required-sections.js";
-import { validator as prdBackRefs } from "./prd-back-refs.js";
-import { validator as prdMarketingLanguage } from "./prd-marketing-language.js";
-import { validator as prdSystemArtifactDiff } from "./prd-system-artifact-diff.js";
-import { validator as siblingsPathsResolve } from "./siblings-paths-resolve.js";
-import { validator as gateBlockYaml } from "./gate-block-yaml.js";
 import { validator as claudeMdSize } from "./claude-md-size.js";
 import { validator as ruleFrontmatter } from "./rule-frontmatter.js";
-import { validator as roadmapEvidenceCategories } from "./roadmap-evidence-categories.js";
-import { validator as roadmapPii } from "./roadmap-pii.js";
 import { validator as staleBriefings } from "./stale-briefings.js";
 import { validator as subagentFrontmatter } from "./subagent-frontmatter.js";
 import { validator as lockGuardRegistered } from "./lock-guard-registered.js";
@@ -21,17 +12,8 @@ import type { Validator } from "./types.js";
 export const ALL_VALIDATORS: ReadonlyArray<Validator> = [
   manifestPresent,
   frameworkFileIntegrity,
-  prdNumbering,
-  prdRequiredSections,
-  prdBackRefs,
-  prdMarketingLanguage,
-  prdSystemArtifactDiff,
-  siblingsPathsResolve,
-  gateBlockYaml,
   claudeMdSize,
   ruleFrontmatter,
-  roadmapEvidenceCategories,
-  roadmapPii,
   staleBriefings,
   subagentFrontmatter,
   lockGuardRegistered,

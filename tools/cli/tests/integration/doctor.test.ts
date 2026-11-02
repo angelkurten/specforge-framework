@@ -42,7 +42,6 @@ describe("doctor: clean install passes", () => {
       cwd: tmpDir,
       json: false,
       rules: [],
-      ignoreSiblings: [],
       quiet: true,
       importMetaUrl,
     });
@@ -50,105 +49,16 @@ describe("doctor: clean install passes", () => {
   });
 });
 
-describe("doctor: synthetic gate-block violation", () => {
-  it("A planted PRD with tests: [TBD] (Implemented) produces a gate-block-yaml failure", async () => {
+describe("doctor: synthetic rule-frontmatter violation", () => {
+  it("A planted rule without frontmatter produces a rule-frontmatter failure", async () => {
     const importMetaUrl = await doInit(tmpDir);
-
-    const badPrd = `# PRD-001
-
-**Status**: Implemented
-
-## Impacted Projects
-
-| Project | Impact |
-|---|---|
-| specforge | test |
-
-## 1. Problem Statement
-## 2. Goals
-## 3. Non-Goals
-## 4. User Flows
-## 5. API
-## 6. Data Model
-## 7. Architecture
-## 8. Security
-## 9. Test Plan
-## 10. Migration Plan
-## 11. Open Questions
-
-## Gate: Promotion to \`Implemented\`
-
-\`\`\`yaml
-commit_hash: abc123
-tests:
-  - '[TBD]'
-system_artifact_diff:
-  - '../sibling/docs/SYSTEM_ARTIFACT.md#section (commit abc123)'
-\`\`\`
-`;
-    await fs.writeFile(path.join(tmpDir, "001-bad.md"), badPrd);
+    await fs.mkdir(path.join(tmpDir, ".claude", "rules"), { recursive: true });
+    await fs.writeFile(path.join(tmpDir, ".claude", "rules", "planted.md"), "# no frontmatter\n");
 
     const exitCode = await runDoctor({
       cwd: tmpDir,
       json: false,
-      rules: ["gate-block-yaml"],
-      ignoreSiblings: [],
-      quiet: true,
-      importMetaUrl,
-    });
-    expect(exitCode).toBeGreaterThan(0);
-  });
-});
-
-describe("doctor: --ignore-sibling skips named sibling", () => {
-  it("A sibling whose Path does not resolve passes doctor --ignore-sibling=<name>; the exclusion appears in output for audit", async () => {
-    const importMetaUrl = await doInit(tmpDir);
-
-    // Write a SIBLINGS.md with a non-resolving path
-    await fs.writeFile(
-      path.join(tmpDir, "SIBLINGS.md"),
-      `# Siblings\n\n| Name | Path | Status | Read first |\n|---|---|---|---|\n| web-client | ../does-not-exist | active | README.md |\n`,
-    );
-
-    const chunks: string[] = [];
-    const origWrite = process.stdout.write.bind(process.stdout);
-    process.stdout.write = (chunk: any) => { chunks.push(String(chunk)); return true; };
-
-    let exitCode: number;
-    try {
-      exitCode = await runDoctor({
-        cwd: tmpDir,
-        json: true,
-        rules: ["siblings-paths-resolve"],
-        ignoreSiblings: ["web-client"],
-        quiet: false,
-        importMetaUrl,
-      });
-    } finally {
-      process.stdout.write = origWrite;
-    }
-
-    const output = JSON.parse(chunks.join(""));
-    expect(output.exclusions.siblings).toContain("web-client");
-    // Should pass because the sibling is ignored
-    expect(exitCode).toBe(0);
-  });
-});
-
-describe("doctor: --ignore-sibling with unknown name fails", () => {
-  it("--ignore-sibling=does-not-exist is itself a siblings-paths-resolve failure", async () => {
-    const importMetaUrl = await doInit(tmpDir);
-
-    await fs.writeFile(
-      path.join(tmpDir, "SIBLINGS.md"),
-      `# Siblings\n\n| Name | Path | Status | Read first |\n|---|---|---|---|\n`,
-    );
-
-    const exitCode = await runDoctor({
-      cwd: tmpDir,
-      json: false,
-      rules: ["siblings-paths-resolve"],
-      ignoreSiblings: ["does-not-exist"],
+      rules: ["rule-frontmatter"],
       quiet: true,
       importMetaUrl,
     });
@@ -157,7 +67,7 @@ describe("doctor: --ignore-sibling with unknown name fails", () => {
 });
 
 describe("doctor: --rule filters validators", () => {
-  it("doctor --rule=prd-numbering runs exactly that validator; --rule=does-not-exist exits 2", async () => {
+  it("doctor --rule=claude-md-size runs exactly that validator; --rule=does-not-exist exits 2", async () => {
     const importMetaUrl = await doInit(tmpDir);
 
     // Running with a specific rule should only report that rule
@@ -169,8 +79,7 @@ describe("doctor: --rule filters validators", () => {
       exitCode = await runDoctor({
         cwd: tmpDir,
         json: true,
-        rules: ["prd-numbering"],
-        ignoreSiblings: [],
+        rules: ["claude-md-size"],
         quiet: false,
         importMetaUrl,
       });
@@ -178,7 +87,7 @@ describe("doctor: --rule filters validators", () => {
       process.stdout.write = origWrite;
     }
     const output = JSON.parse(chunks.join(""));
-    expect(output.validators_run).toEqual(["prd-numbering"]);
+    expect(output.validators_run).toEqual(["claude-md-size"]);
     expect(exitCode).toBe(0);
 
     // Unknown rule should exit 2
@@ -191,7 +100,6 @@ describe("doctor: --rule filters validators", () => {
         cwd: tmpDir,
         json: false,
         rules: ["does-not-exist"],
-        ignoreSiblings: [],
         quiet: true,
         importMetaUrl,
       });
@@ -214,7 +122,6 @@ describe("framework-file-integrity validator", () => {
       cwd: tmpDir,
       json: false,
       rules: ["framework-file-integrity"],
-      ignoreSiblings: [],
       quiet: true,
       importMetaUrl,
     });
@@ -237,7 +144,6 @@ describe("framework-file-integrity validator", () => {
       cwd: tmpDir,
       json: false,
       rules: ["framework-file-integrity"],
-      ignoreSiblings: [],
       quiet: true,
       importMetaUrl,
     });
@@ -345,7 +251,6 @@ describe("doctor: a pre-0.10.0 install carrying the vacated paths stays clean", 
         cwd: tmpDir,
         json: true,
         rules: [],
-        ignoreSiblings: [],
         quiet: false,
         importMetaUrl,
       });
@@ -378,7 +283,6 @@ async function doctorJson(
       cwd: dir,
       json: true,
       rules,
-      ignoreSiblings: [],
       quiet: false,
       importMetaUrl,
     });
@@ -702,46 +606,15 @@ describe("doctor validator: subagent-frontmatter reserved-prefix shadow", () => 
   });
 });
 
-// PRD-006 § 9 row 13: the registry grows by two, and `validators_run`
-// self-adjusts rather than pinning a literal count.
+// The registry is the seven v2 validators; `validators_run` lists each once.
 describe("doctor: validator registry", () => {
-  it("runs every registered validator, including the two PRD-006 additions", async () => {
+  it("runs every registered validator, and exactly the seven v2 ones", async () => {
     const importMetaUrl = await doInit(tmpDir);
     const { report } = await doctorJson(tmpDir, importMetaUrl);
     expect(report.validators_run).toHaveLength(ALL_VALIDATORS.length);
-    expect(report.validators_run).toContain("stale-briefings");
-    expect(report.validators_run).toContain("subagent-frontmatter");
-  });
-});
-
-describe("doctor: --json exclusions echoed", () => {
-  it("doctor --json --ignore-sibling=web-client emits exclusions.siblings: ['web-client'] in the JSON output", async () => {
-    const importMetaUrl = await doInit(tmpDir);
-
-    await fs.writeFile(
-      path.join(tmpDir, "SIBLINGS.md"),
-      `# Siblings\n\n| Name | Path | Status | Read first |\n|---|---|---|---|\n| web-client | ../does-not-exist | active | README.md |\n`,
-    );
-
-    const chunks: string[] = [];
-    const origWrite = process.stdout.write.bind(process.stdout);
-    process.stdout.write = (chunk: any) => { chunks.push(String(chunk)); return true; };
-
-    try {
-      await runDoctor({
-        cwd: tmpDir,
-        json: true,
-        rules: [],
-        ignoreSiblings: ["web-client"],
-        quiet: false,
-        importMetaUrl,
-      });
-    } finally {
-      process.stdout.write = origWrite;
-    }
-
-    const output = JSON.parse(chunks.join(""));
-    expect(output.exclusions).toBeDefined();
-    expect(output.exclusions.siblings).toContain("web-client");
+    expect([...report.validators_run].sort()).toEqual([
+      "claude-md-size", "framework-file-integrity", "lock-guard-registered", "manifest-present",
+      "rule-frontmatter", "stale-briefings", "subagent-frontmatter",
+    ]);
   });
 });

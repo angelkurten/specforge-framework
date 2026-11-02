@@ -8,7 +8,7 @@ Work starts from a classified change instead of a PRD. `.claude/skills/specforge
 
 ## What stays
 
-Release 1.0.0 removes v1 from the package: it no longer installs the v1 rules, the v1 agents, the PRD, ADR, AgDR, roadmap and system-artifact templates, the v1 examples, CONVENTIONS.md or scripts/prd-check.py. In this repository they stay readable under `history/v1/`. Your team data under `specforge/changes/` and `specforge/DECISIONS.md` is never overwritten by `npx @angelkurten/specforge update` (`tools/cli/src/partition.ts`). Your `SIBLINGS.md` registry and your frozen PRDs and ADRs also stay as they are: v2 adds files next to them and removes none. The v2 files in `templates/` are framework files, so `update` refreshes any you have not edited.
+Release 1.0.0 removes v1 from the package: it no longer installs the v1 rules, the v1 agents, the PRD, ADR, AgDR, roadmap and system-artifact templates, the v1 examples, CONVENTIONS.md or scripts/prd-check.py. In this repository they stay readable under `history/v1/`. Your team data under `specforge/changes/` and `specforge/DECISIONS.md` is never overwritten by `npx @angelkurten/specforge update` (`tools/cli/src/partition.ts`). Your SIBLINGS.md registry and your frozen PRDs and ADRs also stay as they are: v2 adds files next to them and removes none. The v2 files in `templates/` are framework files, so `update` refreshes any you have not edited.
 
 ## Upgrade
 
@@ -69,6 +69,14 @@ To roll back, choose by how much you need back:
 - To restore a single file, use `git restore` on it. A file restored by git is never touched again by `update`.
 
 `init --force --erase` still collects a restored v1 rule under .claude/rules/, and it also collects a kept or restored agent, template or example under the old framework globs. A kept CONVENTIONS.md or scripts/prd-check.py is no longer a framework file, so `--erase` leaves it.
+
+Release 1.0.0 also takes v1 out of `doctor` and `init`:
+
+- `doctor` drops nine v1 validators, and their `--rule` ids are gone: prd-numbering, prd-required-sections, prd-back-refs, prd-marketing-language, prd-system-artifact-diff, siblings-paths-resolve, gate-block-yaml, roadmap-evidence-categories and roadmap-pii.
+- `doctor --ignore-sibling` is now an unknown flag and exits 2. Drop it from your CI.
+- `doctor --json` reports `schema_version` "2", without the exclusions key.
+- `init` no longer writes SIBLINGS.md or ROADMAP.md, and `init --force --erase` leaves your PRDs, ADRs, SIBLINGS.md and ROADMAP.md in place.
+- An install older than 0.11 keeps its v1 agents directory under .claude/agents, which `doctor` warns about: delete it by hand.
 
 ## Your first change
 

@@ -72,7 +72,7 @@ async function eraseDryRunTargets(dir: string): Promise<string[]> {
 }
 
 describe("init: empty cwd", () => {
-  it("Run init in an empty tmpdir; verify the manifest, framework files, and team-data placeholders exist with correct sha256s", async () => {
+  it("Run init in an empty tmpdir; verify the manifest, framework files exist, and no v1 placeholders with correct sha256s", async () => {
     const importMetaUrl = synthBundleImportMetaUrl();
     const exitCode = await runInit({
       cwd: tmpDir,
@@ -94,9 +94,9 @@ describe("init: empty cwd", () => {
     expect(Array.isArray(manifest.framework_files)).toBe(true);
     expect(manifest.framework_files.length).toBeGreaterThan(0);
 
-    // Team-data placeholders should exist
-    await expect(fs.access(path.join(tmpDir, "SIBLINGS.md"))).resolves.toBeUndefined();
-    await expect(fs.access(path.join(tmpDir, "ROADMAP.md"))).resolves.toBeUndefined();
+    // No v1 team-data placeholders
+    await expect(fs.access(path.join(tmpDir, "SIBLINGS.md"))).rejects.toThrow();
+    await expect(fs.access(path.join(tmpDir, "ROADMAP.md"))).rejects.toThrow();
 
     // At least one framework file should be present
     await expect(fs.access(path.join(tmpDir, "CLAUDE.md"))).resolves.toBeUndefined();

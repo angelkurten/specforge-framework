@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// specforge CLI entry point. PRD-003 § 5.0, § 8.1.
+// specforge CLI entry point.
 //
 // First action: independent Node version check, exit 2 if below 20.0.0.
 
@@ -24,7 +24,7 @@ interface ParsedArgs {
   multi: Map<string, string[]>;
 }
 
-const MULTI_FLAGS = new Set(["rule", "ignore-sibling"]);
+const MULTI_FLAGS = new Set(["rule"]);
 
 function parseArgs(argv: ReadonlyArray<string>): ParsedArgs {
   let command: string | null = null;
@@ -88,12 +88,12 @@ Usage:
   specforge init    [--force] [--erase] [--no-git-safety]
                     [--dry-run] [--quiet]
   specforge update  [--strategy=ours|theirs] [--dry-run] [--quiet]
-  specforge doctor  [--json] [--rule=<id>] [--ignore-sibling=<name>] [--quiet]
+  specforge doctor  [--json] [--rule=<id>] [--quiet]
   specforge migrate [--apply] [--to=<version>] [--allow-downgrade]
                     [--acknowledge-security-rollback] [--json] [--dry-run] [--quiet]
   specforge version [--json]
 
-See PRD-003 for the full contract.
+See README.md for the full contract.
 `);
 }
 
@@ -158,7 +158,6 @@ async function main(argv: ReadonlyArray<string>): Promise<number> {
         cwd,
         json,
         rules: args.multi.get("rule") ?? [],
-        ignoreSiblings: args.multi.get("ignore-sibling") ?? [],
         quiet,
         importMetaUrl,
       });
@@ -205,7 +204,6 @@ function detectUnknownFlags(argv: ReadonlyArray<string>): string | null {
     "strategy",
     "json",
     "rule",
-    "ignore-sibling",
     "apply",
     "to",
     "allow-downgrade",

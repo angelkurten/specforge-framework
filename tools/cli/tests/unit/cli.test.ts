@@ -51,14 +51,12 @@ describe("doctor: --json output schema", () => {
       throw new Error(`Failed to parse JSON output: ${result.stdout}`);
     }
 
-    expect(parsed).toHaveProperty("schema_version");
+    expect(parsed.schema_version).toBe("2");
     expect(parsed).toHaveProperty("bundled_framework_version");
     expect(parsed).toHaveProperty("installed_framework_version");
     expect(parsed).toHaveProperty("validators_run");
     expect(Array.isArray(parsed.validators_run)).toBe(true);
-    expect(parsed).toHaveProperty("exclusions");
-    expect(parsed.exclusions).toHaveProperty("siblings");
-    expect(Array.isArray(parsed.exclusions.siblings)).toBe(true);
+    expect(parsed).not.toHaveProperty("exclusions");
     expect(parsed).toHaveProperty("findings");
     expect(Array.isArray(parsed.findings)).toBe(true);
 

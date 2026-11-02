@@ -58,20 +58,20 @@ describe("doctor validator: rule-frontmatter", () => {
     expect(errors).toHaveLength(0);
   });
 
-  it("path-scoped rule (adr-specific) with paths: list is accepted", async () => {
+  it("path-scoped rule with paths: list is accepted", async () => {
     await fs.writeFile(
-      path.join(tmpDir, ".claude", "rules", "adr-specific.md"),
-      "---\nname: adr-specific\ndescription: ADR-specific rule\npaths:\n  - 'ADR-*.md'\n---\n# Rule\n",
+      path.join(tmpDir, ".claude", "rules", "scoped.md"),
+      "---\nname: scoped\ndescription: Path-scoped rule\npaths:\n  - 'src/**'\n---\n# Rule\n",
     );
     const findings = await validator.run(tmpDir);
     const errors = findings.filter((f) => f.severity === "error");
     expect(errors).toHaveLength(0);
   });
 
-  it("path-scoped rule (adr-specific) without paths: list fails", async () => {
+  it("path-scoped rule with paths: not a list fails", async () => {
     await fs.writeFile(
-      path.join(tmpDir, ".claude", "rules", "adr-specific.md"),
-      "---\nname: adr-specific\ndescription: ADR-specific rule\n---\n# Rule\n",
+      path.join(tmpDir, ".claude", "rules", "scoped.md"),
+      "---\nname: scoped\ndescription: Path-scoped rule\npaths: 'src/**'\n---\n# Rule\n",
     );
     const findings = await validator.run(tmpDir);
     const errors = findings.filter((f) => f.severity === "error");

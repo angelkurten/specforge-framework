@@ -14,7 +14,6 @@ export interface DoctorOptions {
   cwd: string;
   json: boolean;
   rules: ReadonlyArray<string>;
-  ignoreSiblings: ReadonlyArray<string>;
   quiet: boolean;
   importMetaUrl: string;
 }
@@ -58,7 +57,6 @@ export async function runDoctor(opts: DoctorOptions): Promise<number> {
     ranIds.push(v.id);
     try {
       const out = await v.run(opts.cwd, {
-        ignoreSiblings: opts.ignoreSiblings,
         bundleHashes,
         bundledFrameworkVersion,
       });
@@ -90,11 +88,10 @@ export async function runDoctor(opts: DoctorOptions): Promise<number> {
 
   if (opts.json) {
     writeJson({
-      schema_version: "1",
+      schema_version: "2",
       bundled_framework_version: bundledFrameworkVersion ?? null,
       installed_framework_version: installed,
       validators_run: ranIds,
-      exclusions: { siblings: [...opts.ignoreSiblings] },
       findings,
     });
   } else {

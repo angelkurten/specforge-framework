@@ -84,27 +84,17 @@ describe("partition classification", () => {
   });
 
   it("classifies team data files correctly", () => {
-    expect(classify("SIBLINGS.md")).toBe("team");
-    expect(classify("ROADMAP.md")).toBe("team");
     expect(classify(".specforge/manifest.json")).toBe("team");
     expect(classify(".specforge/lock")).toBe("team");
     expect(classify(".specforge-source")).toBe("team");
+    expect(classify("specforge/DECISIONS.md")).toBe("team");
+    expect(classify("specforge/changes/x/contract.md")).toBe("team");
   });
 
-  it("classifies root PRD/ADR/AgDR files as team data", () => {
-    expect(classify("001-product-roadmap.md")).toBe("team");
-    expect(classify("010-foo.md")).toBe("team");
-    expect(classify("999-my-prd.md")).toBe("team");
-    expect(classify("ADR-001-decision.md")).toBe("team");
-    expect(classify("AgDR-001-agent-decision.md")).toBe("team");
-  });
-
-  it("rejects non-3-digit PRD numbers", () => {
-    // 1-foo.md has only 1 digit — does not match team data pattern for PRDs
-    // so it falls to "unknown"
-    expect(classify("1-foo.md")).toBe("unknown");
-    // But 4-digit PRD numbers are not valid team data either
-    expect(classify("0001-foo.md")).toBe("unknown");
+  it("v1 files are no longer team data", () => {
+    for (const f of ["SIBLINGS.md", "ROADMAP.md", "001-x.md", "ADR-001-x.md", "AgDR-001-x.md"]) {
+      expect(classify(f), f).toBe("unknown");
+    }
   });
 
   it("classifies ignored paths", () => {
@@ -130,19 +120,6 @@ describe("partition classification", () => {
     // is team data now.
     expect(classify(".github/workflows/my-ci.yml")).toBe("team");
     expect(classify(".github/workflows/cli-release.yml")).toBe("team");
-  });
-
-  it("nested NNN-*.md files are unknown (root-only enforcement)", () => {
-    // The partition regex for PRDs matches any path without '/', so a nested
-    // file like subdir/001-foo.md doesn't match because the regex is anchored
-    // and has no directory component.
-    expect(classify("subdir/001-foo.md")).toBe("unknown");
-  });
-
-  it("case sensitivity: ADR-NNN must be uppercase ADR prefix", () => {
-    expect(classify("ADR-001-x.md")).toBe("team");
-    // lowercase adr is not a valid team pattern (regex is case-sensitive)
-    expect(classify("adr-001-x.md")).toBe("unknown");
   });
 });
 

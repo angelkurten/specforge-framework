@@ -62,11 +62,6 @@ export const BUNDLE_ONLY_FILES: ReadonlyArray<string> = ["VERSION"];
  * Patterns marked `(root only)` only match at the cwd top level.
  */
 export const TEAM_DATA_PATTERNS: ReadonlyArray<string> = [
-  "SIBLINGS.md",
-  "ROADMAP.md",
-  "[0-9][0-9][0-9]-*.md",            // PRDs, root only
-  "ADR-[0-9][0-9][0-9]-*.md",        // ADRs, root only
-  "AgDR-[0-9][0-9][0-9]-*.md",       // AgDRs, root only
   ".specforge/**",
   ".specforge-source",
   ".github/workflows/*",             // team workflows other than the reserved ones
@@ -146,7 +141,7 @@ export type Classification = "framework" | "team" | "ignored" | "unknown";
  * Pattern grammar (intentionally narrow — only what § 6.2 needs):
  *   - `**`          matches any number of path segments (including zero).
  *   - `*`           matches any sequence of non-`/` characters.
- *   - `[a-z]`       character class (used for `[0-9]` in PRD/ADR/AgDR shapes).
+ *   - `[a-z]`       character class.
  *   - everything else is a literal.
  */
 function patternToRegex(pattern: string): RegExp {

@@ -1,6 +1,6 @@
-// PRD-003 § 7.4: rule-frontmatter.
+// rule-frontmatter.
 // Every .claude/rules/*.md has YAML frontmatter with `name` and
-// `description`. Path-scoped rules also declare `paths:` as a list.
+// `description`. A rule that declares `paths:` declares it as a list.
 
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
@@ -11,9 +11,6 @@ import type { Finding, Validator } from "./types.js";
 export const id = "rule-frontmatter";
 
 const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---\n/;
-
-// Names of path-scoped rules per CLAUDE.md / framework-maintenance.md.
-const KNOWN_PATH_SCOPED = new Set(["adr-specific", "framework-maintenance"]);
 
 export const validator: Validator = {
   id,
@@ -79,16 +76,13 @@ export const validator: Validator = {
           message: "frontmatter missing `description`",
         });
       }
-      const stem = e.name.replace(/\.md$/, "");
-      if (KNOWN_PATH_SCOPED.has(stem)) {
-        if (!Array.isArray(fm.paths)) {
-          findings.push({
-            rule: id,
-            severity: "error",
-            file: rel,
-            message: "path-scoped rule must declare `paths:` as a YAML list",
-          });
-        }
+      if ("paths" in fm && !Array.isArray(fm.paths)) {
+        findings.push({
+          rule: id,
+          severity: "error",
+          file: rel,
+          message: "`paths:` must be a YAML list",
+        });
       }
     }
     return findings;
