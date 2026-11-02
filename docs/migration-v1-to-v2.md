@@ -61,7 +61,7 @@ specforge EVA ships in the CLI from **0.28.0**. Check the version you would get 
 - An edited CLAUDE.md or README halts on drift. Run `update --strategy=theirs` and re-apply your edits, or `--strategy=ours` and replace the v1 text by hand.
 - An edited v1 rule is kept. It still loads every session next to `.claude/rules/specforge.md`, so move or delete it by hand.
 - An edited v1 agent is kept, and it is still dispatchable: Claude Code keeps offering it to dispatch until you move or delete it.
-- An edited v1 template or example is kept as it is. Nothing loads it, so move or delete it when you no longer need it.
+- An edited v1 template, example, CONVENTIONS.md or scripts/prd-check.py is kept as it is. Nothing loads it, so move or delete it when you no longer need it.
 
 To roll back, choose by how much you need back:
 
