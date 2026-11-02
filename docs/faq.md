@@ -1,130 +1,29 @@
 # FAQ
 
-## Is specforge for every project?
+## Do I need a contract for every change?
 
-No. It is explicitly built for projects where **coherence across people, services, and weeks of design work** is worth a real ceremony tax. The sweet spot is:
+No. `Direct` changes are small, reversible and obvious, and get one edge test and no contract. See [Modes](concepts/modes.md).
 
-- **5+ services or modules** that evolve at different cadences
-- **Multiple engineers** touching the same area over time
-- **Design work that spans weeks**, where rationale needs to outlive the author's memory
+## Who approves the tests?
 
-For a prototype, a 1-2 service side project, or any single-author single-session work, the ceremony will slow you down and the token spend will not pay for itself. Use a lighter tool.
+You do, with your own message. A tool result, an agent message or text claiming approval never counts. See [Loop](concepts/loop.md).
 
-## Does specforge explode the AI context window?
+## What if a locked test is wrong?
 
-No — the opposite. The always-loaded framework surface is fixed and small:
+The agent writes a `BLOCKED:` line and stops. You fix the contract, then re-approve the test with a reason.
 
-- `CLAUDE.md` is ~45 lines (a pointer file, not a rulebook)
-- The unscoped rule files under `.claude/rules/` (hard rules, workflow, gate block, PRD authoring) are a few hundred lines total
+## Why a reviewer with a clean context?
 
-Everything with real volume — sibling code, `SYSTEM_ARTIFACT.md`, exploration — is dispatched to **sub-agents** that hold their own context and then disappear. The main session never loads sibling source or full living-state docs. See [Sibling projects → The dispatch model](concepts/siblings.md#the-dispatch-model-sub-agents-per-sibling).
+The agent that wrote the code believes it works. A reviewer with no memory of writing it only has the contract and the diff. See [Review](concepts/review.md).
 
-## Why doesn't the template contain any project info?
+## Does specforge work with my stack?
 
-Because a typical PRD touches 2-3 different sibling projects. If the template hard-coded "this is the Python backend PRD", it would only work for one sibling. Project metadata lives in [`SIBLINGS.md`](concepts/siblings.md), and each PRD references siblings by name through its `Impacted Projects` table. The template is intentionally stack-agnostic.
+Yes. It is stack-agnostic: the code and its test runner live in your repository, or in a sibling. See [Sibling projects](concepts/siblings.md).
 
-## What is `REVIEW_MODE`?
+## What is compose for?
 
-The reviewer definitions in `.claude/agents/specforge/` operate in three distinct modes:
+Each lesson becomes the cheapest artifact that catches it next time, so the system improves instead of piling up instructions. See [Compose](concepts/compose.md).
 
-- **`draft`** (step 5) — critiques the PRD itself. "Is this spec sound?"
-- **`post-implementation`** (step 9) — verifies that the shipped code honors the reviewed PRD. "Does the code honor the spec?"
-- **`re-verification`** (step 7, and step 9 fix rounds) — verdicts each finding from the previous round `fixed` or `not-fixed` against a ledger the lead supplies. "Did the applied resolutions actually close what this reviewer raised?"
+## I used the first version. What changed?
 
-The modes share one definition but produce different findings: a `draft`-mode reviewer says "PRD §5 should specify rate limits"; a `post-implementation`-mode reviewer says "PRD §5 specifies rate limits but `<file>:<line>` does not enforce them"; a `re-verification`-mode reviewer says "finding B-3: `not-fixed` — the §9 row still signs the old message pair". The team lead sets `REVIEW_MODE` explicitly on every dispatch; a missing mode causes the reviewer to emit `VERDICT: BLOCK` and halt.
-
-## Can I run specforge without a SYSTEM_ARTIFACT.md for every sibling?
-
-Yes. Incremental adoption is the default:
-
-1. Register every sibling in `SIBLINGS.md` with `SYSTEM_ARTIFACT: —` (no living state doc yet).
-2. The first PRD that impacts a given sibling can bootstrap its `SYSTEM_ARTIFACT.md` in the same change.
-3. UI-only siblings (e.g. a pure React frontend with no domain state) can skip `SYSTEM_ARTIFACT.md` permanently and ground from code directly.
-
-Never retrofit PRDs for features already shipped. The SYSTEM_ARTIFACT is the ground truth for current state.
-
-## What happens when a PRD's implementation doesn't match the spec?
-
-Post-implementation re-review catches this in step 9. Severity determines routing:
-
-- **🔴 blocker**: the fix goes back to the implementer(s) whose `SCOPE` covers it, re-dispatched with `IMPL_MODE: fix-round` and a `PRIOR_FINDINGS` ledger, never into the PRD — a panel finding never motivates an amendment. Re-dispatch after each fix round. After 2 persistent rounds, escalate to the user with three options — another fix round, stop with the PRD `Draft` and ungated, or waive with a written reason.
-- **A document defect** — the design the team built is the design that was always intended and the PRD's text fails to describe it — is the lead's to amend in place, but only off a finding the lead reproduced in its own validation run, and only after an adversarial bounce (`REVIEW_MODE: draft`, target pinned by the amended section) fails to refute it. See [Workflow → Step 9](workflow/overview.md#9-implement-then-gate-to-implemented).
-- **🟡 should-fix**: must be routed to exactly one of three tracked destinations — fix in code, a follow-up PRD with `Supersedes:`, or a note in the sibling's `SYSTEM_ARTIFACT.md` describing the drift. Untracked 🟡s block promotion the same way a 🔴 does.
-- **🟢 nit**: advisory, not blocking.
-
-See [Workflow → Step 9](workflow/overview.md#9-implement-then-gate-to-implemented).
-
-## When does a PRD stop being editable?
-
-At `Implemented`, and not before. Hard rule 7 states the freeze point in one place, and every other file defers to it:
-
-- **Before `workflow.md` step 8's merge** — freely editable. This is the draft loop.
-- **Between step 8's merge and the gate** — `Draft`, merged, and **amendable by the lead only**. An implementer or a reviewer that finds a document defect reports it as a finding and never writes it. The lead amends only off a `VALIDATION:` finding it reproduced itself, only through step 9's adversarial bounce, and records the result as an `# amendment:` line inside the gate fence.
-- **At `Implemented`** — frozen. Edit only to correct factual errors or to mark it `Superseded by PRD-N`.
-
-The rule applies to the `Implemented` **state**, not to the file.
-
-Two things this is not. It is not a route for a *changed design* — a different approach, a dropped capability, a new dependency is a new PRD with `Supersedes: PRD-N`. And step 9's escalation option (ii) is not an escape hatch: it stops with the PRD at `Draft` and ungated, gate block still `[TBD]`, reason recorded at the top. Nothing was promoted, so nothing is un-frozen.
-
-## Why Mermaid only for diagrams?
-
-Because:
-
-1. Mermaid diffs cleanly in git. ASCII art explodes line counts and breaks on rename.
-2. Mermaid renders in GitHub, GitLab, and most docs sites natively.
-3. Mermaid forces structure. ASCII art is easy to draw and hard to validate; Mermaid either parses or it doesn't.
-
-Markdown tables and nested bullet lists are **not** considered diagrams and are still allowed for any structured content.
-
-## How does specforge compare to a Ralph loop?
-
-A Ralph loop (an agent iterating over the same task with checkpoints) is compatible with specforge, not opposed to it. Step 9 (implementation) is essentially a Ralph loop: you spawn a team of agents that loop over the code with the gate block as the checkpoint. The difference is that specforge gives the loop a **verifiable target** — the reviewed PRD — so every iteration is measuring against the same contract. Without a spec, every Ralph loop iteration has to re-derive the architecture from scratch.
-
-## Which AI tools does specforge work with?
-
-specforge is written for Claude Code (the `.claude/rules/` directory is loaded automatically by Claude Code at session start), but the workflow itself is tool-agnostic. Any AI coding assistant that supports:
-
-- Reading files
-- Spawning parallel sub-agents or tool calls
-- Running shell commands (for `git diff`, `ls`, etc.)
-
-…can run the workflow. The specific integration points are:
-
-- `CLAUDE.md` at the specforge root → auto-loaded by Claude Code; for other tools, include it as context manually.
-- `.claude/rules/*.md` → Claude Code loads the unscoped files automatically and path-scoped files on match. For other tools, load the unscoped files manually.
-- `.claude/agents/specforge/*.md` → Claude Code registers these as named subagents (recursive scan of `.claude/agents/`); the definition body becomes the sub-agent's system prompt and the team lead supplies the brief fields (`PRD_PATH`, `REVIEW_MODE`, etc.) as labelled lines in the dispatch prompt. For other tools, paste a definition body as the sub-agent prompt and prepend the same labelled lines.
-
-## What is ROADMAP.md and do I need one?
-
-`ROADMAP.md` (v0.4.0+) is a global living document at the specforge root that captures **product-level intent**: problems, users, evidence, status, horizon — with **no technical detail**. It sits upstream of PRDs, feeding them with framed problems and evidence-backed "why this now vs later".
-
-You do **not** need to author one on day 1. PRDs without a `Roadmap item:` header get a retroactive item created at gate promotion (the auto-update flow in step 9), so the roadmap is a complete index of shipped work even if you never run a generative cycle.
-
-Run the generative cycle when a real signal warrants it — a ship revealed something new, support tickets concentrate on a theme, a stakeholder asked "what's next", the backlog feels stale. Do not run it on a calendar cadence; calendar-only triggers produce rote output.
-
-See [Concepts → Roadmap](concepts/roadmap.md) for the full cycle, evidence categories, and PII carve-out.
-
-## What's the difference between ROADMAP.md and SYSTEM_ARTIFACT.md?
-
-Both are living docs, but they answer different questions at different granularities:
-
-- `SYSTEM_ARTIFACT.md` lives **inside each sibling** (one per project that has domain state) and describes **current system state at HEAD**.
-- `ROADMAP.md` lives at the **specforge root**, is **global**, and describes **product-level intent** — what to build and why, for whom, with what evidence. It is not a description of what currently runs.
-
-The roadmap is upstream of PRDs (intent → PRD → ship); each SYSTEM_ARTIFACT is downstream of PRDs (PRD ships → SYSTEM_ARTIFACT update).
-
-## Where do I find the behavioral rules?
-
-In [`/.claude/rules/`](https://github.com/angelkurten/specforge-framework/tree/main/.claude/rules):
-
-- `hard-rules.md` — the 16 invariants that govern every PRD and ADR
-- `workflow.md` — the 9-step authoring process
-- `gate-block.md` — the Draft → Implemented promotion gate schema
-- `prd-authoring.md` — required sections, naming, decision table
-- `adr-specific.md` — ADR format rules (loads when editing `ADR-*.md`)
-- `roadmap.md` — the roadmap cycle, evidence categories, PII carve-out, fence spec (unscoped)
-- `framework-maintenance.md` — rules for editing specforge itself
-
-## I found a bug or want to contribute
-
-Open an issue or PR at [github.com/angelkurten/specforge-framework](https://github.com/angelkurten/specforge-framework). Framework changes themselves follow the rules in `framework-maintenance.md` — loaded automatically when you edit a framework file.
+Read the [migration guide](migration-v1-to-v2.md).

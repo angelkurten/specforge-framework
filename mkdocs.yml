@@ -48,10 +48,12 @@ nav:
   - Home: index.md
   - Quickstart: quickstart.md
   - Concepts:
-      - Mental model: concepts/mental-model.md
+      - Modes: concepts/modes.md
+      - Contract: concepts/contract.md
+      - Loop: concepts/loop.md
+      - Review: concepts/review.md
+      - Compose: concepts/compose.md
       - Sibling projects: concepts/siblings.md
-      - Roadmap: concepts/roadmap.md
-  - Workflow: workflow/overview.md
   - Migration from v1: migration-v1-to-v2.md
   - FAQ: faq.md
 
