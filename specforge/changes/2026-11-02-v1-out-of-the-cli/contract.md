@@ -30,7 +30,7 @@ In:
   Passing it exits 2 as an unknown flag, and `--help` no longer lists it.
 - **`commands/init.ts`:**
   - no `SIBLINGS.md` or `ROADMAP.md` placeholder, so the dry run lists neither and its count is the bundled files plus the manifest;
-  - the install probe no longer looks for `SIBLINGS.md` or a root `NNN-*.md`, and refuses instead when any path the bundle would write already exists. It keeps refusing on `.specforge`, and it checks every path with `lstat`, so any entry counts as existing: a file, a directory, a socket, or a symlink, dangling or not (lead's default for the security finding: without it, a v1 project holding only PRDs and its own `README.md` would have that `README.md` overwritten);
+  - the install probe no longer looks for `SIBLINGS.md` or a root `NNN-*.md`, and refuses instead when any path the bundle would write already exists. It keeps refusing on `.specforge`, `CLAUDE.md` and `.claude/rules`, and it checks every path with `lstat`, so any entry counts as existing: a file, a directory, a socket, or a symlink, dangling or not (lead's default for the security finding: without it, a v1 project holding only PRDs and its own `README.md` would have that `README.md` overwritten);
   - the next-steps line names `specforge doctor` and `/specforge-classify`, and neither `SIBLINGS.md` nor `ROADMAP.md`;
   - the dead `TRACKED_TEAM_DATA` goes;
   - `tools/cli/src/cli.ts` and `tools/cli/src/commands/init.ts` no longer cite PRD-003, in usage or comments. Other files' PRD citations are out of scope.
@@ -41,6 +41,7 @@ In:
   - The migration guide no longer names it in backticks, and says:
     - that `--erase` leaves an adopter's PRDs, ADRs, `SIBLINGS.md` and `ROADMAP.md`;
     - that `doctor --ignore-sibling` now exits 2, that the nine removed `--rule` ids are gone, and that `doctor --json` is `schema_version` `"2"` without `exclusions`;
+    - (without the word placeholder, which the locked `migration_guide_fix_test` test_8 rejects)
     - that an install older than 0.11 deletes its agents directory by hand, which `doctor` warns about (the path is not written in backticks, because the locked `scripts/v1_swap_test.py` test_6 fails on a backticked path this repository lacks).
 - **`CHANGELOG.md`** line 7 (the team-data sentence) reworded for v2: it names `specforge/changes/` and `specforge/DECISIONS.md`, not `SIBLINGS.md`. The release entry itself is change 5.
 - **`specforge/DECISIONS.md`:** one entry for this change, correcting the "12 of doctor's 17 validators" count to 9 of 16.
@@ -49,12 +50,12 @@ In:
   - `scripts/v2_site_test.py` test_1: `SIBLINGS.md` is at `history/v1/SIBLINGS.md`, not the root.
 - **Tests rewritten where they pin v1:**
   - `doctor.test.ts`: the planted-violation test (a rule without frontmatter), `--rule` (with `claude-md-size`), and the all-validators list;
-  - `rule-frontmatter.test.ts`: the two `adr-specific` path tests keep their assertions under a generic rule name;
+  - `rule-frontmatter.test.ts`: the two `adr-specific` path tests keep their assertions under a generic rule name, and the one whose fixture has no `paths:` gets `paths:` as a string instead, since a rule without `paths:` now passes;
   - `cli.test.ts`: the `--json` shape test;
   - `init.test.ts`: the placeholders test;
   - `pack-and-run.test.ts`: the tarball layout test;
   - `partition.test.ts`: the team-data test;
-  - `subagent-frontmatter.test.ts`: the 14-definition count becomes `SHIPPED_DEFINITIONS.length` (1, `tools/cli/tests/helpers.ts:111`).
+  - `subagent-frontmatter.test.ts`: the 14-definition count becomes `SHIPPED_DEFINITIONS.length` (1, `tools/cli/tests/helpers.ts:111`), planting `SHIPPED_DEFINITIONS` rather than the 14 v1 names.
   Plus `tools/cli/tests/unit/yaml.test.ts` (`new`): `parseYaml` throws `UnsafeYamlError` on `!!js/function`.
 - **The red tests:** `tools/cli/tests/integration/v1-cli.test.ts` (`new`) and `scripts/v1_cli_test.py` (`new`, in `v2-ci`).
 

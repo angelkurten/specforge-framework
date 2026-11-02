@@ -117,24 +117,25 @@ describe("update removes retired framework files", () => {
   it("3 team data, untracked files and already-missing files are left alone", async () => {
     await install();
     // Plant manifest entries the bundle never ships: team data and a file removed by the team.
-    for (const [rel, text] of [["SIBLINGS.md", "# Siblings\n"], ["001-x.md", "# PRD-001\n"]]) {
+    for (const [rel, text] of [["specforge/DECISIONS.md", "# Decisions\n"], ["specforge/changes/x/contract.md", "# Contract\n"]]) {
+      await fs.mkdir(path.dirname(path.join(repo, rel)), { recursive: true });
       await fs.writeFile(path.join(repo, rel), text);
     }
     const m = JSON.parse(await fs.readFile(manifestPath(), "utf8"));
-    for (const rel of ["SIBLINGS.md", "001-x.md"]) {
+    for (const rel of ["specforge/DECISIONS.md", "specforge/changes/x/contract.md"]) {
       m.framework_files.push({ path: rel, sha256_at_install: await sha256OfFile(path.join(repo, rel)) });
     }
     await fs.writeFile(manifestPath(), JSON.stringify(m, null, 2) + "\n");
     await fs.rm(path.join(repo, "templates/legacy/prd.md"));
     await fs.writeFile(path.join(repo, ".claude/rules/mine.md"), "the team's own rule\n");
     // Every planted path is declared retired, so only the team-data, untracked and missing guards keep them.
-    const r = await update(B, { retired: [...RETIRED, "SIBLINGS.md", "001-x.md", ".claude/rules/*.md"] });
+    const r = await update(B, { retired: [...RETIRED, "specforge/DECISIONS.md", "specforge/changes/x/contract.md", ".claude/rules/*.md"] });
     expect(r.code).toBe(0);
     // Fails against deleting every declared manifest path the bundle lacks.
-    expect(await fs.readFile(path.join(repo, "SIBLINGS.md"), "utf8")).toBe("# Siblings\n");
-    expect(await fs.readFile(path.join(repo, "001-x.md"), "utf8")).toBe("# PRD-001\n");
+    expect(await fs.readFile(path.join(repo, "specforge/DECISIONS.md"), "utf8")).toBe("# Decisions\n");
+    expect(await fs.readFile(path.join(repo, "specforge/changes/x/contract.md"), "utf8")).toBe("# Contract\n");
     expect(await fs.readFile(path.join(repo, ".claude/rules/mine.md"), "utf8")).toBe("the team's own rule\n");
-    expect(r.out).not.toMatch(/remove {2}(SIBLINGS\.md|001-x\.md|\.claude\/rules\/mine\.md|templates\/legacy\/prd\.md)/);
+    expect(r.out).not.toMatch(/remove {2}(specforge\/DECISIONS\.md|specforge\/changes\/x\/contract\.md|\.claude\/rules\/mine\.md|templates\/legacy\/prd\.md)/);
     expect(r.out).toMatch(/1 retired removed, 0 retired kept/);
   });
 

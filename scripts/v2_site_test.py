@@ -53,7 +53,8 @@ class V2Site(unittest.TestCase):
         readme = (REPO / "history" / "v1" / "README.md").read_text(encoding="utf-8").lower()
         self.assertRegex(readme, r"not loaded")
         self.assertRegex(readme, r"not shipped")
-        self.assertTrue((REPO / "SIBLINGS.md").is_file(), "SIBLINGS.md stays until change 4")
+        self.assertFalse((REPO / "SIBLINGS.md").exists(), "SIBLINGS.md moved in change 4")
+        self.assertTrue((REPO / "history" / "v1" / "SIBLINGS.md").is_file(), "missing history/v1/SIBLINGS.md")
         self.assertTrue((REPO / "tests" / "v2").is_dir())
 
     def test_2_the_nav_lists_exactly_the_v2_pages(self):
