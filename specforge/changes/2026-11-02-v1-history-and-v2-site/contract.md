@@ -129,7 +129,7 @@ Exercised: `uv run --offline --with mkdocs-material mkdocs build --strict --site
 
 - Mode Contract, and the full v2 site: the human, 2026-11-02.
 - The red tests in `scripts/v2_site_test.py`, approved and locked: the human, 2026-11-02. Test 5 passes today by design: it guards the links of the rewritten site.
-- `## Retired tests` added after the first review packet (the lead had left the v1 test plans out); each entry is also flagged as added after the contract's first version. The human confirmed all 47, the re-approved lock of `scripts/v2_site_test.py`, and the pre-existing U+200F in the moved, byte-identical `history/v1/015-teamtasks-teams-and-membership.md`, 2026-11-02.
+- `## Retired tests` added after the first review packet (the lead had left the v1 test plans out); each entry is also flagged as added after the contract's first version. The human confirmed all 45 (the lead first said 47, a miscount), the re-approved lock of `scripts/v2_site_test.py`, and the pre-existing U+200F in the moved, byte-identical `history/v1/015-teamtasks-teams-and-membership.md`, 2026-11-02.
 - test_1 corrected after the loop's BLOCKED, and re-approved by the human, 2026-11-02. Four v1 pages are replaced by v2 pages at the same path (`docs/index.md`, `quickstart.md`, `faq.md`, `concepts/siblings.md`), so each must differ from its `history/v1/` copy instead of being absent.
 
 ## Stop and escalate
