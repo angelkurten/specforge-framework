@@ -2,8 +2,10 @@
 # unlocked 2026-11-02 scripts/v2_site_test.py: test_1 asserted the root SIBLINGS.md stays until change 4; change 4 moves it to history/v1/SIBLINGS.md, so test_1 now asserts the move (contract Scope, approved by the human 2026-11-02)
 # reapproved 2026-11-02 tools/cli/tests/integration/update-retire.test.ts
 # reapproved 2026-11-02 scripts/v2_site_test.py
+19ad1f9192854c3ba063ea3b09cc61a960390c7575df94558915b87afa7f2da5  scripts/v1_cli_fix_test.py
 9948322e5598d5227a452999241f67411081fd401dba551a66929acaaaa118fb  scripts/v1_cli_test.py
 58e38336a28ab44350a2657c2b6d95b9d6934ad7eff0f431709c67de3fb7564b  scripts/v2_site_test.py
 630b727d76b8ca04bd38968efdd9bfb7ae222771fb078d9a91d4cd3bab0b0838  tools/cli/tests/integration/update-retire.test.ts
+d2065388fb2439f1f4b91edf70e51037bd0582d3bb43f9ab993a539b88c27d69  tools/cli/tests/integration/v1-cli-fix.test.ts
 eace054d12febd1da5ca688b9c7a18f57fbd5646cad4bf64151dca7db2b9e22e  tools/cli/tests/integration/v1-cli.test.ts
 27e54e42e469993433e78a881986cd9dba3829861855c75e28ec39412114211d  tools/cli/tests/unit/yaml.test.ts

@@ -122,6 +122,11 @@ Out:
 7. `rule-frontmatter` reports an error for a rule whose `paths:` is a string or empty, and none for a rule without `paths:` or with `paths:` as a list, whatever the rule's name.
 8. This repository has no root `SIBLINGS.md` and has `history/v1/SIBLINGS.md`. `history/v1/README.md` names `history/v1/SIBLINGS.md` and no longer says `SIBLINGS.md` stays at the repository root. `cli-ci.yml` names no `--ignore-sibling`. `CHANGELOG.md` line 7 names `specforge/DECISIONS.md` and not `SIBLINGS.md`. The guide says `--erase` leaves PRDs, that `--ignore-sibling` exits 2, that the nine removed `--rule` ids are gone, naming each, that `schema_version` is `"2"` without `exclusions`, and that a pre-0.11 agents directory is deleted by hand. `DECISIONS.md` has the entry with the 9-of-16 count.
 
+Fix round, after the review BLOCK, in `tools/cli/tests/integration/v1-cli-fix.test.ts` (`new`) and `scripts/v1_cli_fix_test.py` (`new`, in `v2-ci`):
+
+9. The guide's pre-0.11 line names the `agents/` directory at the project root, which `stale-briefings` warns about, and never `.claude/agents`, where the v2 reviewer lives.
+10. The install probe refuses on any `lstat` error other than not-found: `init` into a directory holding a regular file named `templates`, where the bundle needs a directory, exits 2 and writes nothing.
+
 Exercised: a real packed build in a scratch copy (`VERSION` `1.0.0-rc.2` there only), run as `init` in an empty directory, then `doctor`, `doctor --json`, `doctor --ignore-sibling=x` and `doctor --rule=prd-numbering`, and `update` over a fresh 0.30.0 install that holds an adopter's `001-x.md`, then `init --force --erase`. `v2-ci` and `cli-ci` pass on the last code commit.
 
 ## Approvals

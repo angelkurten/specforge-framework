@@ -1,6 +1,6 @@
 # Progress
 
-**Budget**: 20 iterations, 9 USD
+**Budget**: 20 iterations, 9 USD, cumulative (the fix round runs on what is left)
 
 ## Tasks
 
@@ -13,6 +13,9 @@
 - [x] tools/cli/tests/unit/yaml.test.ts scenario 6 (already green; keep it green after deleting gate-block.test.ts)
 - [x] scripts/v1_cli_test.py and scripts/v2_site_test.py test_1 (git mv SIBLINGS.md history/v1/SIBLINGS.md; history/v1/README.md names history/v1/SIBLINGS.md and drops the stays-at-the-root sentence; CHANGELOG.md line 7; the migration guide's doctor-in-1.0.0 text, without backticking SIBLINGS.md or agents/ and without the word placeholder; the DECISIONS.md entry with 9 of 16)
 - [x] `v1_cli_test` is in `.github/workflows/v2-ci.yml`; every suite listed there passes; `pnpm --dir tools/cli test` passes; `node tools/cli/dist/src/cli.js doctor` in this repository exits 0
+- [ ] scripts/v1_cli_fix_test.py test_9 (review BLOCK: docs/migration-v1-to-v2.md's pre-0.11 line names .claude/agents, where the v2 reviewer lives; stale-briefings warns about the root agents/ directory (tools/cli/src/validators/stale-briefings.ts STALE_DIR). Name the agents/ directory at the project root, without backticks, and never .claude/agents)
+- [ ] tools/cli/tests/integration/v1-cli-fix.test.ts scenario 10 (review should-fix: init.ts's install probe swallows every lstat error; treat only ENOENT as absent and count any other error as existing, so init refuses with exit 2 before writing; while there, call listBundledFrameworkFiles once, before the probe)
+- [ ] `v1_cli_fix_test` is in `.github/workflows/v2-ci.yml`; every suite listed there passes; `pnpm --dir tools/cli test` passes
 
 ## Blocked
 
