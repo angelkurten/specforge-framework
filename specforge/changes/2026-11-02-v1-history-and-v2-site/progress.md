@@ -4,7 +4,7 @@
 
 ## Tasks
 
-- [ ] scripts/v2_site_test.py test_1 (move the 19 root PRDs, ADR-001, AgDR-001, ROADMAP.md, tests/README.md, tests/roadmap, tests/sdd-2026, tests/workflow and the seven v1 docs pages under history/v1/ at the same relative path, with python3 shutil.move; write history/v1/README.md; SIBLINGS.md and tests/v2 stay)
+- [x] scripts/v2_site_test.py test_1 (move the 19 root PRDs, ADR-001, AgDR-001, ROADMAP.md, tests/README.md, tests/roadmap, tests/sdd-2026, tests/workflow and the seven v1 docs pages under history/v1/ at the same relative path, with python3 shutil.move; write history/v1/README.md; SIBLINGS.md and tests/v2 stay)
 - [ ] scripts/v2_site_test.py test_2 (mkdocs.yml nav lists exactly the ten v2 pages; write docs/index.md, docs/quickstart.md, docs/faq.md and the six docs/concepts pages; no orphan page)
 - [ ] scripts/v2_site_test.py test_3 and test_4 (no v1 vocabulary outside the migration guide; each page names its source of truth from the contract's Scope; draw content from specforge/core/, templates/contract.md, the skills, CLAUDE.md and the migration guide)
 - [ ] scripts/v2_site_test.py test_5 (every relative link under docs/ resolves; keep it passing)
@@ -13,3 +13,5 @@
 ## Blocked
 
 ## Log
+task 1: moved the PRDs, ADR/AgDR, ROADMAP, tests/* and 7 docs pages with shutil.move, wrote history/v1/README.md; `python3 scripts/v2_site_test.py V2Site.test_1...` returned OK.
+- Lead: the BLOCKED line was right. test_1 required the four replaced v1 pages gone while tests 2 and 4 required v2 pages at the same paths. The lead fixed test_1: a replaced page must differ from its history/v1 copy. The human re-approved the lock (2026-11-02).

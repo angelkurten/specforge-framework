@@ -17,6 +17,8 @@ MOVED = ["ADR-001-determinist-index-for-frozen-corpus.md", "AgDR-001-vitest-as-c
          "tests/README.md", "tests/roadmap", "tests/sdd-2026", "tests/workflow",
          "docs/index.md", "docs/quickstart.md", "docs/faq.md", "docs/concepts/mental-model.md",
          "docs/concepts/siblings.md", "docs/concepts/roadmap.md", "docs/workflow/overview.md"]
+# v1 pages a v2 page replaces at the same path: the v1 copy moves, a different page stays.
+REPLACED = ["docs/index.md", "docs/quickstart.md", "docs/faq.md", "docs/concepts/siblings.md"]
 NAV = ["index.md", "quickstart.md", "concepts/modes.md", "concepts/contract.md", "concepts/loop.md",
        "concepts/review.md", "concepts/compose.md", "concepts/siblings.md", "migration-v1-to-v2.md", "faq.md"]
 V1_WORDS = [r"\bPRDs?\b", r"\bADRs?\b", r"gate block", r"SYSTEM_ARTIFACT", r"ROADMAP", r"hard rules?", r"reviewer panel", r"workflow\.md"]
@@ -43,7 +45,11 @@ class V2Site(unittest.TestCase):
         self.assertEqual(sorted(p.name for p in REPO.glob("0[0-9][0-9]-*.md")), [])
         for rel in MOVED:
             self.assertTrue((REPO / "history" / "v1" / rel).exists(), f"missing history/v1/{rel}")
-            self.assertFalse((REPO / rel).exists(), f"{rel} is still at its old path")
+            if rel in REPLACED:
+                # Fails against leaving the v1 page in place: the page at the old path must be a new one.
+                self.assertNotEqual((REPO / rel).read_bytes(), (REPO / "history" / "v1" / rel).read_bytes(), rel)
+            else:
+                self.assertFalse((REPO / rel).exists(), f"{rel} is still at its old path")
         readme = (REPO / "history" / "v1" / "README.md").read_text(encoding="utf-8").lower()
         self.assertRegex(readme, r"not loaded")
         self.assertRegex(readme, r"not shipped")

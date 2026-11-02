@@ -69,7 +69,7 @@ Out:
 
 `python3 scripts/v2_site_test.py` and every suite in `v2-ci.yml` pass:
 
-1. Every moved path exists under `history/v1/` at its relative path, none remains at the old path, and `history/v1/README.md` says it is neither loaded nor shipped.
+1. Every moved path exists under `history/v1/` at its relative path. None remains at the old path, except the four v1 pages a v2 page replaces, which must differ from their copy, and `history/v1/README.md` says it is neither loaded nor shipped.
 2. The `mkdocs.yml` nav lists exactly `index.md`, `quickstart.md`, the six concept pages, `migration-v1-to-v2.md` and `faq.md`. Every listed file exists, and no Markdown file under `docs/` is outside the nav.
 3. No page under `docs/` except the migration guide names `PRD`, `ADR`, `gate block`, `SYSTEM_ARTIFACT`, `ROADMAP`, `hard rule`, `reviewer panel` or `workflow.md`.
 4. Each concept page names its source of truth from Scope, and `quickstart.md` names the six steps in order with each skill and script.
@@ -81,6 +81,7 @@ Exercised: `uv run --offline --with mkdocs-material mkdocs build --strict --site
 
 - Mode Contract, and the full v2 site: the human, 2026-11-02.
 - The red tests in `scripts/v2_site_test.py`, approved and locked: the human, 2026-11-02. Test 5 passes today by design: it guards the links of the rewritten site.
+- test_1 corrected after the loop's BLOCKED, and re-approved by the human, 2026-11-02. Four v1 pages are replaced by v2 pages at the same path (`docs/index.md`, `quickstart.md`, `faq.md`, `concepts/siblings.md`), so each must differ from its `history/v1/` copy instead of being absent.
 
 ## Stop and escalate
 
