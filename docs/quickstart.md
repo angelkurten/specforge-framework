@@ -1,6 +1,6 @@
 # Quickstart
 
-A first change, step by step. The steps, in order: classify, contract, red, loop, review, compose. Each step has a skill that runs it and, from the third on, a script that checks it.
+A first change, step by step. The steps, in order: classify, contract, red, loop, review, compose. Skills run the steps and scripts check them; the details are below.
 
 1. **Classify.** Describe the change to the agent. The `specforge-classify` skill rates risk and uncertainty and proposes a mode (see [Modes](concepts/modes.md)). You confirm or correct it. For Contract or Controlled it scaffolds `specforge/changes/<YYYY-MM-DD>-<slug>/` with a contract copied from `templates/contract.md`.
 2. **Contract.** Fill in the contract: outcome, scope, context, constraints, premises and acceptance evidence. It fits on one screen. See [Contract](concepts/contract.md).

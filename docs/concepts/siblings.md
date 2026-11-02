@@ -15,4 +15,4 @@ specforge lives beside the code repositories it governs, as a sibling directory:
 
 ## Briefing
 
-A sub-agent working in a sibling is briefed explicitly with that sibling's own `CLAUDE.md`; specforge does not load it for you. See [Loop](loop.md) for the full agent command.
+A sub-agent working in a sibling is briefed explicitly with that sibling's own `CLAUDE.md`; specforge does not load it for you. The loop's agent loads it through `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1`; an agent the lead dispatches is briefed with it. See [Loop](loop.md) for the full agent command.

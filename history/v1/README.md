@@ -4,4 +4,4 @@ This folder holds the frozen first version of the framework: the PRDs, the ADR a
 
 It is not loaded into any session and not shipped in the npm package. It stays readable as a record.
 
-Paths inside these files are relative to `history/v1/`, so the PRDs and the corpus they reference still resolve together.
+Paths inside these files are relative to `history/v1/`, so the PRDs and the corpus they reference resolve together. Two kinds of link no longer resolve: those to `SIBLINGS.md`, which stays at the repository root, and those to the `.claude/` files that change 3a moved out of the root tree.

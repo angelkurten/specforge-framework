@@ -9,8 +9,8 @@
 - [x] scripts/v2_site_test.py test_3 and test_4 (no v1 vocabulary outside the migration guide; each page names its source of truth from the contract's Scope; draw content from specforge/core/, templates/contract.md, the skills, CLAUDE.md and the migration guide)
 - [x] scripts/v2_site_test.py test_5 (every relative link under docs/ resolves; keep it passing)
 - [x] `v2_site_test` is in `.github/workflows/v2-ci.yml`; every suite listed there passes; `pnpm --dir tools/cli test` passes
-- [ ] scripts/v2_site_fix_test.py test_6, test_7 and test_8 (mkdocs.yml site_description; history/v1/README.md names the dangling links; repoint every relative link in CHANGELOG.md to where its target now is, under history/v1/ — change only the link targets)
-- [ ] scripts/v2_site_fix_test.py test_9 and test_10 (correct the concept pages, faq.md, quickstart.md and concepts/siblings.md against specforge/core/{modes,loop,review,compose}.md, templates/contract.md and the skills); add `v2_site_fix_test` to `.github/workflows/v2-ci.yml`; every suite there passes
+- [x] scripts/v2_site_fix_test.py test_6, test_7 and test_8 (mkdocs.yml site_description; history/v1/README.md names the dangling links; repoint every relative link in CHANGELOG.md to where its target now is, under history/v1/ — change only the link targets)
+- [x] scripts/v2_site_fix_test.py test_9 and test_10 (correct the concept pages, faq.md, quickstart.md and concepts/siblings.md against specforge/core/{modes,loop,review,compose}.md, templates/contract.md and the skills); add `v2_site_fix_test` to `.github/workflows/v2-ci.yml`; every suite there passes
 
 ## Blocked
 
@@ -21,3 +21,5 @@ task 2: nav and the ten v2 pages already in the tree (uncommitted); `python3 scr
 task 3: pages from task 2 already satisfy the vocabulary and source-of-truth checks; `python3 scripts/v2_site_test.py` returned 5 tests OK (test_3 and test_4 included).
 task 4: links already resolve; `python3 scripts/v2_site_test.py` returned 5 tests OK (test_5 included).
 task 5: added v2_site_test to v2-ci.yml; every v2-ci Python suite exited 0 and `pnpm --dir tools/cli test` returned 42 files, 272 tests passed.
+task 6: repointed CHANGELOG links to history/v1/ (the one dead `../NNN-title.md` placeholder, a quoted example, split out of link syntax), new site_description, README names the dangling links; `python3 scripts/v2_site_fix_test.py` test_6, test_7 and test_8 returned ok.
+task 7: corrected concept pages, faq, quickstart, siblings; added v2_site_fix_test to v2-ci.yml; `python3 scripts/v2_site_fix_test.py` returned 5 tests OK, every v2-ci suite exited 0, `mkdocs build --strict` exited 0.

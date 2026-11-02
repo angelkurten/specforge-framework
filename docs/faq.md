@@ -2,7 +2,7 @@
 
 ## Do I need a contract for every change?
 
-No. `Direct` changes are small, reversible and obvious, and get one edge test and no contract. See [Modes](concepts/modes.md).
+No. `Direct` changes are small, reversible and obvious, and get one edge test (none when the change has no input, such as a copy fix) and no contract. See [Modes](concepts/modes.md).
 
 ## Who approves the tests?
 

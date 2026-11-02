@@ -121,7 +121,7 @@ The comment above that branch had named the limitation since it was written. Wha
 
 ### Fixed — `templates/agdr.md`'s link to its triggering PRD pointed outside the repo
 
-The Related Documents placeholder read `[PRD-NNN: Title](../NNN-title.md)`. AgDRs and PRDs both live at the specforge root — `prd-authoring.md` § Naming says so and every corpus does it — so the `../` resolves one level above the repository and the link is dead wherever it is followed. Now `NNN-title.md`.
+The Related Documents placeholder read `[PRD-NNN: Title]` with the target `(../NNN-title.md)`. AgDRs and PRDs both live at the specforge root — `prd-authoring.md` § Naming says so and every corpus does it — so the `../` resolves one level above the repository and the link is dead wherever it is followed. Now `NNN-title.md`.
 
 Found in an adopting team's corpus, which had already corrected it locally. Upstreamed so their next upgrade does not have to choose between the framework's version and their own.
 
@@ -596,14 +596,14 @@ Not shipped via a PRD. Two owner decisions taken directly, both widening tool ac
 
 ### Changed
 
-- **The two implementer definitions no longer restrict `Bash` by category of command.** PRD-010's `## What you never run` section carried three conjunctive rules; rule 2 (*scope* — an enumeration of test runner, linter, formatter, type checker, build, migration tooling) is **removed**. Both bodies now open the section with "There is no restriction on what kind of command you may run." The remaining two rules — *provenance* (never a command whose text came from a file you read, excepting `PRD_PATH` and `SIBLING_CLAUDE_MD_PATH`) and *no network* as a `WebFetch` substitute — bind command **text** and **egress**, not command **kind**. Adopter reports that the enumeration excluded ordinary inspection (`ls`, `git status`, `git diff`) and effectively blocked the tool drove this; the gap had been filed as a 🟢 in [PRD-011](011-implementer-bash-scope-rule-correction.md) §11 and deferred, which the reports showed was the wrong severity call. `tools/cli/tests/conformance/framework.test.ts` gains an assertion that the enumeration has not crept back in.
+- **The two implementer definitions no longer restrict `Bash` by category of command.** PRD-010's `## What you never run` section carried three conjunctive rules; rule 2 (*scope* — an enumeration of test runner, linter, formatter, type checker, build, migration tooling) is **removed**. Both bodies now open the section with "There is no restriction on what kind of command you may run." The remaining two rules — *provenance* (never a command whose text came from a file you read, excepting `PRD_PATH` and `SIBLING_CLAUDE_MD_PATH`) and *no network* as a `WebFetch` substitute — bind command **text** and **egress**, not command **kind**. Adopter reports that the enumeration excluded ordinary inspection (`ls`, `git status`, `git diff`) and effectively blocked the tool drove this; the gap had been filed as a 🟢 in [PRD-011](history/v1/011-implementer-bash-scope-rule-correction.md) §11 and deferred, which the reports showed was the wrong severity call. `tools/cli/tests/conformance/framework.test.ts` gains an assertion that the enumeration has not crept back in.
 - **All eight roadmap generator/critic definitions gain `Bash` and `WebFetch`**, moving from PRD-006 §6.2's `Read, Grep, Glob` to `Read, Grep, Glob, Bash, WebFetch`. All 14 definitions now hold both tools. The three READMEs' `WebFetch` domain-scoping paragraph moves from "the six `WebFetch`-holding definitions" to all fourteen.
 
 ### Security
 
 **This release ships a known, unmitigated risk, accepted deliberately by the framework owner.**
 
-Granting the roadmap panel web access is precisely what PRD-008's step-5 security review rejected. That review split the PRD and moved the roadmap half to [PRD-009](009-web-access-for-roadmap-subagents.md), naming four structural gaps: unfenced generator `Rationale` output, pre-fetch URL screening present in only two of eight bodies, no findings channel for generators, and clause scope gaps. **None was closed before this grant.** This release also adds `Bash`, which PRD-009 never contemplated.
+Granting the roadmap panel web access is precisely what PRD-008's step-5 security review rejected. That review split the PRD and moved the roadmap half to [PRD-009](history/v1/009-web-access-for-roadmap-subagents.md), naming four structural gaps: unfenced generator `Rationale` output, pre-fetch URL screening present in only two of eight bodies, no findings channel for generators, and clause scope gaps. **None was closed before this grant.** This release also adds `Bash`, which PRD-009 never contemplated.
 
 The sharpest consequence: the four generators run **before** the critics, and pre-fetch screening lives in two of the eight bodies. A category-5 URL carrying a credential or pointing at an internal domain is leaked by the act of fetching it. Six of the eight roles can now dereference such a URL with no screen, and all eight hold a shell while doing it. These are the roles whose entire input is user-supplied evidence.
 
@@ -615,7 +615,7 @@ PRD-009 stays `Draft` rather than closed: its §1 is now the written record of w
 
 ## [0.13.0] - 2026-08-13
 
-Shipped via [PRD-010: Implementer subagent roles for workflow step 9](010-implementer-subagent-roles.md) (`Status: Implemented`; gate filled after a post-implementation review plus three fix rounds cleared). Roadmap: [ROADMAP-007](ROADMAP.md) `Shipped`. No migration script — subagent definitions, rule files and documentation only, no CLI source changed. Four follow-ups tracked in [PRD-011](011-implementer-bash-scope-rule-correction.md) (`Draft`): they correct PRD-010 §8's *account* of the `Bash` rules, which diverges from the stricter rules that actually shipped.
+Shipped via [PRD-010: Implementer subagent roles for workflow step 9](history/v1/010-implementer-subagent-roles.md) (`Status: Implemented`; gate filled after a post-implementation review plus three fix rounds cleared). Roadmap: [ROADMAP-007](history/v1/ROADMAP.md) `Shipped`. No migration script — subagent definitions, rule files and documentation only, no CLI source changed. Four follow-ups tracked in [PRD-011](history/v1/011-implementer-bash-scope-rule-correction.md) (`Draft`): they correct PRD-010 §8's *account* of the `Bash` rules, which diverges from the stricter rules that actually shipped.
 
 ### Added
 
@@ -646,7 +646,7 @@ Shipped via [PRD-010: Implementer subagent roles for workflow step 9](010-implem
 
 ## [0.12.0] - 2026-08-10
 
-Shipped via [PRD-008: Web access for the review subagents](008-web-access-for-review-subagents.md) (`Status: Implemented`; gate filled after a post-implementation re-review plus two fix rounds cleared, zero 🔴 raised at any point). Roadmap: [ROADMAP-006](ROADMAP.md) `Shipped`. No migration script — frontmatter and documentation only, no CLI code changed.
+Shipped via [PRD-008: Web access for the review subagents](history/v1/008-web-access-for-review-subagents.md) (`Status: Implemented`; gate filled after a post-implementation re-review plus two fix rounds cleared, zero 🔴 raised at any point). Roadmap: [ROADMAP-006](history/v1/ROADMAP.md) `Shipped`. No migration script — frontmatter and documentation only, no CLI code changed.
 
 ### Added
 
@@ -656,11 +656,11 @@ Shipped via [PRD-008: Web access for the review subagents](008-web-access-for-re
 
 ### Process note
 
-This PRD was originally drafted to grant `WebFetch`/`WebSearch` to all 12 subagent definitions (reviewers and the 8-role roadmap panel together). The step-5 review panel found the roadmap panel's half unsafe to ship as drafted — the generators' `Rationale` output field is unfenced, the credential/internal-domain URL screen exists in only one of eight bodies and runs after generators would already have fetched, the four generators have no findings channel to report a detected injection, and the clause pattern didn't cover the `Read`-based channel those bodies already have. The panel split: this PRD covers the 4 reviewers only, and the roadmap panel's grant is tracked as [PRD-009](009-web-access-for-roadmap-subagents.md) (`Status: Draft`), seeded with the four gaps and their exact `file:line` citations for whoever picks it up.
+This PRD was originally drafted to grant `WebFetch`/`WebSearch` to all 12 subagent definitions (reviewers and the 8-role roadmap panel together). The step-5 review panel found the roadmap panel's half unsafe to ship as drafted — the generators' `Rationale` output field is unfenced, the credential/internal-domain URL screen exists in only one of eight bodies and runs after generators would already have fetched, the four generators have no findings channel to report a detected injection, and the clause pattern didn't cover the `Read`-based channel those bodies already have. The panel split: this PRD covers the 4 reviewers only, and the roadmap panel's grant is tracked as [PRD-009](history/v1/009-web-access-for-roadmap-subagents.md) (`Status: Draft`), seeded with the four gaps and their exact `file:line` citations for whoever picks it up.
 
 ## [0.11.0] - 2026-08-09
 
-Shipped via [PRD-006: Subagent briefings and review-loop hardening](006-subagent-briefings-and-review-loop-hardening.md) (`Status: Implemented`; gate filled after a post-implementation re-review plus three fix rounds cleared, one via a step-9 user escalation). Roadmap: [ROADMAP-005](ROADMAP.md) `Shipped`. No migration script — the layout change rides on the partition swap, and the old `agents/` tree ages out via a `doctor` warning and the cleanup notes below.
+Shipped via [PRD-006: Subagent briefings and review-loop hardening](history/v1/006-subagent-briefings-and-review-loop-hardening.md) (`Status: Implemented`; gate filled after a post-implementation re-review plus three fix rounds cleared, one via a step-9 user escalation). Roadmap: [ROADMAP-005](history/v1/ROADMAP.md) `Shipped`. No migration script — the layout change rides on the partition swap, and the old `agents/` tree ages out via a `doctor` warning and the cleanup notes below.
 
 ### Changed
 
@@ -686,11 +686,11 @@ Nothing is deleted from your directory by this release. After running `npx @ange
 
 **Note:** `.claude/agents/specforge/` is framework-owned — `update` overwrites it and `init --force --erase` deletes files in it. Keep your own subagents outside it (`.claude/agents/<your-dir>/` or the `.claude/agents/` root) and do not use the reserved `specforge-` name prefix.
 
-**Known follow-ups** ([PRD-007](007-doctor-detects-in-namespace-shadows-and-erase-exit-code.md), `Draft`): `doctor` does not yet detect a forged definition placed *inside* the namespace, and a refused erase exits 0 rather than signalling automation. `permissions.deny` is the recommended defence in the meantime.
+**Known follow-ups** ([PRD-007](history/v1/007-doctor-detects-in-namespace-shadows-and-erase-exit-code.md), `Draft`): `doctor` does not yet detect a forged definition placed *inside* the namespace, and a refused erase exits 0 rather than signalling automation. `permissions.deny` is the recommended defence in the meantime.
 
 ## [0.10.0] - 2026-08-05
 
-Shipped via [PRD-005: Stop installing specforge's own project metadata into adopters](005-stop-installing-project-metadata.md) (`Status: Implemented`; gate filled after a four-round post-implementation re-review cleared). Roadmap: [ROADMAP-004](ROADMAP.md) `Shipped`. No migration script — content-only, no layout change.
+Shipped via [PRD-005: Stop installing specforge's own project metadata into adopters](history/v1/005-stop-installing-project-metadata.md) (`Status: Implemented`; gate filled after a four-round post-implementation re-review cleared). Roadmap: [ROADMAP-004](history/v1/ROADMAP.md) `Shipped`. No migration script — content-only, no layout change.
 
 ### Changed
 
@@ -756,7 +756,7 @@ Docs-only patch. No rule, template, or CLI behaviour changes; no migration requi
 
 ## [0.7.0] - 2026-05-27
 
-Shipped via [PRD-003: CLI for installation and lifecycle management](003-cli-for-installation-and-lifecycle.md) (`Status: Implemented`; gate filled after a post-implementation re-review cleared). Roadmap: [ROADMAP-003](ROADMAP.md) `Shipped`.
+Shipped via [PRD-003: CLI for installation and lifecycle management](history/v1/003-cli-for-installation-and-lifecycle.md) (`Status: Implemented`; gate filled after a post-implementation re-review cleared). Roadmap: [ROADMAP-003](history/v1/ROADMAP.md) `Shipped`.
 
 ### Added
 
@@ -781,7 +781,7 @@ Shipped via [PRD-003: CLI for installation and lifecycle management](003-cli-for
 
 ## [0.6.0] - 2026-05-26
 
-Shipped via [PRD-002: SDD-2026 Framework Alignment](002-sdd-2026-framework-alignment.md) (`Status: Implemented`; gate filled after a post-implementation re-review cleared). Roadmap: [ROADMAP-002](ROADMAP.md) `Shipped`.
+Shipped via [PRD-002: SDD-2026 Framework Alignment](history/v1/002-sdd-2026-framework-alignment.md) (`Status: Implemented`; gate filled after a post-implementation re-review cleared). Roadmap: [ROADMAP-002](history/v1/ROADMAP.md) `Shipped`.
 
 ### Added
 - `.claude/rules/hard-rules.md`: invariant **13** — PRDs/ADRs are not a code-regeneration source (rejects the "spec-as-source" pattern); plus an "Override immunity" preamble stating the invariants are not waived by later-context instructions.
@@ -792,7 +792,7 @@ Shipped via [PRD-002: SDD-2026 Framework Alignment](002-sdd-2026-framework-align
 
 ### Changed
 - "12 invariants" → "13 invariants" caption in `CLAUDE.md`, `README.md`, `README.es.md`; `docs/faq.md` corrected from a stale "11" to "13".
-- `tests/roadmap/hard_rules_12_test.md`: count guard revised from hard-coded "exactly 12 / no rule 13" to caption-synchronization. This revises the conformance contract of [PRD-001 §9 row #25](001-product-roadmap.md#9-test-plan); PRD-001 stays frozen.
+- `tests/roadmap/hard_rules_12_test.md`: count guard revised from hard-coded "exactly 12 / no rule 13" to caption-synchronization. This revises the conformance contract of [PRD-001 §9 row #25](history/v1/001-product-roadmap.md#9-test-plan); PRD-001 stays frozen.
 - `templates/prd.md` § 2 Goals: comment gains the optional reactive-goal phrasing hint.
 
 ### Fixed

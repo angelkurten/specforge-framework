@@ -12,7 +12,7 @@ A change in Contract or Controlled mode is built by an agent running in a loop, 
 | `progress.md` | Budget, tasks, blocked line and log. |
 | `locked-tests.txt` | One hash per approved test. |
 
-Every iteration is a fresh agent process that reads the contract and the progress file and nothing else. There is no long context to degrade.
+Every iteration is a fresh agent process that reads `contract.md` and `progress.md` and nothing from the previous session. There is no long context to degrade.
 
 ## Phases
 

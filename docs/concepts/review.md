@@ -13,13 +13,13 @@ After the loop, a reviewer that did not write the change looks for ways it break
 
 - **Contract.** Every scenario has a test that would fail without the change, nothing falls outside Scope, every Constraint holds.
 - **Tests.** None passes trivially or is tied to the implementation.
-- **Evidence.** It re-runs the commands and compares the output.
-- **Exercised.** A change with user-visible behaviour shows that path run against the real system, in a browser or a real client. A missing Exercised entry on that path is a blocker.
+- **Evidence.** It re-runs the commands, compares the output and reads the CI runs the report names. A missing, red or unnamed run is a blocker.
+- **Exercised.** A change with user-visible behaviour shows that path run against the real system, in a browser or a real client. A `Not checked` entry on that path is a blocker, and so is a missing `Exercised` line or `none — …` written for a change that has such a path.
 - **Security and edge checklists**, for high risk and for every Contract change respectively.
 
 ## Design mode
 
-Before red, for Controlled changes and for high-risk Contract changes that touch design, the reviewer runs in design mode: it reads the contract and the code it names, with no diff, once per perspective (backend, security, quality). Its findings go into the contract before any test is written.
+Before red, design mode is required in Controlled mode and optional for a high-risk Contract change that touches design. The reviewer then runs in design mode: it reads the contract and the code it names, with no diff, once per perspective (backend, security, quality). Its findings go into the contract before any test is written.
 
 ## Report
 

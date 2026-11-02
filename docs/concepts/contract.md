@@ -31,4 +31,4 @@ Each scenario becomes a failing test before any code is written. A scenario that
 
 ## Retired tests
 
-A change that retires a feature declares each test it deletes, one bullet per path with the reason after an em dash. The reviewer reports each as should-fix and the human confirms it. Next: [Loop](loop.md).
+A change that retires a feature declares each test it deletes, one bullet per path with the reason after an em dash. `review_prep.py` reports each as should-fix and the human confirms it. Next: [Loop](loop.md).

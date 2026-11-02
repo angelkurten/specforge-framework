@@ -1,5 +1,5 @@
 site_name: specforge
-site_description: A framework for writing rigorous specifications (PRDs and ADRs) with AI as the primary author. Stack-agnostic, domain-agnostic, human-in-the-loop.
+site_description: A framework for changing software with AI as the primary author, under a written contract and tests a human approved (specforge EVA). Stack-agnostic, domain-agnostic.
 site_url: https://angelkurten.github.io/specforge-framework/
 site_author: Angel Kürten
 repo_url: https://github.com/angelkurten/specforge-framework

@@ -16,11 +16,13 @@ Take the first row that matches:
 | Order | Mode | When |
 |---|---|---|
 | 1 | `Explore` | High uncertainty, at any risk. A throwaway prototype, then a contract. |
-| 2 | `Controlled` | High risk and the flag is yes. Adds a design panel before red. |
+| 2 | `Controlled` | High risk and the flag is yes. Adds design mode review before red. |
 | 3 | `Direct` | Low risk and trivial: at most two files besides its edge test. |
 | 4 | `Contract` | Everything else. |
 
 ## The proposal
+
+A refactor with no stated scope is `unsure` until it has a scope in one sentence; a `Direct` change has no behaviour beyond what one sentence states.
 
 The agent proposes, a human confirms. The proposal names the signal behind each axis, so a correction can say which signal was wrong:
 

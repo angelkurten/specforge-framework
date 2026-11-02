@@ -17,11 +17,11 @@ Take the lowest rung that would have caught the lesson without a human noticing:
 | 1 test | A test or automatic check that fails if the error comes back. |
 | 2 rule | A linter, structural test, hook or CI job. |
 | 3 example | A canonical example the agent can imitate. |
-| 4 instruction | One concise line in `CLAUDE.md` or a skill. |
+| 4 instruction | One concise line in `AGENTS.md`, `CLAUDE.md` or a skill. |
 | 5 doc | Documentation, only when nothing above can help. |
 
 Climbing above rung 1 takes one line saying why the lower rungs cannot catch it.
 
 ## Record
 
-`compose.md` in the change folder holds one table: lesson, rung, artifact, why not lower. `compose_check.py` refuses the record when a rung is invalid, an artifact does not exist, a climb has no reason, or a rung-1 artifact is not a test. `archive.py` refuses a change whose record the script refuses.
+`compose.md` in the change folder holds one table: lesson, rung, artifact, why not lower. `compose_check.py` refuses the record when a rung is invalid, an artifact does not exist, a climb has no reason, a rung-1 artifact is not a test, or a rung-4 `AGENTS.md` or `CLAUDE.md` is over 80 lines (past that, an instruction becomes a skill or a rule). `archive.py` refuses a change whose record the script refuses.
