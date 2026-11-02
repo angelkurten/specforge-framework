@@ -14,18 +14,25 @@
   - **Loop.**
     - **Run 1** stopped at iteration 2 with exit 5 (`BLOCKED`), at 0.76 USD. The block was right. The lead's test_1 required the four v1 pages that a v2 page replaces at the same path to be gone, while tests 2 and 4 required the v2 pages there.
     - **Fix.** The lead corrected test_1: a replaced page must differ from its `history/v1/` copy. The human re-approved the lock in `6ee5868`.
-    - **Run 2.** 4 more iterations, 6 in all, 5/5 tasks, exit 0, 1.61 USD cumulative (`loop-runs.txt`).
+    - **Run 2.** 4 more iterations, 6 in all, 5/5 tasks, exit 0, 1.61 USD cumulative.
+    - **Fix round, after review.** 2 more iterations, 7/7 tasks, exit 0, 2.27 USD cumulative (`loop-runs.txt`). Its 5 tests failed on `43f0740` first.
   - **Suites.**
-    - All 56 v2 suites pass, `v2_site_test` included.
+    - All 57 v2 suites pass, `v2_site_test` and `v2_site_fix_test` included.
     - `pnpm test` passes 272 of 272.
   - **Invisible characters.** The scan finds one U+200F in `history/v1/015-teamtasks-teams-and-membership.md`. That frozen PRD is byte-identical to its copy at HEAD before the move, so the character predates this change.
 - **Exercised**:
   - The site is the user-visible path. `mkdocs build --strict` exited 0 offline, into a scratch `site_dir`: "Documentation built in 0.16 seconds", with no warning, which `--strict` would have made fatal.
   - The built pages have their headings. `index.html` has `specforge EVA` and 3 sections, `quickstart/index.html` has `Quickstart`, `concepts/review/index.html` has `Review` and 4 sections, and `concepts/siblings/index.html` has `Sibling projects` and 3 sections.
-  - The scratch site was deleted.
-- **CI**: on `326450f`, the last code commit, pushed alone: `v2-ci` run 41468018156 and `cli-ci` run 41468017840, both success.
+  - After the fix round, the strict build passed again (0.12 seconds), and the built `index.html` meta description now describes v2. The scratch sites were deleted.
+- **CI**: on `d5c7d7a`, the last code commit (the fix round), pushed alone: `v2-ci` run 41473887843 and `cli-ci` run 41473887735, both success. On `326450f`, pushed alone: `v2-ci` run 41468018156 and `cli-ci` run 41468017840, both success.
 - **Not checked**:
   - The published site: `docs.yml` deploys only from main, at the release.
   - The site in a browser. The built HTML was checked for headings, not rendered.
 - **Deviations from the contract**:
   - **test_1 corrected and re-approved during the change**, after the loop's BLOCKED. The loop did not touch the locked test.
+  - **The lock was re-approved without `lock_tests.py unlock --reason`.** In `6ee5868` the lead ran `approve` over the corrected test, so the lock's history has no `# unlocked …: <reason>` line. The human confirmed the change, and the reason is recorded in the contract's Approvals and here. A later re-approval should go through `unlock --reason` (review should-fix, accepted as recorded).
+  - **One `CHANGELOG.md` line was reworded, not only repointed.** The 0.x entry quoting the placeholder `[PRD-NNN: Title](../NNN-title.md)` inside a code span now reads `[PRD-NNN: Title]` with the target `(../NNN-title.md)`, because `v2_site_fix_test` test_8's link pattern does not skip code spans. The meaning is unchanged. Every other changelog hunk only repoints a link into `history/v1/`.
+  - **Review (PASS, seven should-fix, seven nits).**
+    - **Fixed by the fix round.** Site metadata (scenario 6), history links (7), changelog links (8), and the page accuracy items (9-10).
+    - **Recorded, not fixed.** The re-lock without a reason (above).
+    - **Nit accepted.** The step-order check in the locked `v2_site_test.py` passes on the summary sentence.
