@@ -1,0 +1,31 @@
+## Evidence
+
+- **Ran**:
+  - The two premise commands, by hand, before Red.
+  - `python3 specforge/scripts/loop.py specforge/changes/2026-11-02-v1-history-and-v2-site --max-iterations 14 --max-cost 6`, twice, with `claude -p --output-format json --model sonnet --permission-mode acceptEdits` and `--allowedTools=Bash(python3 *),Bash(git diff *),Bash(git status *),Bash(git log *),Bash(pnpm --dir tools/cli test)`.
+  - By the lead:
+    - every suite in `v2-ci.yml`;
+    - `pnpm test` in `tools/cli`;
+    - `uv run --offline --with mkdocs-material mkdocs build --strict --site-dir <scratch>`;
+    - a scan for invisible characters in the 88 changed files.
+- **Result**:
+  - **Premises.** Both hold.
+  - **Red.** Tests 1-4 failed on `a8e9a1c`. Test 5 passed by design, as a guard on the links of the rewritten site.
+  - **Loop.**
+    - **Run 1** stopped at iteration 2 with exit 5 (`BLOCKED`), at 0.76 USD. The block was right. The lead's test_1 required the four v1 pages that a v2 page replaces at the same path to be gone, while tests 2 and 4 required the v2 pages there.
+    - **Fix.** The lead corrected test_1: a replaced page must differ from its `history/v1/` copy. The human re-approved the lock in `6ee5868`.
+    - **Run 2.** 4 more iterations, 6 in all, 5/5 tasks, exit 0, 1.61 USD cumulative (`loop-runs.txt`).
+  - **Suites.**
+    - All 56 v2 suites pass, `v2_site_test` included.
+    - `pnpm test` passes 272 of 272.
+  - **Invisible characters.** The scan finds one U+200F in `history/v1/015-teamtasks-teams-and-membership.md`. That frozen PRD is byte-identical to its copy at HEAD before the move, so the character predates this change.
+- **Exercised**:
+  - The site is the user-visible path. `mkdocs build --strict` exited 0 offline, into a scratch `site_dir`: "Documentation built in 0.16 seconds", with no warning, which `--strict` would have made fatal.
+  - The built pages have their headings. `index.html` has `specforge EVA` and 3 sections, `quickstart/index.html` has `Quickstart`, `concepts/review/index.html` has `Review` and 4 sections, and `concepts/siblings/index.html` has `Sibling projects` and 3 sections.
+  - The scratch site was deleted.
+- **CI**: on `326450f`, the last code commit, pushed alone: `v2-ci` run 41468018156 and `cli-ci` run 41468017840, both success.
+- **Not checked**:
+  - The published site: `docs.yml` deploys only from main, at the release.
+  - The site in a browser. The built HTML was checked for headings, not rendered.
+- **Deviations from the contract**:
+  - **test_1 corrected and re-approved during the change**, after the loop's BLOCKED. The loop did not touch the locked test.
