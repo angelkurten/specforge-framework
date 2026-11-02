@@ -98,7 +98,7 @@ Out:
 
 ## Premises
 
-- 16 validators are registered today — `sed -n '/ALL_VALIDATORS: ReadonlyArray/,/^\];/p' tools/cli/src/validators/index.ts | grep -cE "^  [a-zA-Z]+,$"` (16) → holds
+- 16 validators are registered today — `sed -n '/ALL_VALIDATORS: ReadonlyArray/,/^\];/p' tools/cli/src/validators/index.ts | grep -cE "^  [a-zA-Z]+,$"` → holds
 - cli-ci passes --ignore-sibling to doctor — `grep -n "ignore-sibling" .github/workflows/cli-ci.yml` → holds
 
 ## Acceptance evidence
